@@ -36,13 +36,13 @@ export function Fleet() {
             >
               <div className="mb-3 flex items-start justify-between">
                 <div className="flex items-center gap-2">
-                  <Cpu className="h-4 w-4 text-[var(--color-text-dim)]" />
+                  <Cpu className="h-4 w-4 text-[var(--color-text-dim)]" aria-hidden="true" />
                   <span className="mono text-sm font-semibold">{d.device_id}</span>
                 </div>
                 {d.is_drifting ? (
-                  <WifiOff className="h-4 w-4 text-[var(--color-risk-med)]" />
+                  <WifiOff className="h-4 w-4 text-[var(--color-risk-med)]" role="img" aria-label="drifting" />
                 ) : (
-                  <Wifi className="h-4 w-4 text-[var(--color-accent)]" />
+                  <Wifi className="h-4 w-4 text-[var(--color-accent)]" role="img" aria-label="stable" />
                 )}
               </div>
               <div className="mb-3 text-xs text-[var(--color-text-dim)]">{d.device_type}</div>

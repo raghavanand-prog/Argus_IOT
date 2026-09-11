@@ -41,6 +41,40 @@ export function RiskBar({ terms }: { terms: Record<string, number> }) {
   );
 }
 
+export function AttributionChart({ contributions }: { contributions: { name: string; value: number; contribution: number }[] }) {
+  const maxAbs = Math.max(...contributions.map((c) => Math.abs(c.contribution)), 0.001);
+  return (
+    <div className="space-y-2" role="img" aria-label="SHAP feature attribution chart">
+      {contributions.map((c) => {
+        const positive = c.contribution >= 0;
+        const widthPct = (Math.abs(c.contribution) / maxAbs) * 100;
+        return (
+          <div key={c.name} className="flex items-center gap-2 text-xs">
+            <span className="mono w-40 shrink-0 truncate text-[var(--color-text-dim)]" title={c.name}>
+              {c.name}
+            </span>
+            <div className="flex h-4 flex-1 items-center">
+              <div className="relative h-full flex-1 overflow-hidden rounded bg-[var(--color-surface-2)]">
+                <div
+                  className="h-full rounded"
+                  style={{
+                    width: `${widthPct}%`,
+                    background: positive ? "var(--color-risk-high)" : "var(--color-accent)",
+                    marginLeft: positive ? "0" : "auto",
+                  }}
+                />
+              </div>
+            </div>
+            <span className="mono w-16 shrink-0 text-right" style={{ color: positive ? "var(--color-risk-high)" : "var(--color-accent)" }}>
+              {positive ? "+" : ""}{c.contribution.toFixed(3)}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export function StateBadge({ state }: { state: string }) {
   const colors: Record<string, string> = {
     MONITORED: "var(--color-accent)",
