@@ -38,7 +38,7 @@ export function Control() {
 
       <section className="mb-6 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
         <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold">
-          <KeyRound className="h-4 w-4" /> Admin token
+          <KeyRound className="h-4 w-4" aria-hidden="true" /> Admin token
         </h2>
         <p className="mb-3 text-xs text-[var(--color-text-dim)]">
           Required for the kill switch and replay actions. Matches <code className="mono">ARGUS_ADMIN_TOKEN</code> in
@@ -64,7 +64,7 @@ export function Control() {
       <section className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
           <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold">
-            <Power className="h-4 w-4" /> Enforcement mode
+            <Power className="h-4 w-4" aria-hidden="true" /> Enforcement mode
           </h2>
           <p className="mono text-2xl font-bold" style={{ color: status?.enforce ? "var(--color-risk-high)" : "var(--color-accent)" }}>
             {status?.enforce ? "LIVE" : "DRY-RUN"}
@@ -77,7 +77,7 @@ export function Control() {
 
         <div className="rounded-xl border border-[var(--color-risk-critical)]/40 bg-[var(--color-surface)] p-5">
           <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-[var(--color-risk-critical)]">
-            <AlertOctagon className="h-4 w-4" /> Kill switch
+            <AlertOctagon className="h-4 w-4" aria-hidden="true" /> Kill switch
           </h2>
           <p className="mono mb-3 text-sm">
             {status?.kill_switch_engaged ? "ENGAGED — all enforcement vetoed" : "disengaged"}
@@ -104,7 +104,7 @@ export function Control() {
 
       <section className="mb-6 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
         <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold">
-          <Database className="h-4 w-4" /> Demo data
+          <Database className="h-4 w-4" aria-hidden="true" /> Demo data
         </h2>
         <p className="mb-3 text-xs text-[var(--color-text-dim)]">
           Runs the full simulated loop (enrollment → attack scenarios → detect → correlate → risk → evidence →

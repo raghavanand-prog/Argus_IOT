@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { api, type Incident } from "../lib/api";
-import { RiskBadge, RiskBar } from "../components/RiskBadge";
+import { api, type Incident, type ShapContribution } from "../lib/api";
+import { RiskBadge, RiskBar, AttributionChart } from "../components/RiskBadge";
 import { ErrorCard } from "./Fleet";
-import { X, PlayCircle, CheckCircle2, XCircle, Link2, ShieldCheck } from "lucide-react";
+import { X, PlayCircle, CheckCircle2, XCircle, Link2, ShieldCheck, BarChart3 } from "lucide-react";
 import { useAdminToken } from "../lib/token";
 
 export function Incidents() {
@@ -45,7 +45,16 @@ export function Incidents() {
                 <tr
                   key={inc.incident_id}
                   onClick={() => setSelected(inc)}
-                  className="cursor-pointer border-t border-[var(--color-border)] bg-[var(--color-surface)] transition-colors hover:bg-[var(--color-surface-2)]"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setSelected(inc);
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Open incident detail for ${inc.device_id}, scenario ${inc.scenario}, risk ${inc.risk_score?.toFixed(2) ?? "unknown"}`}
+                  className="cursor-pointer border-t border-[var(--color-border)] bg-[var(--color-surface)] transition-colors hover:bg-[var(--color-surface-2)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--color-accent)] focus-visible:-outline-offset-2"
                 >
                   <td className="mono px-4 py-2.5">{inc.device_id}</td>
                   <td className="px-4 py-2.5 text-[var(--color-text-dim)]">{inc.scenario}</td>
@@ -119,19 +128,41 @@ function IncidentDrawer({ incident, onClose }: { incident: Incident; onClose: ()
     mutationFn: () => api.replay(incident.bundle_id!, token),
   });
 
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const titleId = `incident-drawer-title-${incident.incident_id}`;
+
+  useEffect(() => {
+    closeButtonRef.current?.focus();
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [onClose]);
+
+  const attribution = bundle?.detection.attribution as ShapContribution[] | undefined;
+
   return (
     <div className="fixed inset-0 z-30 flex justify-end bg-black/50" onClick={onClose}>
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
         className="h-full w-full max-w-xl overflow-y-auto border-l border-[var(--color-border)] bg-[var(--color-surface)] p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-4 flex items-start justify-between">
           <div>
-            <h2 className="mono text-lg font-semibold">{incident.device_id}</h2>
+            <h2 id={titleId} className="mono text-lg font-semibold">{incident.device_id}</h2>
             <p className="text-xs text-[var(--color-text-dim)]">{incident.scenario} · {incident.chain_position}</p>
           </div>
-          <button onClick={onClose} className="rounded-md p-1 text-[var(--color-text-dim)] hover:bg-[var(--color-surface-2)]">
-            <X className="h-5 w-5" />
+          <button
+            ref={closeButtonRef}
+            onClick={onClose}
+            aria-label="Close incident detail"
+            className="rounded-md p-1 text-[var(--color-text-dim)] hover:bg-[var(--color-surface-2)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--color-accent)]"
+          >
+            <X className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
 
@@ -177,6 +208,19 @@ function IncidentDrawer({ incident, onClose }: { incident: Incident; onClose: ()
                 ))}
               </div>
             </section>
+
+            {attribution && attribution.length > 0 && (
+              <section className="mb-5">
+                <h3 className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-[var(--color-text-dim)]">
+                  <BarChart3 className="h-3.5 w-3.5" /> Attribution (SHAP)
+                </h3>
+                <p className="mb-2 text-[11px] text-[var(--color-text-dim)]">
+                  Top contributing features toward the ML detector's "attack" prediction, exact TreeSHAP
+                  values from the model that actually fired — not an approximation.
+                </p>
+                <AttributionChart contributions={attribution} />
+              </section>
+            )}
 
             <section className="mb-5">
               <h3 className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-[var(--color-text-dim)]">
