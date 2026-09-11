@@ -19,9 +19,9 @@ from argus.db.models import (
     RiskAssessmentRow, VerificationRow,
 )
 from argus.detect.ml import CalibratedDetector, ml_detections
-from argus.detect.rules import policy_detections, signature_detections
+from argus.detect.rules import identity_detections, policy_detections, signature_detections
 from argus.evidence.bundle import EvidenceLedger
-from argus.features.extract import extract_device_window
+from argus.features.extract import device_ja4_set, extract_device_window
 from argus.registry.enrollment import enroll
 from argus.respond.guard import ActionRateLimiter, KillSwitch
 from argus.respond.ladder import DryRunAdapter, decide_and_respond
@@ -32,6 +32,18 @@ from argus.verify.verification import verify
 
 ENFORCE = os.getenv("ARGUS_ENFORCE", "false").lower() == "true"
 CONFORMAL_ALPHA = float(os.getenv("ARGUS_CONFORMAL_ALPHA", "0.05"))
+
+# One representative device per scenario from default_fleet() (docs/02's full 7,
+# BUILD-ORDER.md's "never cut" two plus the five added once the core loop was solid).
+SCENARIO_DEVICES = {
+    "mirai": "smart-plug-00",
+    "low_and_slow": "smart-speaker-00",
+    "mqtt_abuse": "smart-lock-00",
+    "arp_spoof": "ip-camera-00",
+    "dns_tunnel": "smart-tv-00",
+    "identity_spoof": "doorbell-00",
+    "ota_spoof": "thermostat-00",
+}
 
 
 def _process_scenario(
@@ -164,7 +176,7 @@ def run_demo_pipeline(db: Session, seed: int = 42) -> dict:
     calib_fvs = [fv for fv in calib_fvs if fv.values]
     calib_labels = [0] * len(calib_fvs)
 
-    for scenario, dev_id in (("mirai", "smart-plug-00"), ("low_and_slow", "smart-speaker-00")):
+    for scenario, dev_id in SCENARIO_DEVICES.items():
         flows, _ = run_scenario(scenario, dev_id, t0, seed=seed + 3)
         windows = window_flows(flows, window_seconds=300)
         for w in windows:
@@ -178,10 +190,8 @@ def run_demo_pipeline(db: Session, seed: int = 42) -> dict:
 
     summary = {"incidents": 0, "bundles": 0, "actions": 0}
 
-    for scenario, dev_id, dev_type in (
-        ("mirai", "smart-plug-00", "smart-plug"),
-        ("low_and_slow", "smart-speaker-00", "smart-speaker"),
-    ):
+    for scenario, dev_id in SCENARIO_DEVICES.items():
+        dev_type = next(d.device_type for d in devices if d.device_id == dev_id)
         attack_start = t0 + timedelta(hours=2)
         flows, ground_truth = run_scenario(scenario, dev_id, attack_start, seed=seed + 10)
         windows = window_flows(flows, window_seconds=300)
@@ -196,9 +206,11 @@ def run_demo_pipeline(db: Session, seed: int = 42) -> dict:
                 dev, _ = deviation_score(baseline, fv)
                 deviation = max(deviation, dev)
                 drift_monitor.update(dev_id, fv.values)
+            observed_ja4 = device_ja4_set(dev_id, w_flows)
             detections += policy_detections(dev_id, dev_type, w_flows, w_start)
             detections += signature_detections(dev_id, fv, w_start)
             detections += ml_detections(dev_id, fv, detector, w_start)
+            detections += identity_detections(dev_id, observed_ja4, baseline, w_start)
 
         if not detections:
             continue

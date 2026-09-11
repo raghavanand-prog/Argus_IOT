@@ -30,6 +30,7 @@ class Baseline:
     medians: dict[str, float]
     mads: dict[str, float]  # median absolute deviation, robust to heavy-tailed IoT traffic
     destinations: dict[str, int]
+    ja4_fingerprints: frozenset[str] = frozenset()  # observed during enrollment; a new one later is a strong signal
 
 
 @dataclass
@@ -69,9 +70,11 @@ def enroll(device_id: str, device_type: str, flows_in_window: list, feature_wind
     dest_counts: dict[str, int] = {}
     for f in flows_in_window:
         dest_counts[f.dst_ip] = dest_counts.get(f.dst_ip, 0) + 1
+    ja4_fingerprints = frozenset(f.tls_ja4 for f in flows_in_window if f.tls_ja4)
 
     baseline = Baseline(
         device_id=device_id, device_type=device_type, version=1,
         built_at=datetime.utcnow(), medians=medians, mads=mads, destinations=dest_counts,
+        ja4_fingerprints=ja4_fingerprints,
     )
     return EnrollmentResult(device_id, DeviceState.MONITORED, baseline)

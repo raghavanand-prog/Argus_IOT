@@ -38,6 +38,8 @@ class AttackFlow:
     bytes_out: int
     bytes_in: int
     label: str
+    tls_ja4: str | None = None
+    dns_qname: str | None = None
 
 
 def run_mirai(device_id: str, t_start: datetime, rng: random.Random) -> tuple[list[AttackFlow], list[GroundTruthEvent]]:
@@ -110,4 +112,129 @@ def run_low_and_slow(device_id: str, t_start: datetime, rng: random.Random,
     return flows, events
 
 
-SCENARIOS = {"mirai": run_mirai, "low_and_slow": run_low_and_slow}
+def run_mqtt_abuse(device_id: str, t_start: datetime, rng: random.Random) -> tuple[list[AttackFlow], list[GroundTruthEvent]]:
+    """Topic enumeration, then an unauthorised publish to a control topic (docs/02
+    scenario 2: "broker interaction outside the device's declared policy" -- the
+    highest-precision detection in the system, since it needs no model at all)."""
+    flows: list[AttackFlow] = []
+    t = t_start
+
+    enum_start = t
+    for _ in range(25):
+        flows.append(AttackFlow(device_id, t, "tcp", "10.10.0.15", 8883, 70, 50, "attack:mqtt_abuse:enumeration"))
+        t += timedelta(seconds=rng.uniform(0.3, 1.2))
+    enum_end = t
+
+    publish_start = t
+    flows.append(AttackFlow(device_id, t, "tcp", "10.10.0.15", 8883, 220, 60, "attack:mqtt_abuse:unauthorised_publish"))
+    t += timedelta(seconds=1)
+    publish_end = t
+
+    events = [
+        GroundTruthEvent(str(uuid.uuid4()), "mqtt_abuse", "enumeration", enum_start, enum_end,
+                          device_id, ["10.10.0.15"], "T1046"),
+        GroundTruthEvent(str(uuid.uuid4()), "mqtt_abuse", "unauthorised_publish", publish_start, publish_end,
+                          device_id, ["10.10.0.15"], "T1565"),
+    ]
+    return flows, events
+
+
+def run_arp_spoof(device_id: str, t_start: datetime, rng: random.Random) -> tuple[list[AttackFlow], list[GroundTruthEvent]]:
+    """ARP spoofing / lateral movement (docs/02 scenario 3): a burst of unusual
+    intra-LAN traffic to a device it has never talked to before, immediately after
+    the (simulated) ARP poisoning window. ARGUS's live-testbed path doesn't yet
+    extract L2/ARP fields (see STATUS.md's "not implemented" list), so this is
+    represented at the level the current feature set can actually see: a
+    new-destination, elevated-intra-LAN-volume signature."""
+    flows: list[AttackFlow] = []
+    t = t_start
+    pivot_target = f"10.10.0.{rng.randint(20, 90)}"
+
+    poison_start = t
+    for _ in range(10):
+        flows.append(AttackFlow(device_id, t, "udp", pivot_target, 0, 42, 0, "attack:arp_spoof:poison"))
+        t += timedelta(seconds=rng.uniform(0.2, 0.6))
+    poison_end = t
+
+    lateral_start = t
+    for _ in range(30):
+        flows.append(AttackFlow(device_id, t, "tcp", pivot_target, rng.choice([445, 3389, 22]),
+                                 rng.randint(200, 2000), rng.randint(100, 1500), "attack:arp_spoof:lateral_movement"))
+        t += timedelta(seconds=rng.uniform(0.1, 0.5))
+    lateral_end = t
+
+    events = [
+        GroundTruthEvent(str(uuid.uuid4()), "arp_spoof", "poison", poison_start, poison_end,
+                          device_id, [pivot_target], "T1557.002"),
+        GroundTruthEvent(str(uuid.uuid4()), "arp_spoof", "lateral_movement", lateral_start, lateral_end,
+                          device_id, [pivot_target], "T1021"),
+    ]
+    return flows, events
+
+
+def run_dns_tunnel(device_id: str, t_start: datetime, rng: random.Random) -> tuple[list[AttackFlow], list[GroundTruthEvent]]:
+    """DNS-tunnelled C2 (docs/02 scenario 4): high query-name entropy and volume to
+    the resolver, exposing exactly the DNS feature group in docs/02."""
+    flows: list[AttackFlow] = []
+    t_end_last = t_start
+    alphabet = "abcdefghijklmnopqrstuvwxyz0123456789"
+    for _ in range(60):
+        label = "".join(rng.choice(alphabet) for _ in range(rng.randint(30, 50)))
+        qname = f"{label}.tunnel.example."
+        flows.append(AttackFlow(device_id, t_end_last, "udp", "10.10.0.1", 53, 90, 512,
+                                 "attack:dns_tunnel:exfil", dns_qname=qname))
+        t_end_last += timedelta(seconds=rng.uniform(0.5, 2.0))
+
+    events = [GroundTruthEvent(
+        str(uuid.uuid4()), "dns_tunnel", "exfil", t_start, t_end_last,
+        device_id, ["10.10.0.1"], "T1071.004",
+    )]
+    return flows, events
+
+
+def run_identity_spoof(device_id: str, t_start: datetime, rng: random.Random) -> tuple[list[AttackFlow], list[GroundTruthEvent]]:
+    """Device identity spoofing (docs/02 scenario 5, "Hard"): an attacker mimics a
+    legitimate device's traffic profile but its TLS client fingerprint (JA4) is
+    different from what the baseline recorded for this device_id -- a subtle
+    mismatch, not an obvious volume anomaly, matching the scenario's difficulty."""
+    flows: list[AttackFlow] = []
+    t = t_start
+    spoofed_ja4 = f"ja4-spoofed-{rng.randint(1000, 9999)}"
+    for _ in range(15):
+        flows.append(AttackFlow(device_id, t, "tcp", "203.0.113.44", 443, rng.randint(200, 800),
+                                 rng.randint(200, 800), "attack:identity_spoof:fingerprint_mismatch",
+                                 tls_ja4=spoofed_ja4))
+        t += timedelta(seconds=rng.uniform(20, 60))
+
+    events = [GroundTruthEvent(
+        str(uuid.uuid4()), "identity_spoof", "fingerprint_mismatch", t_start, t,
+        device_id, ["203.0.113.44"], "T1036",
+    )]
+    return flows, events
+
+
+def run_ota_spoof(device_id: str, t_start: datetime, rng: random.Random) -> tuple[list[AttackFlow], list[GroundTruthEvent]]:
+    """OTA update spoofing (docs/02 scenario 6): a firmware fetch from an endpoint
+    outside the device's declared OTA policy -- same detection mechanism as MQTT
+    abuse (a policy violation), different phase of the attack chain."""
+    t_start_fetch = t_start
+    flow = AttackFlow(device_id, t_start, "tcp", "198.51.100.230", 443, 40000, 900,
+                       "attack:ota_spoof:malicious_fetch")
+    t_end_fetch = t_start + timedelta(seconds=8)
+
+    events = [GroundTruthEvent(
+        str(uuid.uuid4()), "ota_spoof", "malicious_fetch", t_start_fetch, t_end_fetch,
+        device_id, ["198.51.100.230"], "T1195.002",
+    )]
+    return [flow], events
+
+
+SCENARIOS = {
+    "mirai": run_mirai,
+    "low_and_slow": run_low_and_slow,
+    "mqtt_abuse": run_mqtt_abuse,
+    "arp_spoof": run_arp_spoof,
+    "dns_tunnel": run_dns_tunnel,
+    "identity_spoof": run_identity_spoof,
+    "ota_spoof": run_ota_spoof,
+}

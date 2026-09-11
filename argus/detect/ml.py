@@ -22,7 +22,8 @@ from argus.schemas import Detection, FeatureVector
 FEATURE_KEYS = [
     "flow_count", "bytes_out_mean", "bytes_out_std", "bytes_ratio", "mean_iat_s",
     "burstiness", "periodicity_score", "distinct_destinations", "destination_entropy",
-    "fanout_rate", "distinct_dns_qnames", "distinct_ja4",
+    "fanout_rate", "distinct_dns_qnames", "dns_qname_entropy_mean", "dns_qname_length_mean",
+    "distinct_ja4",
 ]
 
 
