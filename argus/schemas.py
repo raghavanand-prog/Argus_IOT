@@ -82,6 +82,7 @@ class Detection:
     explanation: str
     evidence_refs: list[str] = field(default_factory=list)
     conformal_set: list[str] | None = None
+    attribution: list[dict] | None = None  # SHAP top-N contributions (docs/09 Layer 2), ML detections only
 
 
 @dataclass

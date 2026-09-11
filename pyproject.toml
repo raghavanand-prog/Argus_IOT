@@ -12,8 +12,8 @@ dependencies = [
     "scikit-learn>=1.4",
     "river>=0.21",
     "python-multipart>=0.0.9",
-    "scipy>=1.11",
-    "shap>=0.44",
+    "scipy>=1.11",  # eval/stats.py's Mann-Whitney U
+    "shap>=0.44",  # argus/detect/ml.py's ShapExplainer (docs/09 Layer 2)
 ]
 
 [project.optional-dependencies]
