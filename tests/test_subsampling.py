@@ -13,7 +13,11 @@ to run the moment real data is reachable, without pretending a download happened
 from datetime import datetime, timedelta
 
 from argus.data.parity import parity_report
-from argus.data.subsample import preserve_base_rate_in_test, stratified_subsample, temporal_split
+from argus.data.subsample import (
+    preserve_base_rate_in_test,
+    stratified_subsample,
+    temporal_split,
+)
 
 
 def _synthetic_rows(n_benign: int = 200, n_ddos: int = 500, n_recon: int = 50) -> list[dict]:

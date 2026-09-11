@@ -15,11 +15,20 @@ from argus.behavior.drift import DeviceDriftMonitor
 from argus.collector.windows import window_flows
 from argus.correlate.correlator import correlate
 from argus.db.models import (
-    ActionRow, AuditLogRow, DeviceRow, EvidenceBundleRow, IncidentRow,
-    RiskAssessmentRow, VerificationRow,
+    ActionRow,
+    AuditLogRow,
+    DeviceRow,
+    EvidenceBundleRow,
+    IncidentRow,
+    RiskAssessmentRow,
+    VerificationRow,
 )
 from argus.detect.ml import CalibratedDetector, ShapExplainer, ml_detections
-from argus.detect.rules import identity_detections, policy_detections, signature_detections
+from argus.detect.rules import (
+    identity_detections,
+    policy_detections,
+    signature_detections,
+)
 from argus.evidence.bundle import EvidenceLedger
 from argus.features.extract import device_ja4_set, extract_device_window
 from argus.registry.enrollment import enroll
@@ -27,7 +36,12 @@ from argus.respond.guard import ActionRateLimiter, KillSwitch
 from argus.respond.ladder import DryRunAdapter, decide_and_respond
 from argus.risk.engine import BlastRadiusGraph, assess_risk
 from argus.schemas import DeviceState
-from argus.sim.engine import build_ip_to_type, default_fleet, run_benign_window, run_scenario
+from argus.sim.engine import (
+    build_ip_to_type,
+    default_fleet,
+    run_benign_window,
+    run_scenario,
+)
 from argus.verify.verification import verify
 
 ENFORCE = os.getenv("ARGUS_ENFORCE", "false").lower() == "true"

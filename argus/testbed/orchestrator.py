@@ -10,10 +10,9 @@ from __future__ import annotations
 import logging
 import multiprocessing
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from argus.schemas import FlowRecord, GroundTruthEvent
-from argus.sim.devices import FLEET
 from argus.testbed.capture import CaptureSession
 from argus.testbed.fabric import NetworkFabric, cleanup_stale_fabric
 from argus.testbed.live_attacks import run_low_and_slow_live, run_mirai_live
