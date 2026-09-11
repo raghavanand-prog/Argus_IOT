@@ -7,13 +7,19 @@ from __future__ import annotations
 
 import os
 
-from fastapi import Depends, FastAPI, HTTPException, Header
+from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
 from argus.db.models import (
-    ActionRow, DeviceRow, EvidenceBundleRow, IncidentRow, RiskAssessmentRow,
-    VerificationRow, init_db, make_engine,
+    ActionRow,
+    DeviceRow,
+    EvidenceBundleRow,
+    IncidentRow,
+    RiskAssessmentRow,
+    VerificationRow,
+    init_db,
+    make_engine,
 )
 from argus.evidence.bundle import EvidenceBundle
 from argus.evidence.replay import replay

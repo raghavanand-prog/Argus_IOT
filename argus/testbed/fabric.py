@@ -85,7 +85,7 @@ class NetworkFabric:
     _next_host: int = 10  # .1 is the gateway/bridge, .2-.9 reserved
     _salt: str = field(default_factory=lambda: uuid.uuid4().hex[:6])
 
-    def __enter__(self) -> "NetworkFabric":
+    def __enter__(self) -> NetworkFabric:
         self.setup_bridge()
         return self
 

@@ -16,7 +16,7 @@ from __future__ import annotations
 import socket
 import time
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from pyroute2 import netns as pyroute2_netns
 
@@ -39,7 +39,7 @@ def assert_in_testbed(ip: str) -> None:
 
 
 def _now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 def _try_connect(ip: str, port: int, timeout: float = 0.3) -> None:

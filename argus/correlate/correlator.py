@@ -8,7 +8,7 @@ separately in the evaluation harness (this asymmetry is the direct evidence for 
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from argus.schemas import Detection, Incident
 

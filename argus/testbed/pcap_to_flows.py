@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import uuid
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from argus.schemas import FlowRecord
 from argus.testbed.fabric import DeviceLink
@@ -61,8 +61,8 @@ def packets_to_flows(packets: list, links: dict[str, DeviceLink],
             continue  # neither side is a known testbed device -- drop (shouldn't happen)
 
         dst_port = port2 if device_ip == ip1 else port1
-        ts_start = datetime.fromtimestamp(float(pkts[0].time), tz=timezone.utc)
-        ts_end = datetime.fromtimestamp(float(pkts[-1].time), tz=timezone.utc)
+        ts_start = datetime.fromtimestamp(float(pkts[0].time), tz=UTC)
+        ts_end = datetime.fromtimestamp(float(pkts[-1].time), tz=UTC)
         pkts_out = sum(1 for p in pkts if p["IP"].src == device_ip)
         pkts_in = len(pkts) - pkts_out
         bytes_out = sum(len(p) for p in pkts if p["IP"].src == device_ip)

@@ -5,8 +5,8 @@ hidden; a sensitivity analysis lives in eval/harness.py.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable
 
 from argus.schemas import Detection, Incident, RiskAssessment
 from argus.sim.devices import FLEET

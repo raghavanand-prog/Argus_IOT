@@ -26,6 +26,13 @@ live-testbed = ["pyroute2>=0.7", "scapy>=2.5", "dpkt>=1.9"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 
+[tool.ruff.lint]
+# The practical default (pyflakes + pycodestyle errors + import sorting): catches
+# real bugs (unused imports/variables, undefined names) without opinionated extras
+# (naive-datetime, blind-except, etc.) that don't match this project's actual style
+# choices -- CLAUDE.md's "prefer boring, readable code" over churn-for-its-own-sake.
+select = ["E4", "E7", "E9", "F", "I"]
+
 [build-system]
 requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
