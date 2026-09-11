@@ -27,6 +27,12 @@ export interface Incident {
   verification_outcome: string | null;
 }
 
+export interface ShapContribution {
+  name: string;
+  value: number;
+  contribution: number;
+}
+
 export interface EvidenceBundle {
   bundle_id: string;
   incident_id: string;
