@@ -89,3 +89,76 @@ Rejected because the root cause was identified immediately and was a straightfor
 correct fix (rate limiting should always be relative to the clock the decision is made
 on, not the wall clock of whoever happens to be running the pipeline) — there was no
 reason to ship a known, fixable bug and call it a finding.
+
+## 2026-09-11 (second session) — a real network-namespace testbed instead of accepting the synthetic-only cut as permanent
+
+**Decision:** When asked to complete the project fully, re-verified rather than
+assumed the first session's biggest scope cut (no real testbed). Found `dockerd`
+actually runs in this environment (root, working bridge/NAT) but every image pull
+is blocked — 403 from Docker Hub's CDN, tested directly. Built
+`argus/testbed/` instead: real Linux network namespaces + veth pairs + a bridge via
+`pyroute2` (installable from PyPI, which *is* reachable), carrying genuine packets
+captured with `scapy`.
+
+**Two real bugs found and fixed while building it:**
+1. Bridge traffic was silently vanishing — Docker's iptables-nft ruleset sets
+   `FORWARD` to policy-drop, and `bridge-nf-call-iptables=1` routes *any*
+   L2-bridged traffic through that hook, including a bridge Docker has nothing to
+   do with. Fixed by disabling that sysctl in `fabric.py`.
+2. That fix then meant `nftables` enforcement rules using the `inet`/`ip` table
+   family would never see the traffic either (same sysctl). Fixed by using
+   nftables' `bridge` table family instead, which filters at the bridging layer
+   directly, independent of that sysctl — the documented-correct way to filter
+   bridged L2 traffic, not a workaround for the workaround.
+
+**Why this matters enough to record twice** (also in `docs/04b-live-testbed.md`,
+which has the full detail): both bugs were only findable by actually exercising
+the real path, not by reasoning about it — exactly the argument for building the
+real testbed over settling for synthetic-only in the first place.
+
+**Rejected alternative:** Accept the first session's Docker cut as final and only
+harden the synthetic engine further. Rejected because the user's instruction was
+to complete the project fully, and "the planned infrastructure doesn't work here"
+turned out to have a real, buildable alternative once actually investigated,
+rather than being a dead end.
+
+## 2026-09-11 (second session) — ablation toggles real pipeline parameters, not a parallel implementation
+
+**Decision:** `eval/ablation.py`'s 9 configurations (A0-A8) each toggle an actual
+parameter on the actual pipeline code — `assess_risk`'s own `weights` argument for
+"no risk engine", a `correlate()` bypass for "no correlator", forced-singleton
+conformal sets for "no conformal gate", which detector functions get called for
+the rules/ML/policy splits — rather than a separate "ablation mode" that
+reimplements simplified versions of each component.
+
+**Why:** A parallel implementation can silently drift out of sync with the real
+one, and a bug fixed in the real pipeline wouldn't necessarily get fixed in the
+ablation's copy. Every ablation result is therefore evidence about the actual
+shipped system, not about a model of it.
+
+**Consequence:** `tests/test_ablation.py::test_a6_detection_metrics_match_a0_by_construction`
+can assert byte-for-byte identical detection tuples between A0 and A6 — a
+guarantee that would be much weaker (an implementation claim, not a construction
+guarantee) if A6 were a separately-coded "detection-only" path.
+
+## 2026-09-11 (second session) — verified the dataset-track network block directly rather than assuming it
+
+**Decision:** Before writing off the dataset track again, tested a direct request
+to `https://www.unb.ca/cic/datasets/iotdataset-2023.html` (CICIoT2023's host).
+Result: 403 at this session's outbound proxy — the identical failure mode already
+documented for Docker Hub. Confirmed via the proxy's own status endpoint that its
+allowlist covers package registries (pypi, npm, crates, Go modules) and a handful
+of first-party hosts, nothing else.
+
+**Why this is worth a separate decision entry**: the instruction was to complete
+the project fully, which means every previously-cut piece deserves a fresh check
+rather than an inherited assumption — the Docker cut above turned out to have a
+real alternative; the dataset-track cut, checked with the same rigor, turned out
+not to (no network-namespace-style workaround exists for "the actual file is
+hosted on a server this session cannot reach"). Both outcomes are reported with
+the same evidence standard.
+
+**What was still worth doing**: `argus/data/subsample.py` and
+`argus/data/parity.py` implement the parts of docs/05's protocol that are pure
+logic, tested against a synthetic fixture — real, tested code, just not yet
+exercised against real data. See `docs/05-data-pipeline.md`.
