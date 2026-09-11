@@ -98,8 +98,10 @@ def extract_device_window(device_id: str, flows: list[FlowRecord],
         "distinct_destinations": float(len(dst_counts)),
         "destination_entropy": _entropy(dst_counts),
         "fanout_rate": len(dst_counts) / max(len(dev_flows), 1),
-        # DNS -- exposes tunnelling
+        # DNS -- exposes tunnelling (docs/02: "query-name length and character entropy")
         "distinct_dns_qnames": float(len(dns_qnames)),
+        "dns_qname_entropy_mean": (sum(_char_entropy(q) for q in dns_qnames) / len(dns_qnames)) if dns_qnames else 0.0,
+        "dns_qname_length_mean": (sum(len(q) for q in dns_qnames) / len(dns_qnames)) if dns_qnames else 0.0,
         # TLS -- a fingerprint change on a device is a strong compromise signal
         "distinct_ja4": float(len(ja4s)),
     }
@@ -108,6 +110,25 @@ def extract_device_window(device_id: str, flows: list[FlowRecord],
         window_start=window_start, window_end=window_end,
         values=values, extractor_version=EXTRACTOR_VERSION,
     )
+
+
+def _char_entropy(s: str) -> float:
+    """Shannon entropy of a string's character distribution -- high for a
+    DNS-tunnelled label (looks like base32/base64 noise), low for a normal hostname
+    label (docs/02's DNS feature group)."""
+    if not s:
+        return 0.0
+    counts: dict[str, int] = defaultdict(int)
+    for ch in s:
+        counts[ch] += 1
+    return _entropy(counts)
+
+
+def device_ja4_set(device_id: str, flows: list[FlowRecord]) -> set[str]:
+    """Standalone, not part of the numeric FeatureVector: the identity-spoofing
+    rule (argus/detect/rules.py) needs the actual observed fingerprint *values* to
+    compare against a device's enrolled baseline, not just a count of how many."""
+    return {f.tls_ja4 for f in flows if f.device_id == device_id and f.tls_ja4}
 
 
 def _std(xs: list[float]) -> float:
