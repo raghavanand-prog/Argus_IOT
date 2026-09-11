@@ -29,19 +29,27 @@ import dataclasses
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
-from argus.behavior.deviation import deviation_score
 from argus.behavior.drift import DeviceDriftMonitor
 from argus.collector.windows import window_flows
 from argus.correlate.correlator import correlate
 from argus.detect.ml import CalibratedDetector, ml_detections
-from argus.detect.rules import identity_detections, policy_detections, signature_detections
+from argus.detect.rules import (
+    identity_detections,
+    policy_detections,
+    signature_detections,
+)
 from argus.features.extract import device_ja4_set, extract_device_window
 from argus.registry.enrollment import enroll
 from argus.respond.guard import ActionRateLimiter, KillSwitch
 from argus.respond.ladder import DryRunAdapter, decide_and_respond
 from argus.risk.engine import BlastRadiusGraph, assess_risk
 from argus.schemas import Incident
-from argus.sim.engine import build_ip_to_type, default_fleet, run_benign_window, run_scenario
+from argus.sim.engine import (
+    build_ip_to_type,
+    default_fleet,
+    run_benign_window,
+    run_scenario,
+)
 from argus.verify.verification import verify
 
 SEVERITY_ONLY_WEIGHTS = {"severity": 1.0, "criticality": 0.0, "confidence": 0.0, "deviation": 0.0, "blast_radius": 0.0}

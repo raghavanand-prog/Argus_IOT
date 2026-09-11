@@ -69,7 +69,7 @@ def _tcp_burst(ip: str, port: int, body: bytes, reply_len: int) -> None:
         s.sendall(body)
         try:
             s.recv(min(reply_len, 65536))
-        except socket.timeout:
+        except TimeoutError:
             pass
 
 
@@ -101,7 +101,7 @@ def run_peer_listener(ns_name: str, ip: str, port: int, duration_s: float) -> No
     while time.monotonic() < deadline:
         try:
             udp.recvfrom(65536)
-        except socket.timeout:
+        except TimeoutError:
             pass
         try:
             conn, _ = tcp.accept()
@@ -112,7 +112,7 @@ def run_peer_listener(ns_name: str, ip: str, port: int, duration_s: float) -> No
             except OSError:
                 pass
             conn.close()
-        except socket.timeout:
+        except TimeoutError:
             pass
 
     udp.close()

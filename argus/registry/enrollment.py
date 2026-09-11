@@ -16,7 +16,6 @@ from datetime import datetime
 
 from argus.registry.policy import violates_policy
 from argus.schemas import DeviceState
-from argus.sim.devices import FLEET
 
 LEARNING_WINDOW_MINUTES = 60
 

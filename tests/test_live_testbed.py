@@ -67,7 +67,7 @@ def test_two_namespaces_exchange_a_real_udp_packet():
         try:
             data, _ = s.recvfrom(1024)
             q.put(data)
-        except socket.timeout:
+        except TimeoutError:
             q.put(None)
 
     def client(ns_name, dst_ip):

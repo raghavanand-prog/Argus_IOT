@@ -147,7 +147,7 @@ class ShapExplainer:
 
 
 def ml_detections(device_id: str, fv: FeatureVector, detector: CalibratedDetector, ts: datetime,
-                   explainer: "ShapExplainer | None" = None) -> list[Detection]:
+                   explainer: ShapExplainer | None = None) -> list[Detection]:
     p_attack, conformal_set = detector.score(fv)
     if p_attack < 0.5:
         return []

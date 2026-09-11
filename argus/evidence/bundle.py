@@ -11,7 +11,7 @@ import hashlib
 import json
 import uuid
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 
@@ -62,7 +62,7 @@ class EvidenceLedger:
                baseline: dict, risk: dict, decision: dict, trace: list[str]) -> EvidenceBundle:
         bundle = EvidenceBundle(
             bundle_id=str(uuid.uuid4()), incident_id=incident_id,
-            created_at=datetime.now(timezone.utc).isoformat(),
+            created_at=datetime.now(UTC).isoformat(),
             device=device, feature_vector=feature_vector, detection=detection,
             baseline=baseline, risk=risk, decision=decision, trace=trace,
             prev_bundle_hash=self.last_hash,

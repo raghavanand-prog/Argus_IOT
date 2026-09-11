@@ -39,7 +39,7 @@ def _echo_server(ns_name: str, ip: str, port: int, duration: float) -> None:
         try:
             conn, _ = s.accept()
             conn.close()
-        except socket.timeout:
+        except TimeoutError:
             break
     s.close()
 
