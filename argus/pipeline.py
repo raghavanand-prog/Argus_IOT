@@ -18,7 +18,7 @@ from argus.db.models import (
     ActionRow, AuditLogRow, DeviceRow, EvidenceBundleRow, IncidentRow,
     RiskAssessmentRow, VerificationRow,
 )
-from argus.detect.ml import CalibratedDetector, ml_detections
+from argus.detect.ml import CalibratedDetector, ShapExplainer, ml_detections
 from argus.detect.rules import identity_detections, policy_detections, signature_detections
 from argus.evidence.bundle import EvidenceLedger
 from argus.features.extract import device_ja4_set, extract_device_window
@@ -82,6 +82,7 @@ def _process_scenario(
                 "conformal_set": best_conformal,
                 "signals": [d.signal_name for d in incident_dets],
                 "explanations": [d.explanation for d in incident_dets],
+                "attribution": next((d.attribution for d in incident_dets if d.attribution), None),
             },
             baseline={"version": 1},
             risk={"score": risk.score, "terms": risk.terms},
@@ -187,6 +188,8 @@ def run_demo_pipeline(db: Session, seed: int = 42) -> dict:
 
     detector = CalibratedDetector(alpha=CONFORMAL_ALPHA)
     detector.fit(train_fvs, calib_fvs, calib_labels)
+    explainer = ShapExplainer()
+    explainer.fit(calib_fvs, calib_labels)
 
     summary = {"incidents": 0, "bundles": 0, "actions": 0}
 
@@ -209,7 +212,7 @@ def run_demo_pipeline(db: Session, seed: int = 42) -> dict:
             observed_ja4 = device_ja4_set(dev_id, w_flows)
             detections += policy_detections(dev_id, dev_type, w_flows, w_start)
             detections += signature_detections(dev_id, fv, w_start)
-            detections += ml_detections(dev_id, fv, detector, w_start)
+            detections += ml_detections(dev_id, fv, detector, w_start, explainer=explainer)
             detections += identity_detections(dev_id, observed_ja4, baseline, w_start)
 
         if not detections:
@@ -301,6 +304,8 @@ def run_live_demo_pipeline(db: Session, seed: int = 42) -> dict:
 
     detector = CalibratedDetector(alpha=CONFORMAL_ALPHA)
     detector.fit(train_fvs, calib_fvs, calib_labels)
+    explainer = ShapExplainer()
+    explainer.fit(calib_fvs, calib_labels)
 
     # 3. Run the shared detect -> respond -> verify tail against each real capture.
     for scenario, dev_id, dev_type in (
@@ -323,7 +328,7 @@ def run_live_demo_pipeline(db: Session, seed: int = 42) -> dict:
                 drift_monitor.update(dev_id, fv.values)
             detections += policy_detections(dev_id, dev_type, w_flows, w_start)
             detections += signature_detections(dev_id, fv, w_start)
-            detections += ml_detections(dev_id, fv, detector, w_start)
+            detections += ml_detections(dev_id, fv, detector, w_start, explainer=explainer)
 
         if not detections:
             continue
