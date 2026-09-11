@@ -26,6 +26,18 @@ class SimulatedDevice:
     device_type: str
 
 
+def synthetic_ip(device_id: str) -> str:
+    """Deterministic pseudo-IP for a simulated device -- the single source of truth
+    for this mapping (previously inlined separately in run_benign_window, which
+    risked drifting out of sync with anything that needed to resolve an IP back to
+    a device, e.g. the risk engine's blast-radius lookup in argus/pipeline.py)."""
+    return f"10.10.0.{100 + hash(device_id) % 100}"
+
+
+def build_ip_to_type(devices: list[SimulatedDevice]) -> dict[str, str]:
+    return {synthetic_ip(d.device_id): d.device_type for d in devices}
+
+
 def default_fleet(counts: dict[str, int] | None = None) -> list[SimulatedDevice]:
     """Two instances of at least one type (smart-plug) so fleet-correlation has signal
     for the drift monitor later, per docs/00."""
@@ -61,7 +73,7 @@ def run_benign_window(devices: list[SimulatedDevice], t_start: datetime,
             flows.append(FlowRecord(
                 flow_id=str(uuid.uuid4()), device_id=dev.device_id,
                 ts_start=t, ts_end=t + timedelta(milliseconds=rng.randint(50, 3000)),
-                src_ip=f"10.10.0.{100 + hash(dev.device_id) % 100}",
+                src_ip=synthetic_ip(dev.device_id),
                 dst_ip=payload["dst"], dst_port=payload["port"], proto=payload["proto"],
                 pkts_out=payload["pkts_out"], pkts_in=payload["pkts_in"],
                 bytes_out=payload["bytes_out"], bytes_in=payload["bytes_in"],
