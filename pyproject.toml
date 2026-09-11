@@ -12,10 +12,16 @@ dependencies = [
     "scikit-learn>=1.4",
     "river>=0.21",
     "python-multipart>=0.0.9",
+    "scipy>=1.11",
+    "shap>=0.44",
 ]
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0", "ruff>=0.4", "mypy>=1.9"]
+# Only needed for the real network-namespace testbed (argus/testbed/) -- requires
+# Linux + root/CAP_NET_ADMIN. The synthetic sim engine and the rest of the system
+# work without these. See docs/04b-live-testbed.md.
+live-testbed = ["pyroute2>=0.7", "scapy>=2.5", "dpkt>=1.9"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

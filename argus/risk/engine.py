@@ -6,9 +6,13 @@ hidden; a sensitivity analysis lives in eval/harness.py.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Callable
 
 from argus.schemas import Detection, Incident, RiskAssessment
 from argus.sim.devices import FLEET
+
+UNRESOLVED_NEIGHBOUR_WEIGHT = 0.15  # fallback for neighbours we can't identify (e.g. true external IPs)
+RESOLVED_NEIGHBOUR_SCALE = 0.3  # a single maximally-critical (1.0) known neighbour contributes 0.3
 
 DEFAULT_WEIGHTS = {
     "severity": 0.25, "criticality": 0.20, "confidence": 0.25,
@@ -18,17 +22,29 @@ DEFAULT_WEIGHTS = {
 
 @dataclass
 class BlastRadiusGraph:
-    """Minimal communication-graph blast radius: number of other devices this device
-    has talked to (one-hop neighbours), weighted by their criticality (docs/02)."""
+    """Communication-graph blast radius: one-hop neighbours this device has talked
+    to, weighted by their criticality when their identity is known (docs/02: "the
+    hub scores highest, the air sensor lowest")."""
 
     edges: dict[str, set[str]]
 
-    def score(self, device_id: str) -> float:
-        """Neighbours are IPs (usually external); a fixed modest per-neighbour weight
-        stands in for "weighted by their criticality" until the registry tracks
-        IP-to-device-type identity for intra-LAN neighbours too (see STATUS.md)."""
+    def score(self, device_id: str, device_type_of: Callable[[str], str | None] | None = None) -> float:
+        """``device_type_of``: resolves a neighbour (an IP, or a device_id) to its
+        device_type, e.g. via the device registry. A neighbour it can't resolve
+        (typically a true external IP, which by construction has no registry entry)
+        falls back to a fixed modest weight rather than being dropped -- an
+        unidentifiable neighbour is still a neighbour, just a less informative one."""
         neighbours = self.edges.get(device_id, set())
-        return min(1.0, len(neighbours) * 0.15)
+        if not neighbours:
+            return 0.0
+        total = 0.0
+        for n in neighbours:
+            device_type = device_type_of(n) if device_type_of else None
+            if device_type and device_type in FLEET:
+                total += FLEET[device_type].criticality * RESOLVED_NEIGHBOUR_SCALE
+            else:
+                total += UNRESOLVED_NEIGHBOUR_WEIGHT
+        return min(1.0, total)
 
 
 def assess_risk(incident: Incident, detections: list[Detection], device_type: str,
