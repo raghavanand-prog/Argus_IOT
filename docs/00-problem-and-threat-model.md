@@ -51,9 +51,23 @@ and not break the network's legitimate function — and by what measure would we
    traffic is too easy and the testbed needs to be redesigned before anything downstream
    is trusted (this is a stated kill criterion — see `MASTER-PLAN.md` §7).
 
-Additional scenarios from the original plan (MQTT abuse, ARP spoofing, DNS tunnelling,
-identity spoofing, OTA spoofing) are documented but deprioritised per `BUILD-ORDER.md`'s
-cut list — they are the first thing to add back once the two above are solid.
+3. **MQTT topic enumeration + unauthorised publish** — broker interaction outside the
+   device's declared policy. Easy-moderate; zero-model detection via the policy rule.
+4. **ARP spoofing / lateral movement** — a burst of unusual intra-LAN traffic to a
+   device never contacted before, following a simulated poisoning window.
+5. **DNS-tunnelled C2** — high query-name character entropy and volume to the
+   resolver, exposing the DNS feature group (`dns_qname_entropy_mean`).
+6. **Device identity spoofing** — a TLS fingerprint (JA4) never seen during the
+   device's enrollment baseline. Hard: volume/timing look normal; only the
+   fingerprint mismatch gives it away (`argus/detect/rules.py::identity_detections`).
+7. **OTA update spoofing** — a firmware fetch from an endpoint outside the device's
+   declared policy. Same detection mechanism as scenario 3, different attack phase.
+
+All seven now run in `argus/sim/attacks.py` and are exercised end to end by
+`run_demo_pipeline` (`argus/pipeline.py`), each against a distinct device from the
+default fleet. Only scenarios 1 and 2 run on the real network-namespace testbed path
+(`argus/testbed/`, see `docs/04b`) — the other five are synthetic-only; see
+`STATUS.md` for the honest reasoning behind that split.
 
 ## What the defender can and cannot see
 

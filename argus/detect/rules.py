@@ -48,4 +48,39 @@ def signature_detections(device_id: str, fv: FeatureVector, ts: datetime) -> lis
             ),
             evidence_refs=[fv.flow_id],
         ))
+    dns_entropy = fv.values.get("dns_qname_entropy_mean", 0.0)
+    dns_len = fv.values.get("dns_qname_length_mean", 0.0)
+    if dns_entropy >= 3.5 and dns_len >= 25:
+        out.append(Detection(
+            detection_id=str(uuid.uuid4()), ts=ts, device_id=device_id, source="rules",
+            signal_name="dns_tunnel_suspected", severity=0.65, confidence=0.85,
+            explanation=(
+                f"{device_id}'s DNS queries this window average {dns_entropy:.2f} bits of "
+                f"character entropy over {dns_len:.0f}-character labels -- consistent with "
+                f"data encoded into DNS queries rather than a normal hostname lookup."
+            ),
+            evidence_refs=[fv.flow_id],
+        ))
     return out
+
+
+def identity_detections(device_id: str, observed_ja4: set[str], baseline, ts: datetime) -> list[Detection]:
+    """Device identity spoofing (docs/02 scenario 5): a TLS fingerprint never seen
+    during this device's enrollment baseline is a strong, subtle compromise signal
+    -- subtle because volume/timing can look completely normal (docs/02: "Hard" --
+    "subtle profile mismatch against baseline")."""
+    if baseline is None or not baseline.ja4_fingerprints or not observed_ja4:
+        return []
+    unknown = observed_ja4 - set(baseline.ja4_fingerprints)
+    if not unknown:
+        return []
+    return [Detection(
+        detection_id=str(uuid.uuid4()), ts=ts, device_id=device_id, source="rules",
+        signal_name="identity_fingerprint_mismatch", severity=0.75, confidence=0.8,
+        explanation=(
+            f"{device_id} presented TLS fingerprint(s) {sorted(unknown)}, none of which were "
+            f"observed during its enrollment baseline ({sorted(baseline.ja4_fingerprints)}) -- "
+            f"possible identity spoofing (docs/02 scenario 5)."
+        ),
+        evidence_refs=[],
+    )]

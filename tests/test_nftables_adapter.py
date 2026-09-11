@@ -82,7 +82,7 @@ def test_isolate_tier_blocks_and_revert_restores_real_connectivity(fabric):
 
     victim = fabric.add_device("victim-iso")
     attacker = fabric.add_device("attacker-iso")
-    srv = CTX.Process(target=_echo_server, args=(victim.ns_name, victim.ip, 9100, 10))
+    srv = CTX.Process(target=_echo_server, args=(victim.ns_name, victim.ip, 9100, 20))
     srv.start()
     time.sleep(0.4)
 
@@ -108,8 +108,8 @@ def test_block_destination_is_narrower_than_isolate(fabric):
     other_target = fabric.add_device("other-target")
     attacker = fabric.add_device("attacker-blockdst")
 
-    srv1 = CTX.Process(target=_echo_server, args=(blocked_target.ns_name, blocked_target.ip, 9200, 10))
-    srv2 = CTX.Process(target=_echo_server, args=(other_target.ns_name, other_target.ip, 9200, 10))
+    srv1 = CTX.Process(target=_echo_server, args=(blocked_target.ns_name, blocked_target.ip, 9200, 20))
+    srv2 = CTX.Process(target=_echo_server, args=(other_target.ns_name, other_target.ip, 9200, 20))
     srv1.start()
     srv2.start()
     time.sleep(0.4)
@@ -135,7 +135,7 @@ def test_kill_switch_equivalent_flush_removes_every_rule_at_once(fabric):
 
     victim = fabric.add_device("victim-flush")
     attacker = fabric.add_device("attacker-flush")
-    srv = CTX.Process(target=_echo_server, args=(victim.ns_name, victim.ip, 9300, 10))
+    srv = CTX.Process(target=_echo_server, args=(victim.ns_name, victim.ip, 9300, 20))
     srv.start()
     time.sleep(0.4)
 
@@ -159,7 +159,7 @@ def test_live_adapter_wrapper_conforms_to_the_ladder_call_shape(fabric):
 
     victim = fabric.add_device("victim-wrap")
     attacker = fabric.add_device("attacker-wrap")
-    srv = CTX.Process(target=_echo_server, args=(victim.ns_name, victim.ip, 9400, 10))
+    srv = CTX.Process(target=_echo_server, args=(victim.ns_name, victim.ip, 9400, 20))
     srv.start()
     time.sleep(0.4)
 

@@ -95,7 +95,7 @@ def run_scenario(scenario: str, device_id: str, t_start: datetime, seed: int
             ts_end=af.ts + timedelta(milliseconds=200), src_ip="10.10.0.199",
             dst_ip=af.dst, dst_port=af.port, proto=af.proto,
             pkts_out=max(1, af.bytes_out // 300), pkts_in=max(1, af.bytes_in // 300),
-            bytes_out=af.bytes_out, bytes_in=af.bytes_in, tls_ja4=None, dns_qname=None,
+            bytes_out=af.bytes_out, bytes_in=af.bytes_in, tls_ja4=af.tls_ja4, dns_qname=af.dns_qname,
             label=af.label,
         )
         for af in attack_flows
