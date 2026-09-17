@@ -13,7 +13,7 @@ meaningless.
 | B2 | Isolation Forest on raw flow features (no per-device baselining) | Not isolated as a standalone comparison; the project's own Isolation Forest *is* baselined per-device by construction (`CalibratedDetector`) | `argus/detect/ml.py` |
 | B3 | Random Forest on a published feature set | Not run — needs the dataset track (`docs/05`), verified infeasible in this environment | — |
 | **B4** | **Detection-only (A6, `NoOpAdapter`-equivalent) — the field's actual L0 system** | **Implemented and measured** | `eval/ablation.py::A6_detection_only` |
-| B5 | Published CICIoT2023/third-party results, cited only | Cited in `docs/01` (Sallam et al. 2026, Varol & Karakaya 2026) — never tabulated against this project's own numbers | `docs/01-architecture.md`, `docs/00` |
+| B5 | Published CICIoT2023/third-party results, cited only | Cited in `docs/00` (Sallam, El Barachi & Li 2026 — the only third-party gap-analysis citation verified accurate; see `docs/00`'s correction note) — never tabulated against this project's own numbers | `docs/00-problem-and-threat-model.md` |
 
 B4 is the one that matters most, and it's the one that's real: `eval/ablation.py`'s
 `A6_detection_only` configuration runs the exact same detection stack as the full
