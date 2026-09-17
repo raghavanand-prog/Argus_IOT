@@ -53,31 +53,98 @@ identical downstream pipeline:
 See `STATUS.md` for exactly what's stubbed or not yet built — it's a longer, more
 honest list than most READMEs carry, on purpose.
 
-## Quick start
+## Tech stack
+
+| Layer | Technology |
+|---|---|
+| Backend API | Python 3.11+, FastAPI, Uvicorn |
+| Detection / ML | scikit-learn (Isolation Forest), a hand-written conformal prediction gate, SHAP (TreeSHAP) |
+| Database | SQLAlchemy ORM, SQLite by default (any SQLAlchemy-supported DB via `ARGUS_DATABASE_URL`) |
+| Real-time drift | `river` (online ADWIN drift detector) |
+| Frontend | React 19 + TypeScript, Vite, Tailwind CSS v4, TanStack Query, React Router |
+| Real testbed (optional, Linux only) | `pyroute2` (network namespaces/veth), `scapy` (packet capture), `dpkt` (pcap parsing) |
+| Testing | pytest (backend), `tsc --noEmit` + `oxlint` (frontend) |
+| Production hosting | Vercel (static console + a Python serverless function) — see [Production deployment](#production-deployment-vercel) |
+
+## Prerequisites
+
+- **Python 3.11 or newer** (`python3 --version`). The codebase uses modern type-hint
+  syntax (`X | None`, `dict[str, Any]`) that requires 3.11+.
+- **Node.js 20.19+ or 22.12+** and **npm** (`node --version`) — required by Vite 8 and
+  the `@tailwindcss/oxide` native binary the console depends on. Older Node versions
+  will fail `npm install` with an `EBADENGINE` or native-binding error.
+- **Linux** if you want the *optional* real network-namespace testbed
+  (`argus/testbed/`) — it needs root and `CAP_NET_ADMIN` to create network namespaces.
+  Everything else (the synthetic simulation engine, detection, evidence, the API, the
+  console) runs on macOS/Linux/WSL without any special privileges.
+- **`nftables`** (Linux only) if you want to exercise the real enforcement adapter
+  (`argus/respond/adapters/`) — this is opt-in and never the default; the system ships
+  dry-run and only logs intended actions unless you wire this in explicitly.
+- No Docker and no external database are required to run ARGUS locally.
+
+## Local setup
 
 ```bash
-make install          # python venv + deps, npm install for the console
-cp .env.example .env  # set ARGUS_ADMIN_TOKEN
-make test             # 45 tests (~65s)
+git clone <this-repo-url> argus && cd argus
 
-# terminal 1
-export $(cat .env | xargs) && make api        # http://localhost:8000
-# terminal 2
-make console                                   # http://localhost:5173
-
-# in the Control tab of the console: paste your ARGUS_ADMIN_TOKEN, click
-# "Run demo pipeline" -- this seeds real data by actually running the loop.
+make install          # creates .venv, installs Python deps (pip install -e ".[dev]"),
+                       # then npm install inside console/
+cp .env.example .env  # then edit .env and set a real ARGUS_ADMIN_TOKEN (see below)
 ```
 
-Or headless:
+### Environment variables (`.env`)
+
+| Variable | Required | Default | Meaning |
+|---|---|---|---|
+| `ARGUS_ADMIN_TOKEN` | **Yes** | none — startup fails if unset | Bearer token required for any state-changing API call (`/control/*`, `/evidence/*/replay`). Deliberately has no default: CLAUDE.md/docs/14's rule is "a default credential in a security tool is an irony worth avoiding." Pick any string for local dev. |
+| `ARGUS_ENFORCE` | No | `false` | `true` would let the response ladder call a real enforcement adapter instead of the dry-run default. Never flip this casually — see `docs/03-response-and-safety.md`. |
+| `ARGUS_DATABASE_URL` | No | `sqlite:///./argus.db` | Any SQLAlchemy-supported DSN. SQLite needs no setup; point this at Postgres if you want it. |
+| `ARGUS_CONFORMAL_ALPHA` | No | `0.05` | Significance level for the conformal prediction gate used in detection. |
+
+### Run the tests
+
+```bash
+make test    # .venv/bin/python -m pytest tests/ -v -- 45 tests, ~65s
+```
+
+### Start the dev servers
+
+```bash
+# terminal 1 -- backend API on http://localhost:8000
+export $(cat .env | xargs) && make api
+
+# terminal 2 -- console on http://localhost:5173 (Vite dev server, proxies /api to :8000)
+make console
+```
+
+Open `http://localhost:5173`. The Fleet and Incidents tabs will be empty until you
+seed data: go to the **Control** tab, paste your `ARGUS_ADMIN_TOKEN` into the "Admin
+token" box and click **Save**, then click **Run demo pipeline** — this actually runs
+the full detect → correlate → risk → evidence → respond → verify loop against the
+synthetic testbed and persists the result to SQLite; it is not canned data.
+
+Or headless, without the console:
 
 ```bash
 make seed       # runs the synthetic pipeline once, prints a summary
 make evaluate   # full A0-A8 ablation, writes results/<timestamp>/results.json
 ```
 
-The real network-namespace testbed needs Linux + root/CAP_NET_ADMIN + the
-`live-testbed` extra (`pip install -e ".[live-testbed]"`):
+### Build the console for production
+
+```bash
+cd console && npm run build   # tsc -b && vite build -> console/dist/
+npm run preview               # optional: serve the production build locally
+```
+
+`npm run build` runs a full TypeScript typecheck (`tsc -b`) before bundling, so a
+type error fails the build rather than shipping silently.
+
+### The real network-namespace testbed (optional, Linux + root only)
+
+```bash
+pip install -e ".[live-testbed]"
+```
 
 ```python
 from argus.db.models import make_engine, init_db
@@ -85,6 +152,48 @@ from argus.pipeline import run_live_demo_pipeline
 
 db = init_db(make_engine())()
 print(run_live_demo_pipeline(db))  # real packets, real capture, real detection
+```
+
+### Common errors and fixes
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| `RuntimeError: ARGUS_ADMIN_TOKEN is not set` on `make api` | `.env` wasn't loaded into the shell, or was never created | `cp .env.example .env`, edit it, then `export $(cat .env \| xargs)` before `make api` |
+| Console shows "Could not reach the API" | The FastAPI backend (`make api`) isn't running, or is on a different port | Start `make api` in a separate terminal; confirm `http://localhost:8000/health` responds |
+| `npm install` fails with a native binding / `EBADENGINE` error | Node.js is older than 20.19 | Upgrade Node (nvm: `nvm install 22 && nvm use 22`) |
+| `401 missing or invalid bearer token` clicking Replay/Kill Switch/Run demo pipeline in the console | No admin token saved in the console, or it doesn't match `.env`'s `ARGUS_ADMIN_TOKEN` | Control tab → paste the exact token from `.env` → Save |
+| `pytest` failures mentioning `pyroute2`/`scapy` | Optional `live-testbed` extras aren't installed and you're running testbed-specific tests without them | `pip install -e ".[live-testbed]"`, or ignore — the core 45-test suite doesn't require these |
+| `ModuleNotFoundError: No module named 'argus'` running a script directly | Running Python outside the project venv / without an editable install | Use `.venv/bin/python`, or re-run `make install` |
+
+## Production deployment (Vercel)
+
+The full local system (live SQLite, the real network-namespace testbed, real
+`nftables` enforcement, on-demand ML fitting) intentionally does **not** all run in
+a serverless environment — see `docs/06-vercel-deployment.md` for exactly why and
+what the tradeoffs are. Production instead runs:
+
+- `console/` built as a static site (`vercel.json`'s `buildCommand`).
+- `api/index.py` — a smaller FastAPI app (`api/requirements.txt` installs only
+  `fastapi`) that serves a real, pre-computed snapshot of one actual
+  `argus.pipeline.run_demo_pipeline` run (`api/seed_snapshot.json`, produced by
+  `scripts/export_seed_snapshot.py`), while running the genuine, unmodified
+  evidence-replay and kill-switch code (`argus.evidence.replay`,
+  `argus.respond.guard`) live on every request.
+
+**Vercel project settings:**
+
+- Build command: `cd console && npm install && npm run build`
+- Output directory: `console/dist`
+- Required environment variable: `ARGUS_ADMIN_TOKEN` (same purpose as local; the
+  production API fails to start without it, on purpose — no default credential)
+
+To redeploy after changes, either connect the repository to a Vercel project (git
+push triggers a build) or use the Vercel CLI/dashboard's "Deploy" against this
+repository root. To refresh the production demo data with a new real pipeline run:
+
+```bash
+python scripts/export_seed_snapshot.py
+git add api/seed_snapshot.json && git commit -m "Refresh production demo snapshot"
 ```
 
 ## Findings so far (from the real A0-A8 ablation)
@@ -119,5 +228,21 @@ Both are documented in detail, with the actual verification steps, in
 
 ## Repository layout
 
-See `CLAUDE.md` for the full layout and non-negotiable rules (dry-run by default,
+```
+argus/          the local/dev system: sim, collector, features, registry, behavior,
+                 detect, correlate, evidence, respond, verify, db, api, testbed
+console/        React + TypeScript + Tailwind analyst UI (Vite)
+api/            production-only: a lighter FastAPI entrypoint (api/index.py) for
+                 Vercel's Python serverless runtime, plus its own requirements.txt
+                 and a real, exported pipeline-run snapshot (seed_snapshot.json)
+scripts/        scripts/export_seed_snapshot.py -- regenerates api/seed_snapshot.json
+vercel.json     Vercel build + routing configuration
+docs/           design docs (00-15) including 06-vercel-deployment.md
+research/       paper outline, experiment plan, baselines
+resume/         resume bullets, interview prep
+tests/          pytest suite
+eval/           evaluation harness (A0-A8 ablation)
+```
+
+See `CLAUDE.md` for the full non-negotiable rules (dry-run by default,
 metadata-only features, no fabricated results, determinism).
