@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ARGUS: Detection Is Not Containment</title>
+<style>
+  @page { size: A4; margin: 20mm 14mm 18mm 14mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Times New Roman", Times, "Liberation Serif", serif;
+    font-size: 9.8pt;
+    line-height: 1.15;
+    color: #000;
+    margin: 0;
+    background: #fff;
+  }
+  .titleblock {
+    text-align: center;
+    margin-bottom: 6mm;
+  }
+  .titleblock h1 {
+    font-size: 19pt;
+    font-weight: 700;
+    margin: 0 0 3mm 0;
+    line-height: 1.2;
+  }
+  .authors {
+    font-size: 11pt;
+    margin: 0 0 1mm 0;
+  }
+  .affil {
+    font-size: 9.5pt;
+    font-style: italic;
+    margin: 0 0 1mm 0;
+  }
+  .abstract-block {
+    margin: 4mm 8mm 4mm 8mm;
+    text-align: justify;
+  }
+  .abstract-block .label {
+    font-weight: 700;
+    font-style: italic;
+  }
+  .keywords {
+    margin: 0 8mm 4mm 8mm;
+    text-align: justify;
+  }
+  .keywords .label {
+    font-weight: 700;
+    font-style: italic;
+  }
+  .columns {
+    column-count: 2;
+    column-gap: 6mm;
+    text-align: justify;
+    orphans: 2;
+    widows: 2;
+  }
+  h2.section {
+    font-size: 10pt;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-align: center;
+    margin: 5mm 0 2mm 0;
+    break-after: avoid;
+    break-inside: avoid;
+  }
+  h3.subsection {
+    font-size: 9.8pt;
+    font-weight: 700;
+    font-style: italic;
+    margin: 3mm 0 1mm 0;
+    break-after: avoid;
+  }
+  p { margin: 0 0 2mm 0; text-indent: 4mm; }
+  p:first-of-type, h2.section + p, h3.subsection + p { text-indent: 0; }
+  .no-indent { text-indent: 0; }
+  ul, ol { margin: 1mm 0 2mm 4mm; padding-left: 3mm; }
+  li { margin-bottom: 0.8mm; text-align: justify; }
+  code, .mono {
+    font-family: "Courier New", Consolas, monospace;
+    font-size: 9pt;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 2mm 0 3mm 0;
+    font-size: 8.6pt;
+    break-inside: avoid;
+  }
+  caption {
+    caption-side: top;
+    font-size: 8.6pt;
+    font-weight: 700;
+    text-align: left;
+    margin-bottom: 1mm;
+  }
+  th, td {
+    border-top: 0.75pt solid #000;
+    border-bottom: 0.75pt solid #000;
+    padding: 1mm 1.5mm;
+    text-align: left;
+    vertical-align: top;
+  }
+  thead th { border-bottom: 1.1pt solid #000; }
+  table.rules tr:last-child td { border-bottom: 1.1pt solid #000; }
+  .fig {
+    break-inside: avoid;
+    margin: 2mm 0 3mm 0;
+    text-align: center;
+  }
+  .fig pre {
+    text-align: left;
+    display: inline-block;
+    font-family: "Courier New", Consolas, monospace;
+    font-size: 7.6pt;
+    line-height: 1.25;
+    border: 0.75pt solid #000;
+    padding: 2mm 3mm;
+    background: #fafafa;
+    margin: 0;
+  }
+  .figcap {
+    font-size: 8.4pt;
+    margin-top: 1mm;
+    text-align: left;
+  }
+  .figcap b { font-style: normal; }
+  sup.cite { font-size: 7.5pt; }
+  .refs {
+    font-size: 8.8pt;
+  }
+  .refs ol {
+    margin: 0;
+    padding-left: 4mm;
+  }
+  .refs li {
+    margin-bottom: 1.4mm;
+    text-align: justify;
+  }
+  .footer-note {
+    font-size: 7.6pt;
+    border-top: 0.5pt solid #999;
+    margin-top: 3mm;
+    padding-top: 1mm;
+    color: #333;
+  }
+  .verdict-honest { font-style: italic; }
+</style>
+</head>
+<body>
+
+<div class="titleblock">
+  <h1>Detection Is Not Containment: An Evidence-Bound, Ablation-Measured<br>Closed-Loop Architecture for Autonomous IoT Intrusion Response</h1>
+  <p class="authors">Raghav Anand</p>
+  <p class="affil">Department of Computer Applications (MCA), CHRIST (Deemed to be University), Bangalore, India<br>
+  <span class="mono">raghavanand033@gmail.com</span></p>
+</div>
+
+<div class="abstract-block">
+  <span class="label">Abstract&mdash;</span>Most published IoT intrusion detection research stops at classification and is evaluated offline: a recent systematic review found that 29 of 32 reviewed IoT-IDS studies used offline-only evaluation and that mitigation capability was often absent entirely. This paper presents ARGUS, a closed-loop, evidence-bound intrusion detection and autonomous response system for small, unmanaged IoT networks. ARGUS closes the loop that most systems leave open&mdash;detect &rarr; correlate &rarr; assess risk &rarr; explain &rarr; decide &rarr; enforce &rarr; verify&mdash;and binds every autonomous action to a hash-chained, replayable evidence bundle so that "why did it act" has a measurable, checkable answer. Escalation past a passive alert is gated by an inductive conformal-prediction wrapper rather than a raw confidence threshold, giving a distribution-free bound on the error rate of unattended actions. We evaluate the system with a 9-configuration ablation (A0&ndash;A8) run at 5 seeds against a genuine benign holdout, using non-parametric statistics (Mann-Whitney U, Holm-Bonferroni correction, Cliff's delta). The central measured result is that a configuration whose detection stack is byte-for-byte identical to the full system by construction, with only the response ladder disabled, shows 0% containment against the full system's 100% (5 of 5 seeded runs)&mdash;direct evidence that classification metrics alone cannot distinguish a system that acts from one that does not. Evidence replay across the current run reproduces 100% of stored decisions (19 of 19 bundles) and, in the course of being built, located and led to the fix of a genuine non-determinism bug. We report these results alongside an explicit, itemised set of evaluation-scope limitations&mdash;dataset-track infeasibility in the build environment, partial scenario coverage in the live-packet testbed and the ablation, and a replay sample smaller than the field's typical evidentiary bar&mdash;rather than omitting them.
+</div>
+
+<div class="keywords">
+  <span class="label">Index Terms&mdash;</span>IoT security, intrusion detection, autonomous response, conformal prediction, evidence-based explainability, ablation study, network enforcement, closed-loop systems.
+</div>
+
+<div class="columns">
+
+<h2 class="section">I. Introduction</h2>
+<p class="no-indent">Small IoT networks&mdash;homes, clinics, shops, single-site labs, typically 5&ndash;50 devices&mdash;have no analyst, no SIEM, and no budget for one. When a device on such a network is compromised, the compromise is effectively permanent: the device keeps scanning, beaconing, or participating in a botnet, because nothing is watching, and even where something is watching, nothing is positioned to act.</p>
+
+<p>This is not a hypothetical gap. Sallam, El Barachi, and Li's 2026 systematic gap analysis of 32 recent IoT-IDS proposals found that 29 relied solely on offline datasets, that scalability was untested under realistic multi-node or high-traffic conditions in every reviewed system, and that mitigation capability was "often absent" entirely&nbsp;<sup class="cite">[1]</sup>. The pattern this describes is a field that has converged on treating an <em>alert</em> as the output of an intrusion detection system, rather than treating a contained, verified <em>outcome</em> as the output. A classifier that reports 99% F1 on a held-out test split says nothing about whether the system that houses it ever stops an attack, and most published evaluations do not measure the latter at all.</p>
+
+<p>ARGUS is built to close that loop and to measure, rather than assume, whether closing it matters. The system runs the full sequence detect &rarr; correlate &rarr; assess risk &rarr; explain &rarr; decide &rarr; enforce &rarr; verify, and it makes two further commitments that most systems in the literature do not: every autonomous decision is bound to a hash-chained evidence bundle whose decision-reproducibility rate is a measured, published property of the system, not an assumption; and every escalation past a passive alert is gated by a distribution-free conformal-prediction bound rather than an arbitrary confidence threshold.</p>
+
+<p>This paper makes four contribution claims, each tied to something built and measured in the accompanying artifact, not merely designed:</p>
+<ul>
+  <li><b>C1&mdash;the artifact.</b> A reproducible, packet-level closed loop that runs end to end from one command, on two interchangeable traffic sources sharing an identical downstream pipeline: a deterministic synthetic simulation engine and a real Linux network-namespace testbed carrying genuine packets.</li>
+  <li><b>C2&mdash;evidence-bound decisions.</b> Every autonomous action is bound to a hash-chained, replayable evidence bundle; decision reproducibility is measured, not assumed.</li>
+  <li><b>C3&mdash;conformal gating.</b> Autonomous escalation requires a singleton conformal prediction set, giving a distribution-free bound on the error rate of unattended actions.</li>
+  <li><b>C4&mdash;the headline finding.</b> Classification F1 is a weak predictor of containment outcome; an ablated configuration with detection metrics identical to the full system by construction shows a completely different containment outcome. Measured directly by ablation, reported in Section&nbsp;XIV.</li>
+</ul>
+
+<p>The remainder of this paper is organised as follows. Section&nbsp;II surveys related work. Section&nbsp;III states the threat model and the falsifiable research question. Sections&nbsp;IV&ndash;XI describe the system architecture stage by stage. Section&nbsp;XII describes the implementation. Sections&nbsp;XIII and XIV describe the evaluation methodology and results. Section&nbsp;XV discusses the findings and states limitations explicitly. Section&nbsp;XVI concludes.</p>
+
+<h2 class="section">II. Related Work</h2>
+<p class="no-indent">IoT intrusion detection is a large literature; this section positions ARGUS relative to the specific gaps it targets rather than surveying the field exhaustively.</p>
+
+<h3 class="subsection">A. Evaluation practice in IoT-IDS research</h3>
+<p>Sallam <i>et al.</i>'s gap analysis&nbsp;<sup class="cite">[1]</sup> is the paper's primary evidentiary source for the deployment gap motivating this work: it assesses 32 recent IoT-IDS proposals against ten practical criteria (real-time performance, lightweight design, mitigation capability, adaptability, validation in realistic environments, scalability, among others) and finds systematic weakness in mitigation and realistic validation specifically&mdash;detection is comparatively mature; response and verification are not. ARGUS targets exactly that gap: it is deliberately not built around a novel classifier.</p>
+
+<h3 class="subsection">B. Anomaly detection and calibration</h3>
+<p>ARGUS's unsupervised detection track uses Isolation Forest&nbsp;<sup class="cite">[2]</sup>, an ensemble anomaly detector that isolates points via random recursive partitioning rather than modelling a density function directly, chosen for its established behaviour on tabular, mixed-scale network-flow features and its comparatively low computational cost relative to deep alternatives. Raw isolation scores are not calibrated probabilities; ARGUS applies isotonic calibration on a held-out split before any score is used downstream, consistent with standard practice for turning ranking scores into usable probability estimates.</p>
+
+<h3 class="subsection">C. Conformal prediction as a safety gate</h3>
+<p>Conformal prediction constructs prediction sets with a distribution-free, finite-sample coverage guarantee rather than relying on a model's own (frequently miscalibrated) confidence output. ARGUS implements inductive conformal prediction as described by Papadopoulos&nbsp;<sup class="cite">[3]</sup>&mdash;a calibration-set-based variant that avoids retraining the underlying model for every query&mdash;and repurposes the resulting prediction-set size as an autonomy gate: escalation past a passive alert requires the set to be a singleton at a stated significance level &alpha;. This is, to our knowledge, an uncommon use of conformal prediction in the IoT-IDS literature, where confidence gating (where used at all) is typically an arbitrary threshold on raw model output.</p>
+
+<h3 class="subsection">D. Explainability</h3>
+<p>Evidence attribution uses TreeSHAP, the efficient tree-model variant of the SHAP (SHapley Additive exPlanations) framework of Lundberg and Lee&nbsp;<sup class="cite">[4]</sup>, which unifies several prior additive feature-attribution methods under a single, theoretically grounded framework with a unique solution satisfying local accuracy, missingness, and consistency. ARGUS's design position, elaborated in Section&nbsp;IX, is that an explanation only counts as evidence if it can be independently re-derived from the same recorded inputs&mdash;attribution values are stored in the evidence bundle precisely so this check is possible, not merely displayed once and discarded.</p>
+
+<h3 class="subsection">E. Concept drift</h3>
+<p>Baseline behavioural deviation detection is vulnerable to conflating benign drift (e.g., a firmware update changing a device's traffic shape) with compromise. ARGUS runs ADWIN&nbsp;<sup class="cite">[5]</sup>, an adaptive-windowing drift detector with rigorous bounds on false-positive/false-negative rates for the drift decision itself, as an independent signal that <em>suppresses</em> escalation rather than triggering it&mdash;a device in a detected drift state is capped at a passive-alert tier regardless of risk score, since conformal prediction's validity itself assumes exchangeability, an assumption drift violates.</p>
+
+<h3 class="subsection">F. Threat context</h3>
+<p>The Mirai-recruitment attack scenario implemented in this work is grounded in Antonakakis <i>et al.</i>'s retrospective measurement study of the real Mirai botnet&nbsp;<sup class="cite">[6]</sup>, which documents the scan &rarr; credential-brute-force &rarr; command-and-control-registration &rarr; participation lifecycle at a scale of hundreds of thousands of infected devices; ARGUS's synthetic and live-testbed scenario for this attack class reproduces that behavioural shape at flow-metadata granularity.</p>
+
+<h2 class="section">III. Threat Model and Problem Formulation</h2>
+<h3 class="subsection">A. Falsifiable question</h3>
+<p class="no-indent">On a network with no human operator, can an automated system detect a compromised IoT device, decide whether to act, act on the real network, prove afterward why it acted, and not break the network's legitimate function&mdash;and by what measure would we know?</p>
+
+<h3 class="subsection">B. Hypotheses</h3>
+<ul>
+  <li><b>H1.</b> Classification F1 is a weak predictor of containment outcome.</li>
+  <li><b>H2.</b> Components that do not move F1 (correlator, risk engine, drift monitor, conformal gate) nonetheless move containment metrics (time-to-contain, false-isolation rate).</li>
+  <li><b>H3.</b> Binding every action to a hash-linked evidence bundle makes the decision reproducible at a measurable rate.</li>
+</ul>
+
+<h3 class="subsection">C. Adversary and trust boundary</h3>
+<p class="no-indent">The assumed adversary is a remote attacker who has gained a foothold on one LAN device and can scan, brute-force credentials, execute code on that device, spoof its Layer-2 identity, and communicate with external infrastructure over TLS. The adversary is assumed <em>not</em> to have access to ARGUS's model weights, calibration data, or enrolled baselines. The trust boundary runs Internet (untrusted) &rarr; gateway (assumed uncompromised, a stated assumption) &rarr; IoT network (untrusted; any device may be compromised at any time) &rarr; ARGUS itself, which constitutes the trusted computing base. Physical access, radio-layer attacks, firmware supply-chain compromise, cloud-account compromise, and a fully adaptive attacker who observes and counters ARGUS in real time are explicitly out of scope.</p>
+
+<h3 class="subsection">D. Attack scenarios</h3>
+<p class="no-indent">Seven scenarios are implemented and exercised end to end against seven distinct devices in the default fleet: Mirai-style scan/brute-force/C2-registration/DDoS recruitment; low-and-slow encrypted beaconing (the scenario deliberately designed to be hard&mdash;small, jittered, per-flow-indistinguishable-from-telemetry payloads); MQTT topic enumeration and unauthorised publish; ARP spoofing/lateral movement; DNS-tunnelled command-and-control; device identity spoofing via an unrecognised TLS/JA4 fingerprint; and OTA update spoofing from an undeclared endpoint. Only the first two run on the real network-namespace testbed path at the time of writing; the remaining five run on the synthetic path only (Section&nbsp;XV enumerates this as a named limitation, not a hidden gap).</p>
+
+<h2 class="section">IV. System Architecture</h2>
+<p class="no-indent">Figure&nbsp;1 shows the full pipeline. Each stage consumes only the typed schema the previous stage produced&mdash;never a neighbour's internal state&mdash;which is what makes both the two-traffic-source substitution (Section&nbsp;IV-B) and the ablation harness (Section&nbsp;XIII) possible without modifying pipeline code.</p>
+
+<div class="fig">
+<pre>Sim / Testbed (device behaviour + attack orchestrator
+               + ground-truth ledger)
+   |
+   v
+Collection (flow assembly)
+   |
+   v
+Feature Extraction (metadata-only)
+   |
+   v
+Device Registry + Enrollment + Baseline  &lt;-- policy-guarded
+   |
+   v
+Behaviour Engine &lt;-&gt; Drift Monitor   &lt;-- drift suppresses
+   |                                       escalation
+   v
+Rule/Policy Detection + Calibrated ML Detection
+                                (+ conformal gate)
+   |
+   v
+Correlator --&gt; Incidents --&gt; Risk Engine
+   |
+   v
+Evidence & Explanation Engine (hash-chained bundle)
+   |
+   v
+Safety Guard (veto power) --&gt; Response Decision
+   |
+   v
+Enforcement (dry-run by default)
+   |
+   v
+Post-Response Verification
+   |
+   v
+Append-only Audit Ledger --&gt; feeds back into
+                              Risk + Behaviour</pre>
+</div>
+<p class="figcap"><b>Fig. 1.</b> ARGUS closed-loop pipeline. Verification output at the bottom feeds back into the risk engine and behaviour engine, distinguishing this from a detection-only, open-loop system.</p>
+
+<h3 class="subsection">A. Deliberate departures from a naive linear pipeline</h3>
+<p class="no-indent">Seven design decisions separate this architecture from a straightforward detect-then-act pipeline. Enrollment and baselining exist as an explicit, bounded, policy-guarded stage, because a device compromised before its baseline is captured would otherwise have the attack learned in as "normal." The drift monitor is a separate component from the behaviour engine specifically so that benign drift (e.g., a firmware update) is not conflated with compromise; drift is wired to <em>suppress</em> escalation, never to trigger it. Explanation is merged into the evidence stage rather than treated as a separate, optional add-on, on the position that an explanation unverifiable against the data that produced it is not evidence at all. A safety guard sits before response as its own component with veto power, so safety cannot be an emergent property of the decision engine's own logic. The loop closes: post-response verification output feeds back into the risk engine and behaviour engine, which is the structural difference between a detection-only and a closed-loop autonomous system. All components share a single time source, since an evidence timeline is worthless if its components disagree about when things happened. Feature extraction is metadata-only by permanent design commitment, not an implementation shortcut to be revisited.</p>
+
+<h3 class="subsection">B. Two interchangeable traffic sources</h3>
+<p class="no-indent">ARGUS ships two data sources feeding an identical downstream pipeline. The first is a deterministic synthetic simulation engine generating flow records with per-device-type statistical profiles, diurnal patterns, and a labelled ground-truth ledger, chosen because the originally scoped 12-container Docker testbed proved infeasible in the build environment&mdash;outbound image-registry pulls returned HTTP 403 from Docker Hub's CDN, verified directly rather than assumed. The second is a real Linux network-namespace testbed: genuine network namespaces and veth pairs on a real Linux bridge, carrying real packets captured with a custom multi-interface <span class="mono">scapy</span> sniffer into an actual pcap file, parsed into the identical flow schema the synthetic engine produces. Building this real alternative, rather than accepting a synthetic-only system, surfaced two genuine kernel-networking interactions: Docker's own iptables-nft ruleset sets the kernel's <span class="mono">FORWARD</span> chain to a drop policy, and the <span class="mono">bridge-nf-call-iptables</span> sysctl routes <em>any</em> Layer-2-bridged traffic through that hook, including traffic on a bridge Docker has no relation to&mdash;silently absorbing the testbed's own traffic until that sysctl was disabled; and once disabled, nftables enforcement rules using the standard <span class="mono">inet</span>/<span class="mono">ip</span> table families could no longer see bridged traffic either, requiring nftables' <span class="mono">bridge</span> table family, the documented-correct mechanism for filtering at the bridging layer directly. Both issues were found only by exercising the real path, which is itself evidence for building the real testbed rather than reasoning about the synthetic one alone.</p>
+
+<h2 class="section">V. Metadata-Only Feature Extraction</h2>
+<p class="no-indent">Every feature group extracted by ARGUS is justified by a specific attack behaviour it exposes, and payload inspection is never performed, as a permanent design commitment rather than a current limitation. Volume/shape features (packet and byte counts and size statistics per direction) expose exfiltration and DDoS participation. Timing features (inter-arrival statistics, burstiness) expose scanning cadence and brute-force behaviour. Periodicity features (autocorrelation and dominant-frequency/jitter statistics over a multi-hour window per device-destination pair) expose beaconing&mdash;the feature group the low-and-slow hard case depends on entirely. Destination-behaviour features (distinct-destination count, entropy, new-destination rate, fan-out) expose scanning and lateral movement. DNS features (query rate, query-name entropy, NXDOMAIN ratio) expose tunnelling. TLS features (JA4/JA3-style fingerprint, SNI entropy) expose identity spoofing&mdash;a fingerprint change on an otherwise-normal-looking device is a strong compromise signal even when timing and volume look unremarkable. Policy features (boolean violations of a device's declared per-type allowlist) give the highest-precision, zero-model detection signal available.</p>
+
+<h2 class="section">VI. Detection: Rules, Policy, and Calibrated ML</h2>
+<p class="no-indent">Detection runs two tracks in parallel. The rules/policy track gives high precision and a free, human-readable explanation on known attack shapes (e.g., a declared-policy violation, or a DNS query-entropy threshold crossing for tunnelling). The ML track gives coverage of attacks that do not match an authored rule: an Isolation Forest&nbsp;<sup class="cite">[2]</sup> trained per device type, chosen deliberately over a deep-learning alternative, since a deep model would have cost substantially more engineering time while producing a strictly worse explanation story without improving the contribution this system is built around. Raw isolation scores are isotonic-calibrated on a held-out split before use; expected calibration error is tracked as a standard diagnostic. Detection sources for a given window are recorded explicitly (e.g. <span class="mono">policy</span>, <span class="mono">rules</span>, <span class="mono">ml</span>) and an <em>agreement score</em>&mdash;the fraction of active tracks concurring&mdash;flows into correlation and risk scoring downstream.</p>
+
+<h2 class="section">VII. Conformal Prediction as an Autonomy Gate</h2>
+<p class="no-indent">Raw model confidence is not a reliable gate for autonomous action, since confidence and calibration are distinct properties and a well-calibrated probability still carries no formal error-rate guarantee for the specific instance being scored. ARGUS instead implements inductive conformal prediction&nbsp;<sup class="cite">[3]</sup> from a proper training/calibration split: at significance level &alpha; (0.05 in the current configuration), the conformal procedure produces a <em>prediction set</em> rather than a point label, with a distribution-free guarantee that the true label is excluded from the set with probability at most &alpha;, under the exchangeability assumption. ARGUS repurposes the resulting set's cardinality as the autonomy gate directly: escalation past the passive <span class="mono">alert</span> tier (Section&nbsp;X) is permitted only when the conformal set is a <em>singleton</em>&mdash;i.e., the procedure is confident enough, in the formal sense the guarantee provides, to exclude the alternative label entirely. This is a materially different guarantee than thresholding a softmax output, and it is the mechanism named in contribution claim C3. The one caveat stated explicitly rather than glossed over: conformal validity assumes exchangeability, which concept drift violates by construction&mdash;hence Section&nbsp;IV-A's design decision to have the drift monitor gate escalation independently of, and prior to, the conformal check.</p>
+
+<h2 class="section">VIII. Correlation and Risk Assessment</h2>
+<p class="no-indent">Detections within a shared time window, entity, and causal chain position are correlated into a single <span class="mono">Incident</span> record rather than reported as independent alerts. Risk is computed as a weighted sum over five interpretable terms: detection severity, device criticality (an enrolled, per-device-type property), calibrated detection confidence (penalised by conformal-set size, so a non-singleton set contributes less even where it does not veto escalation outright), behavioural deviation from the device's own baseline, and blast radius (derived from the device's position in the observed communication graph, weighted by neighbouring-device criticality). Weights are authored rather than learned, a choice defended by a stated sensitivity analysis (varying each weight &plusmn;50% and observing the effect on time-to-contain and false-isolation rate) rather than hidden as an arbitrary constant.</p>
+
+<h2 class="section">IX. Evidence-Bound Decisions and Replay</h2>
+<p class="no-indent">Contribution C2 rests on a specific design position: an explanation that cannot be verified against the data that produced it is not evidence, regardless of how plausible it reads. Every incident that reaches the risk engine produces a hash-chained evidence bundle recording the feature vector, detection sources and signals, the conformal set, SHAP-style per-feature attribution, the risk score and its component terms, the guard's decision trace (which gates passed and which failed, in order), the resulting action and tier, and a hash of the previous bundle&mdash;so that altering a historical bundle breaks every later link in the chain. This is integrity within ARGUS's own trusted computing base, stated explicitly as such rather than oversold as a non-repudiation guarantee against an adversary with host-level access.</p>
+
+<p>The evidence-replay mechanism (<span class="mono">argus/evidence/replay.py</span>) takes a stored bundle, re-runs the decision path from the values recorded inside it&mdash;risk score, conformal set, drift state, enforcement-flag state&mdash;against a <em>fresh</em> guard state (disengaged kill switch, empty rate-limiter history), and compares the replayed action and tier against what was originally stored. The resulting <em>decision-reproducibility rate</em>, measured over however many bundles are available, is contribution C2 as a published, checkable number rather than an assumed property, whatever the number turns out to be.</p>
+
+<p>This mechanism is not merely a design feature; it caught a genuine bug during development. An early version of the per-device action rate limiter gated on wall-clock time (<span class="mono">time.time()</span>). Because a full simulated pipeline run spans several simulated hours of device behaviour while executing in well under one second of real time, every action taken within a single run appeared, to a wall-clock-gated limiter, to occur within the same real-world hour&mdash;occasionally tripping the rate limit as an artifact of simulation speed rather than of anything the evidence actually recorded. Replay, using a rate limiter with no history, did not reproduce that spurious veto, surfacing a reproducibility gap that traced directly to this root cause. The fix threads a simulated-clock timestamp explicitly through the guard and response-ladder functions rather than defaulting to the real clock. This is precisely the class of bug the replay mechanism exists to catch, per its own design rationale, and it was caught within the mechanism's first hour of operation against real pipeline output rather than only synthetic unit-test fixtures.</p>
+
+<h2 class="section">X. Safety Guard and Response Ladder</h2>
+<p class="no-indent">The safety guard is evaluated before any response decision and holds veto power; no enforcement code path in the system bypasses it. Nine checks are evaluated in a fixed order, and any single failure vetoes the action for that decision: a kill switch checkable through three independent mechanisms (a file flag, an environment variable, and a direct API call&mdash;deliberately redundant, on the position that "the one you need will be the one that is unreachable"); the dry-run default (<span class="mono">ARGUS_ENFORCE=false</span>, under which an action is computed and logged but nothing touches the network); a protected-device list that a risk score can never override; the conformal singleton gate from Section&nbsp;VII, required for any escalation past <span class="mono">alert</span>; the drift gate from Section&nbsp;IV-A; a per-tier risk threshold; an irreversibility check requiring human approval for anything not auto-revertible; a rate limit on ARGUS's own actions, both per-device and network-wide, per hour; and a rollback timer&mdash;every applied action carries a TTL and is auto-reverted unless explicitly renewed, so the network's default state remains unmodified and enforcement is always a temporary, actively maintained deviation from it.</p>
+
+<table class="rules">
+<caption><b>Table&nbsp;I.</b> Response ladder tiers.</caption>
+<thead><tr><th>Tier</th><th>Action</th><th>Reversible</th><th>Escalation gate</th></tr></thead>
+<tbody>
+<tr><td>0</td><td>observe</td><td>n/a</td><td>none</td></tr>
+<tr><td>1</td><td>alert</td><td>n/a</td><td>risk &ge; 0.3</td></tr>
+<tr><td>2</td><td>rate_limit</td><td>yes</td><td>risk &ge; 0.5, singleton set, not drifting</td></tr>
+<tr><td>3</td><td>block_destination</td><td>yes</td><td>risk &ge; 0.6, singleton set, not drifting</td></tr>
+<tr><td>4</td><td>isolate</td><td>yes</td><td>risk &ge; 0.8, singleton set, not drifting, not protected</td></tr>
+<tr><td>5</td><td>require_approval</td><td>n/a</td><td>irreversible action, or high risk on a protected device</td></tr>
+</tbody>
+</table>
+
+<p class="no-indent">The ladder prefers the narrowest effective action at each decision&mdash;<span class="mono">block_destination</span> stops command-and-control traffic while leaving the device otherwise functional; full isolation is reserved as the last resort before requiring a human. Enforcement is implemented behind a single adapter interface (<span class="mono">apply</span>, <span class="mono">revert</span>, <span class="mono">list_active</span>), which is what allows the ablation harness (Section&nbsp;XIII) to substitute a no-op adapter representing the field's typical detection-only system without touching any pipeline code above it.</p>
+
+<h2 class="section">XI. Enforcement and Post-Response Verification</h2>
+<p class="no-indent">The default adapter everywhere in the shipped system is a dry-run adapter that logs intended actions and touches nothing; a real <span class="mono">nftables</span>-backed adapter exists but is never wired in as a default, consistent with the project's stated non-negotiable rule that live enforcement requires an explicit opt-in. Where exercised (Section&nbsp;IV-B's live-testbed path), the real adapter was verified against actual socket connections rather than against <span class="mono">nft</span>'s process exit code alone: a connection provably fails while isolation is active and provably succeeds again either after a targeted revert or after a kill-switch-style full flush, and <span class="mono">block_destination</span> was verified narrower in scope than <span class="mono">isolate</span> against two distinct real targets, matching the ladder's intended semantics rather than merely its documentation.</p>
+
+<p>Post-response verification runs at fixed offsets after an action (30&nbsp;s, 2&nbsp;min, 5&nbsp;min in the current configuration) and answers three questions: did the threat signal stop, did the device's legitimate function recover, and did anything legitimate break as a side effect (the false-isolation check). Verification outcomes feed back explicitly: a <span class="mono">collateral_damage</span> outcome raises the action threshold for that device class going forward; <span class="mono">not_contained</span> triggers further escalation if the guard's gates still pass; <span class="mono">contained</span> closes the loop for that incident. This feedback path, rather than the enforcement adapter itself, is what makes the system closed-loop in the sense Section&nbsp;I claims.</p>
+
+<h2 class="section">XII. Implementation</h2>
+<p class="no-indent">The backend is implemented in Python 3.11+ with FastAPI over SQLAlchemy (SQLite by default; any SQLAlchemy-supported database via configuration), scikit-learn for the Isolation Forest and calibration, <span class="mono">river</span> for the online ADWIN drift detector, and SHAP for TreeSHAP attribution. The live-testbed extra uses <span class="mono">pyroute2</span> for network-namespace and veth management and <span class="mono">scapy</span>/<span class="mono">dpkt</span> for packet capture and pcap parsing. The analyst console is a React 19 and TypeScript single-page application built with Vite and styled with Tailwind CSS&nbsp;4, using TanStack Query for data fetching and React Router for navigation; it presents three views&mdash;Fleet (device state), Incidents (correlated detections with live evidence detail, SHAP attribution charts, and a one-click "replay decision" action against the real backend), and Control (enforcement mode, kill switch, active actions)&mdash;and includes a real accessibility pass (keyboard-operable rows, a proper ARIA dialog with focus management and Escape-to-close, <span class="mono">aria-live</span> status regions), verified with browser automation rather than static review alone. The test suite comprises 45 tests covering feature-extraction fixtures with hand-verified values, enrollment and policy-refusal behaviour, the full detection&rarr;correlation&rarr;risk integration path, each of the five safety-guard mechanisms exercised directly and independently, evidence hash-chain tamper detection, decision replay, six tests against the real network-namespace testbed (fabric setup/teardown leaving no residual state; real UDP delivery between namespaces; captured real attack flows checked against wall-clock ground truth; the containment check), four tests against the real <span class="mono">nftables</span> adapter, and dedicated tests for the ablation mechanism, the evaluation statistics functions, and the dataset-subsampling logic.</p>
+
+<h2 class="section">XIII. Evaluation Methodology</h2>
+<h3 class="subsection">A. Ablation design</h3>
+<p class="no-indent">Nine configurations (A0&ndash;A8) each toggle a real parameter on the real, shipped pipeline&mdash;never a parallel, simplified re-implementation of a "detection-only mode"&mdash;so that no ablation result can drift out of sync with a bug fix made to the real system without the ablation itself changing to match. A0 is the full system. A1 disables the correlator (each detection becomes its own incident). A2 sets the risk engine's weights to a uniform, non-differentiating configuration. A3 forces the conformal set to always be a singleton, removing the gate's practical effect. A4 disables the drift monitor. A6, the configuration central to this paper's headline result, runs the identical detection stack as A0&mdash;the same policy, rules, ML detection, correlation, and risk scoring&mdash;but swaps the enforcement adapter for a no-op, so that no incident, however severe, ever triggers a network-touching or even a dry-run-logged response action. This specific construction is what licenses the claim in Section&nbsp;XIV that A6's detection metrics equal A0's exactly: they are computed by the same code, given the same inputs, up to the point where the two configurations diverge.</p>
+
+<h3 class="subsection">B. Metrics and statistics</h3>
+<p class="no-indent">Detection quality is reported as precision, recall, and F1 against a genuine benign holdout (traffic the pipeline never uses for training or calibration), so that these numbers reflect real false-positive and false-negative behaviour rather than a trivially perfect score on data the detector has already seen in some form. Containment quality is reported as time-to-detect, time-to-contain (censored&mdash;runs that never contain an incident are reported via an explicit censoring rate rather than averaged only over the runs that happened to succeed), false-isolation events per device-day, and the decision-reproducibility rate from Section&nbsp;IX. Each configuration is run at five fixed, recorded seeds against two attack scenarios (<span class="mono">mirai</span>, <span class="mono">low_and_slow</span>&mdash;the two scenarios marked as never-to-be-cut in the project's own build ordering). Comparisons against A0 use the Mann-Whitney U test per pairwise comparison, Holm-Bonferroni correction across the resulting eight-comparison family to control the familywise error rate, and Cliff's delta as the primary effect-size measure, chosen because five-seed statistical power is limited and delta does not assume a particular underlying distribution.</p>
+
+<h3 class="subsection">C. What was not run, stated up front</h3>
+<p class="no-indent">Two scope limits are structural to the current results and are stated here rather than left implicit until the discussion section. First, the ablation and ranking above cover 2 of the 7 implemented attack scenarios; the remaining five run correctly through the synthetic detection pipeline (Section&nbsp;III-D) but are not yet wired into the ablation harness's scenario loop or the live-packet testbed path. Second, the public-dataset track (CICIoT2023 training, IoT-23 cross-dataset generalisation testing) could not be run in the build environment: a direct request to the dataset host returned HTTP 403 at the outbound proxy, the identical failure mode independently verified for Docker Hub's CDN (Section&nbsp;IV-B). The dataset-agnostic subsampling and feature-parity logic this track would use is implemented and unit-tested against a synthetic fixture, and is ready to run the moment a reachable data source is available, but zero real numbers from it exist anywhere in this paper.</p>
+
+<h2 class="section">XIV. Results</h2>
+<h3 class="subsection">A. The headline finding: detection accuracy does not predict containment</h3>
+<p class="no-indent">A6 (detection-only, no-op enforcement) shows detection metrics identical to A0 (the full system) by construction&mdash;the same true-positive/false-positive/false-negative/true-negative tuple for a given seed, since both configurations run the identical detection, correlation, and risk-scoring code on identical inputs up to the point of enforcement, and this identity is asserted directly by a dedicated regression test rather than only observed empirically. Despite identical detection, A6's measured containment rate across the seeded runs is <b>0%</b>, against A0's <b>100%</b> (5 of 5 seeds contained). This is the paper's central measured result and direct support for H1: a system that classifies attacks exactly as well as another system can nonetheless never act on any of them, and a metrics table reporting only precision/recall/F1 could not distinguish the two systems at all.</p>
+
+<h3 class="subsection">B. Component-level ablation</h3>
+<p class="no-indent">A1 (no correlator) and A3 (no conformal gate) both show a "negligible" effect on F1 relative to A0 (Cliff's delta) but a "large" effect on time-to-contain&mdash;these two components move a containment metric substantially without moving the classification metric at all, direct support for H2. A2 (uniform-weight risk engine) and A4 (no drift monitor) show only small-to-negligible effects on containment metrics in the current measured run, which does <em>not</em> match the a priori hypothesis for those two components and is reported as such rather than adjusted or omitted; H2 is therefore supported for two of the four tested components and not clearly supported for the other two, a mixed result stated honestly rather than smoothed into a uniform narrative.</p>
+
+<h3 class="subsection">C. Evidence reproducibility</h3>
+<p class="no-indent">Decision replay against the current seeded run reproduces <b>19 of 19</b> (100%) stored bundle decisions&mdash;direct support for H3, on the sample available. As discussed in Section&nbsp;XV, 19 bundles is materially smaller than the evidentiary sample size this class of claim typically warrants, and the number is reported as measured on that specific, small sample rather than extrapolated.</p>
+
+<table class="rules">
+<caption><b>Table&nbsp;II.</b> Summary of ablation and replay results (5 seeds, 2 scenarios, commit-traceable run).</caption>
+<thead><tr><th>Configuration</th><th>F1 vs. A0 (Cliff's &delta;)</th><th>Containment / TTC effect</th></tr></thead>
+<tbody>
+<tr><td>A1 &mdash; no correlator</td><td>negligible</td><td>large TTC effect</td></tr>
+<tr><td>A2 &mdash; uniform risk weights</td><td>negligible</td><td>small/negligible effect</td></tr>
+<tr><td>A3 &mdash; no conformal gate</td><td>negligible</td><td>large TTC effect</td></tr>
+<tr><td>A4 &mdash; no drift monitor</td><td>negligible</td><td>small/negligible effect</td></tr>
+<tr><td>A6 &mdash; detection-only (no-op response)</td><td>identical by construction</td><td>0% containment vs. A0's 100% (5/5 seeds)</td></tr>
+</tbody>
+</table>
+
+<h2 class="section">XV. Discussion and Limitations</h2>
+<h3 class="subsection">A. Implication</h3>
+<p class="no-indent">The A0/A6 comparison in Section&nbsp;XIV-A is, deliberately, the simplest possible experimental design that could make this paper's argument: hold detection fixed by construction and vary only whether the system is permitted to act. The result argues that classification-only evaluation, the norm the related-work gap analysis&nbsp;<sup class="cite">[1]</sup> documents across the field, is not merely incomplete but can be actively uninformative about the property that determines operational value&mdash;whether the system contains anything. A field-standard metrics table would report A0 and A6 as indistinguishable.</p>
+
+<h3 class="subsection">B. Limitations, stated explicitly</h3>
+<p class="no-indent">The following limitations are known and named rather than discovered by a reviewer, consistent with this project's own internal documentation discipline:</p>
+<ul>
+  <li><i>Scenario coverage.</i> The live-packet testbed and the ablation both currently exercise 2 of the 7 implemented attack scenarios (<span class="mono">mirai</span>, <span class="mono">low_and_slow</span>); the other five run correctly in the synthetic pipeline but are not yet ported into either.</li>
+  <li><i>Dataset-track absence.</i> No public-dataset numbers (CICIoT2023, IoT-23) appear anywhere in this paper; the outbound path to fetch them was verified blocked in the build environment, not merely assumed unreachable. Every number reported here is from the synthetic and live-testbed tracks only.</li>
+  <li><i>Replay sample size.</i> 100% reproducibility is measured on 19 evidence bundles from one seeded run. A materially larger sample (the project's own internal target is at least 100 bundles from multiple seeded runs) would be needed before this rate is treated as a stable property rather than an early, favourable measurement.</li>
+  <li><i>SHAP training data.</i> The attribution model is trained on the same small, calibration-split labelled data the conformal detector uses&mdash;on the order of dozens of rows&mdash;not a large public dataset, for the same reachability reason as above.</li>
+  <li><i>No human evaluation of explanations.</i> The original evaluation protocol specifies a human study (participants shown evidence bundles, asked to state what happened and whether the response was appropriate, scored against ground truth). This requires real human subjects that an autonomous or single-author build effort of this kind cannot supply; the protocol is preserved as explicit future work rather than silently dropped.</li>
+  <li><i>Traffic realism.</i> The live testbed carries real packets over real sockets and namespaces but does not implement full application-layer protocols (no real MQTT broker, no real TLS handshake)&mdash;metadata-realistic, not protocol-complete. Since ARGUS is metadata-only by design (Section&nbsp;V), this costs nothing at the feature level, but it is stated as a boundary of what "real" means in this artifact.</li>
+  <li><i>Risk weights are authored, not learned.</i> Defended by a stated sensitivity analysis rather than treated as beyond scrutiny; a learned weighting scheme is future work, not a claimed contribution here.</li>
+  <li><i>Single build environment, small seed count.</i> Five seeds is enough to support non-parametric effect-size reporting but not enough to rule out that A2/A4's mixed result (Section&nbsp;XIV-B) would resolve differently at higher seed count; this is stated as an open question, not resolved by assertion.</li>
+</ul>
+
+<h2 class="section">XVI. Conclusion and Future Work</h2>
+<p class="no-indent">This paper presented ARGUS, a closed-loop, evidence-bound IoT intrusion detection and autonomous response system, and measured&mdash;rather than argued from first principles&mdash;that classification accuracy is a weak proxy for the property that actually matters operationally: whether a system acts and whether that action succeeds. The central result, that a configuration with detection metrics identical to the full system by construction showed 0% containment against the full system's 100%, is offered as direct, reproducible evidence for that claim, alongside an evidence-binding mechanism whose own reproducibility is measured (100% on the current, admittedly small, 19-bundle sample) and a conformal-prediction-gated autonomy mechanism with a distribution-free error bound rather than an arbitrary confidence cutoff.</p>
+<p>Immediate future work, in priority order matching the project's own internal roadmap, is: porting the five synthetic-only attack scenarios into the live-packet testbed and the ablation harness's scenario loop; running the evidence-replay mechanism against a substantially larger, multi-run bundle sample to close the gap named in Section&nbsp;XV-B; running the public-dataset track (CICIoT2023 training, IoT-23 cross-dataset generalisation testing) in an environment with unrestricted outbound access, including the field-typical cross-dataset generalisation collapse this project has not yet been able to measure directly; and, should the project continue with human collaborators, conducting the human evaluation of explanation quality specified in the original evaluation protocol. The full artifact&mdash;source code, test suite, evaluation harness, and this paper's own source&mdash;is available in the accompanying repository, with every number in this paper traceable to a named script, test, or run.</p>
+
+</div>
+
+<h2 class="section" style="margin-top:6mm;">References</h2>
+<div class="refs">
+<ol>
+<li>S. Sallam, M. El Barachi, and N. Li, &ldquo;Intrusion Detection on the Internet of Things: A Comprehensive Review and Gap Analysis Toward Real-Time, Lightweight, Adaptive, and Autonomous Security,&rdquo; <i>IoT</i>, vol. 7, no. 1, art. 16, 2026, doi: 10.3390/iot7010016.</li>
+<li>F. T. Liu, K. M. Ting, and Z.-H. Zhou, &ldquo;Isolation Forest,&rdquo; in <i>Proc. 8th IEEE Int. Conf. Data Mining (ICDM)</i>, Pisa, Italy, 2008, pp. 413&ndash;422, doi: 10.1109/ICDM.2008.17.</li>
+<li>H. Papadopoulos, &ldquo;Inductive Conformal Prediction: Theory and Application to Neural Networks,&rdquo; in <i>Tools in Artificial Intelligence</i>, ch. 18, Vienna, Austria: InTech, 2008, pp. 315&ndash;330, doi: 10.5772/6078.</li>
+<li>S. M. Lundberg and S.-I. Lee, &ldquo;A Unified Approach to Interpreting Model Predictions,&rdquo; in <i>Advances in Neural Information Processing Systems 30 (NeurIPS 2017)</i>, Long Beach, CA, USA, 2017, pp. 4765&ndash;4774.</li>
+<li>A. Bifet and R. Gavald&agrave;, &ldquo;Learning from Time-Changing Data with Adaptive Windowing,&rdquo; in <i>Proc. 2007 SIAM Int. Conf. Data Mining (SDM)</i>, Minneapolis, MN, USA, 2007, pp. 443&ndash;448.</li>
+<li>M. Antonakakis <i>et al.</i>, &ldquo;Understanding the Mirai Botnet,&rdquo; in <i>Proc. 26th USENIX Security Symp. (USENIX Security 17)</i>, Vancouver, BC, Canada, 2017, pp. 1093&ndash;1110.</li>
+</ol>
+</div>
+
+<div class="footer-note">
+This paper describes a portfolio-grade engineering artifact built as an independent MCA project; it has not been peer-reviewed or submitted to a venue. All performance and reproducibility figures reported here trace to named scripts and tests in the accompanying repository (branch <span class="mono">claude/nifty-ramanujan-ruaew2</span>) and to the commit referenced in the repository's own <span class="mono">decisions.md</span> and <span class="mono">STATUS.md</span> files, which document the exact scope, environment constraints, and honestly-reported gaps summarised in Section&nbsp;XV.
+</div>
+
+</body>
+</html>
