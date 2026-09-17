@@ -1,5 +1,5 @@
 {
-  "generated_by": "scripts/export_seed_snapshot.py -- a real run of argus.pipeline.run_demo_pipeline",
+  "generated_by": "scripts/export_seed_snapshot.py -- a real run of argus.pipeline.run_demo_pipeline, capped at 2 incidents per (device, scenario) pair to keep the exported file small (every kept row is untouched real output from that run)",
   "pipeline_summary": {
     "incidents": 19,
     "bundles": 19,
@@ -97,7 +97,7 @@
   ],
   "incidents": [
     {
-      "incident_id": "fca7a7f4-c42a-4b53-aedb-f40358b3c6d5",
+      "incident_id": "a30ef704-d039-49d7-8771-af64bc47dbd7",
       "device_id": "smart-speaker-00",
       "scenario": "low_and_slow",
       "first_seen": "2026-01-01T04:45:00",
@@ -105,8 +105,8 @@
       "chain_position": "declared_policy_violation/isolation_forest_anomaly",
       "agreement_score": 0.6666666666666666,
       "detection_sources": [
-        "ml",
-        "policy"
+        "policy",
+        "ml"
       ],
       "status": "open",
       "risk_score": 0.6903801156178908,
@@ -117,13 +117,13 @@
         "deviation": 0.999955002332754,
         "blast_radius": 0.15
       },
-      "bundle_id": "a75287ff-79f0-4a60-8f08-96ede4a0a4a1",
+      "bundle_id": "c0ef7b6c-d534-4a36-b929-4655828b7d58",
       "action": "block_destination",
       "dry_run": true,
       "verification_outcome": "contained"
     },
     {
-      "incident_id": "c968c133-5161-46aa-8b26-19addd5c5aba",
+      "incident_id": "e759cd76-d0b6-45ab-9338-92b048cf8f1a",
       "device_id": "smart-speaker-00",
       "scenario": "low_and_slow",
       "first_seen": "2026-01-01T04:30:00",
@@ -131,8 +131,8 @@
       "chain_position": "declared_policy_violation/isolation_forest_anomaly",
       "agreement_score": 0.6666666666666666,
       "detection_sources": [
-        "ml",
-        "policy"
+        "policy",
+        "ml"
       ],
       "status": "open",
       "risk_score": 0.6903801156178908,
@@ -143,299 +143,13 @@
         "deviation": 0.999955002332754,
         "blast_radius": 0.15
       },
-      "bundle_id": "d2836ee1-392c-4223-a9e0-4723cc95cb4e",
+      "bundle_id": "18c9050f-e202-4276-b606-f09bac6c9808",
       "action": "block_destination",
       "dry_run": true,
       "verification_outcome": "contained"
     },
     {
-      "incident_id": "c6d3492f-9cb9-443a-8c92-e075acf4bec9",
-      "device_id": "smart-speaker-00",
-      "scenario": "low_and_slow",
-      "first_seen": "2026-01-01T04:15:00",
-      "last_seen": "2026-01-01T04:20:00",
-      "chain_position": "declared_policy_violation/isolation_forest_anomaly",
-      "agreement_score": 0.6666666666666666,
-      "detection_sources": [
-        "ml",
-        "policy"
-      ],
-      "status": "open",
-      "risk_score": 0.6903801156178908,
-      "risk_terms": {
-        "severity": 0.9615384615384616,
-        "criticality": 0.35,
-        "confidence": 1.0,
-        "deviation": 0.999955002332754,
-        "blast_radius": 0.15
-      },
-      "bundle_id": "f6fa6de4-2c3d-4117-9358-a523671fe20f",
-      "action": "block_destination",
-      "dry_run": true,
-      "verification_outcome": "contained"
-    },
-    {
-      "incident_id": "52b32f77-9b7c-4995-a6bb-ba520606cbdd",
-      "device_id": "smart-speaker-00",
-      "scenario": "low_and_slow",
-      "first_seen": "2026-01-01T04:05:00",
-      "last_seen": "2026-01-01T04:05:00",
-      "chain_position": "declared_policy_violation/isolation_forest_anomaly",
-      "agreement_score": 0.6666666666666666,
-      "detection_sources": [
-        "ml",
-        "policy"
-      ],
-      "status": "open",
-      "risk_score": 0.6903801156178908,
-      "risk_terms": {
-        "severity": 0.9615384615384616,
-        "criticality": 0.35,
-        "confidence": 1.0,
-        "deviation": 0.999955002332754,
-        "blast_radius": 0.15
-      },
-      "bundle_id": "aedb7b80-dd58-473f-9cb6-b015dd4152c9",
-      "action": "block_destination",
-      "dry_run": true,
-      "verification_outcome": "contained"
-    },
-    {
-      "incident_id": "5e8487b3-0053-4591-a39a-dbc8043f30ba",
-      "device_id": "smart-speaker-00",
-      "scenario": "low_and_slow",
-      "first_seen": "2026-01-01T03:50:00",
-      "last_seen": "2026-01-01T03:55:00",
-      "chain_position": "declared_policy_violation/isolation_forest_anomaly",
-      "agreement_score": 0.6666666666666666,
-      "detection_sources": [
-        "ml",
-        "policy"
-      ],
-      "status": "open",
-      "risk_score": 0.6903801156178908,
-      "risk_terms": {
-        "severity": 0.9615384615384616,
-        "criticality": 0.35,
-        "confidence": 1.0,
-        "deviation": 0.999955002332754,
-        "blast_radius": 0.15
-      },
-      "bundle_id": "50e90289-4bd2-434c-b00f-4b3ab06c081e",
-      "action": "block_destination",
-      "dry_run": true,
-      "verification_outcome": "contained"
-    },
-    {
-      "incident_id": "a525d6bd-e722-49b5-a099-c2d2b82667a3",
-      "device_id": "smart-speaker-00",
-      "scenario": "low_and_slow",
-      "first_seen": "2026-01-01T03:35:00",
-      "last_seen": "2026-01-01T03:40:00",
-      "chain_position": "declared_policy_violation/isolation_forest_anomaly",
-      "agreement_score": 0.6666666666666666,
-      "detection_sources": [
-        "ml",
-        "policy"
-      ],
-      "status": "open",
-      "risk_score": 0.6903801156178908,
-      "risk_terms": {
-        "severity": 0.9615384615384616,
-        "criticality": 0.35,
-        "confidence": 1.0,
-        "deviation": 0.999955002332754,
-        "blast_radius": 0.15
-      },
-      "bundle_id": "77e44a1d-6d96-43eb-90ed-44148daea64f",
-      "action": "block_destination",
-      "dry_run": true,
-      "verification_outcome": "contained"
-    },
-    {
-      "incident_id": "cc12f61a-a236-4d27-b2da-73d11fcf910b",
-      "device_id": "smart-speaker-00",
-      "scenario": "low_and_slow",
-      "first_seen": "2026-01-01T03:25:00",
-      "last_seen": "2026-01-01T03:25:00",
-      "chain_position": "declared_policy_violation/isolation_forest_anomaly",
-      "agreement_score": 0.6666666666666666,
-      "detection_sources": [
-        "ml",
-        "policy"
-      ],
-      "status": "open",
-      "risk_score": 0.6903801156178908,
-      "risk_terms": {
-        "severity": 0.9615384615384616,
-        "criticality": 0.35,
-        "confidence": 1.0,
-        "deviation": 0.999955002332754,
-        "blast_radius": 0.15
-      },
-      "bundle_id": "30b06cfb-87a5-4968-9a0d-1c41abe803df",
-      "action": "block_destination",
-      "dry_run": true,
-      "verification_outcome": "contained"
-    },
-    {
-      "incident_id": "ee671d54-1b85-4411-8354-97b008a7121c",
-      "device_id": "smart-speaker-00",
-      "scenario": "low_and_slow",
-      "first_seen": "2026-01-01T03:10:00",
-      "last_seen": "2026-01-01T03:15:00",
-      "chain_position": "declared_policy_violation/isolation_forest_anomaly",
-      "agreement_score": 0.6666666666666666,
-      "detection_sources": [
-        "ml",
-        "policy"
-      ],
-      "status": "open",
-      "risk_score": 0.6903801156178908,
-      "risk_terms": {
-        "severity": 0.9615384615384616,
-        "criticality": 0.35,
-        "confidence": 1.0,
-        "deviation": 0.999955002332754,
-        "blast_radius": 0.15
-      },
-      "bundle_id": "cc0c48ca-9065-4111-82f5-3452b2c3fbed",
-      "action": "block_destination",
-      "dry_run": true,
-      "verification_outcome": "contained"
-    },
-    {
-      "incident_id": "3e24ab22-20e3-40c6-b9ed-1fe10d2752f1",
-      "device_id": "smart-speaker-00",
-      "scenario": "low_and_slow",
-      "first_seen": "2026-01-01T02:55:00",
-      "last_seen": "2026-01-01T03:00:00",
-      "chain_position": "declared_policy_violation/isolation_forest_anomaly",
-      "agreement_score": 0.6666666666666666,
-      "detection_sources": [
-        "ml",
-        "policy"
-      ],
-      "status": "open",
-      "risk_score": 0.6903801156178908,
-      "risk_terms": {
-        "severity": 0.9615384615384616,
-        "criticality": 0.35,
-        "confidence": 1.0,
-        "deviation": 0.999955002332754,
-        "blast_radius": 0.15
-      },
-      "bundle_id": "e902bf44-2753-4aa7-b897-928b0e7fa53b",
-      "action": "block_destination",
-      "dry_run": true,
-      "verification_outcome": "contained"
-    },
-    {
-      "incident_id": "e58f84ed-c2c2-41a2-a23c-d91575502164",
-      "device_id": "smart-speaker-00",
-      "scenario": "low_and_slow",
-      "first_seen": "2026-01-01T02:40:00",
-      "last_seen": "2026-01-01T02:45:00",
-      "chain_position": "declared_policy_violation/isolation_forest_anomaly",
-      "agreement_score": 0.6666666666666666,
-      "detection_sources": [
-        "ml",
-        "policy"
-      ],
-      "status": "open",
-      "risk_score": 0.6903801156178908,
-      "risk_terms": {
-        "severity": 0.9615384615384616,
-        "criticality": 0.35,
-        "confidence": 1.0,
-        "deviation": 0.999955002332754,
-        "blast_radius": 0.15
-      },
-      "bundle_id": "fa9293d7-f151-421b-a339-5058b7632c09",
-      "action": "block_destination",
-      "dry_run": true,
-      "verification_outcome": "contained"
-    },
-    {
-      "incident_id": "4eb3fafe-8a91-426f-afd3-e48f2577eb62",
-      "device_id": "smart-speaker-00",
-      "scenario": "low_and_slow",
-      "first_seen": "2026-01-01T02:30:00",
-      "last_seen": "2026-01-01T02:30:00",
-      "chain_position": "declared_policy_violation/isolation_forest_anomaly",
-      "agreement_score": 0.6666666666666666,
-      "detection_sources": [
-        "ml",
-        "policy"
-      ],
-      "status": "open",
-      "risk_score": 0.6903801156178908,
-      "risk_terms": {
-        "severity": 0.9615384615384616,
-        "criticality": 0.35,
-        "confidence": 1.0,
-        "deviation": 0.999955002332754,
-        "blast_radius": 0.15
-      },
-      "bundle_id": "be788af9-98eb-4067-80f1-57f137afe7cf",
-      "action": "block_destination",
-      "dry_run": true,
-      "verification_outcome": "contained"
-    },
-    {
-      "incident_id": "13a05ce4-3e5f-4451-ab9b-9f42b8d7e2c6",
-      "device_id": "smart-speaker-00",
-      "scenario": "low_and_slow",
-      "first_seen": "2026-01-01T02:15:00",
-      "last_seen": "2026-01-01T02:20:00",
-      "chain_position": "declared_policy_violation/isolation_forest_anomaly",
-      "agreement_score": 0.6666666666666666,
-      "detection_sources": [
-        "ml",
-        "policy"
-      ],
-      "status": "open",
-      "risk_score": 0.6903801156178908,
-      "risk_terms": {
-        "severity": 0.9615384615384616,
-        "criticality": 0.35,
-        "confidence": 1.0,
-        "deviation": 0.999955002332754,
-        "blast_radius": 0.15
-      },
-      "bundle_id": "f535c880-d0d5-4a38-b342-7238f1744ee1",
-      "action": "block_destination",
-      "dry_run": true,
-      "verification_outcome": "contained"
-    },
-    {
-      "incident_id": "4786967e-cf03-4844-9940-857d035c79f4",
-      "device_id": "smart-speaker-00",
-      "scenario": "low_and_slow",
-      "first_seen": "2026-01-01T02:00:00",
-      "last_seen": "2026-01-01T02:05:00",
-      "chain_position": "declared_policy_violation/isolation_forest_anomaly",
-      "agreement_score": 0.6666666666666666,
-      "detection_sources": [
-        "ml",
-        "policy"
-      ],
-      "status": "open",
-      "risk_score": 0.6903801156178908,
-      "risk_terms": {
-        "severity": 0.9615384615384616,
-        "criticality": 0.35,
-        "confidence": 1.0,
-        "deviation": 0.999955002332754,
-        "blast_radius": 0.15
-      },
-      "bundle_id": "1eb63ad3-6004-4971-8a1d-1084691dc017",
-      "action": "block_destination",
-      "dry_run": true,
-      "verification_outcome": "contained"
-    },
-    {
-      "incident_id": "64a0bacb-4264-419f-a80b-2b57297ad0e8",
+      "incident_id": "aa90b123-3282-4f05-8594-df886a8a3c4d",
       "device_id": "doorbell-00",
       "scenario": "identity_spoof",
       "first_seen": "2026-01-01T02:00:00",
@@ -443,9 +157,9 @@
       "chain_position": "declared_policy_violation/identity_fingerprint_mismatch/isolation_forest_anomaly",
       "agreement_score": 1.0,
       "detection_sources": [
+        "policy",
         "rules",
-        "ml",
-        "policy"
+        "ml"
       ],
       "status": "open",
       "risk_score": 0.7303845977174264,
@@ -456,13 +170,13 @@
         "deviation": 0.9999998233281097,
         "blast_radius": 0.15
       },
-      "bundle_id": "dec2df68-4624-4cd6-805f-97c1d0d405bf",
+      "bundle_id": "58fa76e5-b5b4-48ed-9cf2-aa4ac77eed23",
       "action": "block_destination",
       "dry_run": true,
       "verification_outcome": "contained"
     },
     {
-      "incident_id": "d1e16578-a7c3-40f6-afaf-5a0f7ce259a1",
+      "incident_id": "ee1e48b5-2ac7-4e06-b7d6-51f944938ef7",
       "device_id": "smart-plug-00",
       "scenario": "mirai",
       "first_seen": "2026-01-01T02:00:00",
@@ -470,9 +184,9 @@
       "chain_position": "declared_policy_violation/isolation_forest_anomaly/scan_fanout",
       "agreement_score": 1.0,
       "detection_sources": [
+        "policy",
         "rules",
-        "ml",
-        "policy"
+        "ml"
       ],
       "status": "open",
       "risk_score": 0.8599999957652185,
@@ -483,13 +197,13 @@
         "deviation": 0.9999999576521834,
         "blast_radius": 1.0
       },
-      "bundle_id": "e79e8c68-e2bc-4b18-b759-f83aec583a93",
+      "bundle_id": "d1005fce-41c6-4cdb-9d6a-0ac0260890eb",
       "action": "isolate",
       "dry_run": true,
       "verification_outcome": "contained"
     },
     {
-      "incident_id": "9ace55ab-fda8-4f1b-ba68-8ce138a06ca1",
+      "incident_id": "8723e389-cdc4-4914-9f52-0e428d8c60d0",
       "device_id": "smart-lock-00",
       "scenario": "mqtt_abuse",
       "first_seen": "2026-01-01T02:00:00",
@@ -497,8 +211,8 @@
       "chain_position": "declared_policy_violation/isolation_forest_anomaly",
       "agreement_score": 0.6666666666666666,
       "detection_sources": [
-        "ml",
-        "policy"
+        "policy",
+        "ml"
       ],
       "status": "open",
       "risk_score": 0.7999999218316621,
@@ -509,13 +223,13 @@
         "deviation": 0.9999992183166204,
         "blast_radius": 0.15
       },
-      "bundle_id": "5407e4c2-f0a0-403e-b05b-428fe1a98599",
+      "bundle_id": "9efcd6eb-eddd-49ed-81cf-54837708f51a",
       "action": "block_destination",
       "dry_run": true,
       "verification_outcome": "contained"
     },
     {
-      "incident_id": "63895d1b-b7c7-4f7b-b229-c9055d974846",
+      "incident_id": "df351c86-fe41-4cb0-aaee-69d773e5caff",
       "device_id": "ip-camera-00",
       "scenario": "arp_spoof",
       "first_seen": "2026-01-01T02:00:00",
@@ -523,8 +237,8 @@
       "chain_position": "declared_policy_violation/isolation_forest_anomaly",
       "agreement_score": 0.6666666666666666,
       "detection_sources": [
-        "ml",
-        "policy"
+        "policy",
+        "ml"
       ],
       "status": "open",
       "risk_score": 0.7499998416029603,
@@ -535,13 +249,13 @@
         "deviation": 0.999998416029602,
         "blast_radius": 0.15
       },
-      "bundle_id": "86c1d993-8875-42c8-bf14-d835023bc3b4",
+      "bundle_id": "6cb0baed-485c-4b9e-9100-cacb882185ca",
       "action": "block_destination",
       "dry_run": true,
       "verification_outcome": "contained"
     },
     {
-      "incident_id": "252ff878-5fbc-4683-9089-0c509d07a078",
+      "incident_id": "867c5e85-4761-43e3-8ebd-5d5ba3fa509b",
       "device_id": "smart-tv-00",
       "scenario": "dns_tunnel",
       "first_seen": "2026-01-01T02:00:00",
@@ -549,9 +263,9 @@
       "chain_position": "declared_policy_violation/dns_tunnel_suspected/isolation_forest_anomaly",
       "agreement_score": 1.0,
       "detection_sources": [
+        "policy",
         "rules",
-        "ml",
-        "policy"
+        "ml"
       ],
       "status": "open",
       "risk_score": 0.6699999632052354,
@@ -562,13 +276,13 @@
         "deviation": 0.9999996320523524,
         "blast_radius": 0.15
       },
-      "bundle_id": "24427f28-3c6c-4060-91b6-afded360687d",
+      "bundle_id": "ebc32796-f577-4021-b52c-da15ed93a151",
       "action": "block_destination",
       "dry_run": true,
       "verification_outcome": "contained"
     },
     {
-      "incident_id": "8905e390-3a08-4255-b023-955b0c055844",
+      "incident_id": "f231a988-cb59-42c7-84b1-08a8fc8dec2e",
       "device_id": "thermostat-00",
       "scenario": "ota_spoof",
       "first_seen": "2026-01-01T02:00:00",
@@ -576,8 +290,8 @@
       "chain_position": "declared_policy_violation/isolation_forest_anomaly",
       "agreement_score": 0.6666666666666666,
       "detection_sources": [
-        "ml",
-        "policy"
+        "policy",
+        "ml"
       ],
       "status": "open",
       "risk_score": 0.708113520723962,
@@ -588,17 +302,17 @@
         "deviation": 0.9811352072396197,
         "blast_radius": 0.15
       },
-      "bundle_id": "5b2e44ce-5352-40ac-a23c-c784d4e13c76",
+      "bundle_id": "023b90f9-c04f-4849-8430-5c51c785d988",
       "action": "block_destination",
       "dry_run": true,
       "verification_outcome": "contained"
     }
   ],
   "evidence": {
-    "e79e8c68-e2bc-4b18-b759-f83aec583a93": {
-      "bundle_id": "e79e8c68-e2bc-4b18-b759-f83aec583a93",
-      "incident_id": "d1e16578-a7c3-40f6-afaf-5a0f7ce259a1",
-      "created_at": "2026-09-17T13:57:51.647231+00:00",
+    "d1005fce-41c6-4cdb-9d6a-0ac0260890eb": {
+      "bundle_id": "d1005fce-41c6-4cdb-9d6a-0ac0260890eb",
+      "incident_id": "ee1e48b5-2ac7-4e06-b7d6-51f944938ef7",
+      "created_at": "2026-09-17T14:09:20.885288+00:00",
       "device": {
         "device_id": "smart-plug-00",
         "device_type": "smart-plug",
@@ -610,9 +324,9 @@
       },
       "detection": {
         "sources": [
+          "policy",
           "rules",
-          "ml",
-          "policy"
+          "ml"
         ],
         "conformal_set": [
           "attack"
@@ -687,18 +401,18 @@
         "detected via policy:declared_policy_violation",
         "detected via rules:scan_fanout",
         "detected via ml:isolation_forest_anomaly",
-        "correlated into incident d1e16578-a7c3-40f6-afaf-5a0f7ce259a1",
+        "correlated into incident ee1e48b5-2ac7-4e06-b7d6-51f944938ef7",
         "risk=0.86",
         "guard_verdict=allow",
         "action=isolate"
       ],
       "prev_bundle_hash": "genesis",
-      "merkle_root": "50c22a82b57272c1a4e08a5f5e0c1b1366457635a30ceecf01f388b49027efbd"
+      "merkle_root": "df2970685c3fcd69b5c5b900282b4b0bc98d4bea8897fa34aaa3117613e61cb9"
     },
-    "1eb63ad3-6004-4971-8a1d-1084691dc017": {
-      "bundle_id": "1eb63ad3-6004-4971-8a1d-1084691dc017",
-      "incident_id": "4786967e-cf03-4844-9940-857d035c79f4",
-      "created_at": "2026-09-17T13:57:51.787869+00:00",
+    "18c9050f-e202-4276-b606-f09bac6c9808": {
+      "bundle_id": "18c9050f-e202-4276-b606-f09bac6c9808",
+      "incident_id": "e759cd76-d0b6-45ab-9338-92b048cf8f1a",
+      "created_at": "2026-09-17T14:09:21.034168+00:00",
       "device": {
         "device_id": "smart-speaker-00",
         "device_type": "smart-speaker",
@@ -710,1112 +424,8 @@
       },
       "detection": {
         "sources": [
-          "ml",
-          "policy"
-        ],
-        "conformal_set": [
-          "attack"
-        ],
-        "signals": [
-          "declared_policy_violation",
-          "isolation_forest_anomaly",
-          "declared_policy_violation",
-          "isolation_forest_anomaly"
-        ],
-        "explanations": [
-          "smart-speaker-00 contacted 198.51.100.201:443, which its declared policy for device type 'smart-speaker' does not permit (1 violating flow(s) in window).",
-          "Calibrated anomaly probability 0.96 for smart-speaker-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: distinct_dns_qnames=0.0 (SHAP +0.075).",
-          "smart-speaker-00 contacted 198.51.100.201:443, which its declared policy for device type 'smart-speaker' does not permit (1 violating flow(s) in window).",
-          "Calibrated anomaly probability 0.96 for smart-speaker-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: distinct_dns_qnames=0.0 (SHAP +0.075)."
-        ],
-        "attribution": [
-          {
-            "name": "distinct_dns_qnames",
-            "value": 0.0,
-            "contribution": 0.0749
-          },
-          {
-            "name": "bytes_out_mean",
-            "value": 327.0,
-            "contribution": 0.0715
-          },
-          {
-            "name": "dns_qname_length_mean",
-            "value": 0.0,
-            "contribution": 0.0632
-          },
-          {
-            "name": "bytes_out_std",
-            "value": 0.0,
-            "contribution": 0.0623
-          },
-          {
-            "name": "dns_qname_entropy_mean",
-            "value": 0.0,
-            "contribution": 0.0616
-          }
-        ]
-      },
-      "baseline": {
-        "version": 1
-      },
-      "risk": {
-        "score": 0.6903801156178908,
-        "terms": {
-          "severity": 0.9615384615384616,
-          "criticality": 0.35,
-          "confidence": 1.0,
-          "deviation": 0.999955002332754,
-          "blast_radius": 0.15
-        }
-      },
-      "decision": {
-        "action": "block_destination",
-        "tier": 3,
-        "dry_run": true,
-        "gates_passed": [
-          "kill_switch_disengaged",
-          "dry_run_or_enforce_flag_set",
-          "protected_device_list",
-          "conformal_singleton_for_escalation",
-          "drift_gate",
-          "risk_threshold",
-          "action_rate_limit"
-        ],
-        "gates_failed": []
-      },
-      "trace": [
-        "detected via policy:declared_policy_violation",
-        "detected via ml:isolation_forest_anomaly",
-        "detected via policy:declared_policy_violation",
-        "detected via ml:isolation_forest_anomaly",
-        "correlated into incident 4786967e-cf03-4844-9940-857d035c79f4",
-        "risk=0.69",
-        "guard_verdict=allow",
-        "action=block_destination"
-      ],
-      "prev_bundle_hash": "50c22a82b57272c1a4e08a5f5e0c1b1366457635a30ceecf01f388b49027efbd",
-      "merkle_root": "aca8ddbd50d2fcd74dcbe7dc9817c8cb156d11ab41262e69ba9c20040a71c069"
-    },
-    "f535c880-d0d5-4a38-b342-7238f1744ee1": {
-      "bundle_id": "f535c880-d0d5-4a38-b342-7238f1744ee1",
-      "incident_id": "13a05ce4-3e5f-4451-ab9b-9f42b8d7e2c6",
-      "created_at": "2026-09-17T13:57:51.788325+00:00",
-      "device": {
-        "device_id": "smart-speaker-00",
-        "device_type": "smart-speaker",
-        "is_drifting": false,
-        "source": "synthetic"
-      },
-      "feature_vector": {
-        "window": "declared_policy_violation/isolation_forest_anomaly"
-      },
-      "detection": {
-        "sources": [
-          "ml",
-          "policy"
-        ],
-        "conformal_set": [
-          "attack"
-        ],
-        "signals": [
-          "declared_policy_violation",
-          "isolation_forest_anomaly",
-          "declared_policy_violation",
-          "isolation_forest_anomaly"
-        ],
-        "explanations": [
-          "smart-speaker-00 contacted 198.51.100.201:443, which its declared policy for device type 'smart-speaker' does not permit (1 violating flow(s) in window).",
-          "Calibrated anomaly probability 0.96 for smart-speaker-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: distinct_dns_qnames=0.0 (SHAP +0.075).",
-          "smart-speaker-00 contacted 198.51.100.201:443, which its declared policy for device type 'smart-speaker' does not permit (1 violating flow(s) in window).",
-          "Calibrated anomaly probability 0.96 for smart-speaker-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: distinct_dns_qnames=0.0 (SHAP +0.075)."
-        ],
-        "attribution": [
-          {
-            "name": "distinct_dns_qnames",
-            "value": 0.0,
-            "contribution": 0.0749
-          },
-          {
-            "name": "bytes_out_mean",
-            "value": 371.0,
-            "contribution": 0.0715
-          },
-          {
-            "name": "dns_qname_length_mean",
-            "value": 0.0,
-            "contribution": 0.0632
-          },
-          {
-            "name": "bytes_out_std",
-            "value": 0.0,
-            "contribution": 0.0623
-          },
-          {
-            "name": "dns_qname_entropy_mean",
-            "value": 0.0,
-            "contribution": 0.0616
-          }
-        ]
-      },
-      "baseline": {
-        "version": 1
-      },
-      "risk": {
-        "score": 0.6903801156178908,
-        "terms": {
-          "severity": 0.9615384615384616,
-          "criticality": 0.35,
-          "confidence": 1.0,
-          "deviation": 0.999955002332754,
-          "blast_radius": 0.15
-        }
-      },
-      "decision": {
-        "action": "block_destination",
-        "tier": 3,
-        "dry_run": true,
-        "gates_passed": [
-          "kill_switch_disengaged",
-          "dry_run_or_enforce_flag_set",
-          "protected_device_list",
-          "conformal_singleton_for_escalation",
-          "drift_gate",
-          "risk_threshold",
-          "action_rate_limit"
-        ],
-        "gates_failed": []
-      },
-      "trace": [
-        "detected via policy:declared_policy_violation",
-        "detected via ml:isolation_forest_anomaly",
-        "detected via policy:declared_policy_violation",
-        "detected via ml:isolation_forest_anomaly",
-        "correlated into incident 13a05ce4-3e5f-4451-ab9b-9f42b8d7e2c6",
-        "risk=0.69",
-        "guard_verdict=allow",
-        "action=block_destination"
-      ],
-      "prev_bundle_hash": "aca8ddbd50d2fcd74dcbe7dc9817c8cb156d11ab41262e69ba9c20040a71c069",
-      "merkle_root": "694e45f87c75836240a3e781453a44e8af94f6ee9038835ef74a3ca89b92a55b"
-    },
-    "be788af9-98eb-4067-80f1-57f137afe7cf": {
-      "bundle_id": "be788af9-98eb-4067-80f1-57f137afe7cf",
-      "incident_id": "4eb3fafe-8a91-426f-afd3-e48f2577eb62",
-      "created_at": "2026-09-17T13:57:51.788542+00:00",
-      "device": {
-        "device_id": "smart-speaker-00",
-        "device_type": "smart-speaker",
-        "is_drifting": false,
-        "source": "synthetic"
-      },
-      "feature_vector": {
-        "window": "declared_policy_violation/isolation_forest_anomaly"
-      },
-      "detection": {
-        "sources": [
-          "ml",
-          "policy"
-        ],
-        "conformal_set": [
-          "attack"
-        ],
-        "signals": [
-          "declared_policy_violation",
-          "isolation_forest_anomaly"
-        ],
-        "explanations": [
-          "smart-speaker-00 contacted 198.51.100.201:443, which its declared policy for device type 'smart-speaker' does not permit (1 violating flow(s) in window).",
-          "Calibrated anomaly probability 0.96 for smart-speaker-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: distinct_dns_qnames=0.0 (SHAP +0.075)."
-        ],
-        "attribution": [
-          {
-            "name": "distinct_dns_qnames",
-            "value": 0.0,
-            "contribution": 0.0749
-          },
-          {
-            "name": "bytes_out_mean",
-            "value": 525.0,
-            "contribution": 0.0715
-          },
-          {
-            "name": "dns_qname_length_mean",
-            "value": 0.0,
-            "contribution": 0.0624
-          },
-          {
-            "name": "bytes_out_std",
-            "value": 0.0,
-            "contribution": 0.0623
-          },
-          {
-            "name": "dns_qname_entropy_mean",
-            "value": 0.0,
-            "contribution": 0.0616
-          }
-        ]
-      },
-      "baseline": {
-        "version": 1
-      },
-      "risk": {
-        "score": 0.6903801156178908,
-        "terms": {
-          "severity": 0.9615384615384616,
-          "criticality": 0.35,
-          "confidence": 1.0,
-          "deviation": 0.999955002332754,
-          "blast_radius": 0.15
-        }
-      },
-      "decision": {
-        "action": "block_destination",
-        "tier": 3,
-        "dry_run": true,
-        "gates_passed": [
-          "kill_switch_disengaged",
-          "dry_run_or_enforce_flag_set",
-          "protected_device_list",
-          "conformal_singleton_for_escalation",
-          "drift_gate",
-          "risk_threshold",
-          "action_rate_limit"
-        ],
-        "gates_failed": []
-      },
-      "trace": [
-        "detected via policy:declared_policy_violation",
-        "detected via ml:isolation_forest_anomaly",
-        "correlated into incident 4eb3fafe-8a91-426f-afd3-e48f2577eb62",
-        "risk=0.69",
-        "guard_verdict=allow",
-        "action=block_destination"
-      ],
-      "prev_bundle_hash": "694e45f87c75836240a3e781453a44e8af94f6ee9038835ef74a3ca89b92a55b",
-      "merkle_root": "51650dc8722c9c188bb02c6647357c2b591305f461f8445574e1a3b3d7f2eda5"
-    },
-    "fa9293d7-f151-421b-a339-5058b7632c09": {
-      "bundle_id": "fa9293d7-f151-421b-a339-5058b7632c09",
-      "incident_id": "e58f84ed-c2c2-41a2-a23c-d91575502164",
-      "created_at": "2026-09-17T13:57:51.788821+00:00",
-      "device": {
-        "device_id": "smart-speaker-00",
-        "device_type": "smart-speaker",
-        "is_drifting": false,
-        "source": "synthetic"
-      },
-      "feature_vector": {
-        "window": "declared_policy_violation/isolation_forest_anomaly"
-      },
-      "detection": {
-        "sources": [
-          "ml",
-          "policy"
-        ],
-        "conformal_set": [
-          "attack"
-        ],
-        "signals": [
-          "declared_policy_violation",
-          "isolation_forest_anomaly",
-          "declared_policy_violation",
-          "isolation_forest_anomaly"
-        ],
-        "explanations": [
-          "smart-speaker-00 contacted 198.51.100.201:443, which its declared policy for device type 'smart-speaker' does not permit (1 violating flow(s) in window).",
-          "Calibrated anomaly probability 0.96 for smart-speaker-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: distinct_dns_qnames=0.0 (SHAP +0.075).",
-          "smart-speaker-00 contacted 198.51.100.201:443, which its declared policy for device type 'smart-speaker' does not permit (1 violating flow(s) in window).",
-          "Calibrated anomaly probability 0.96 for smart-speaker-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: distinct_dns_qnames=0.0 (SHAP +0.075)."
-        ],
-        "attribution": [
-          {
-            "name": "distinct_dns_qnames",
-            "value": 0.0,
-            "contribution": 0.0749
-          },
-          {
-            "name": "bytes_out_mean",
-            "value": 498.0,
-            "contribution": 0.0715
-          },
-          {
-            "name": "dns_qname_length_mean",
-            "value": 0.0,
-            "contribution": 0.0632
-          },
-          {
-            "name": "bytes_out_std",
-            "value": 0.0,
-            "contribution": 0.0623
-          },
-          {
-            "name": "dns_qname_entropy_mean",
-            "value": 0.0,
-            "contribution": 0.0616
-          }
-        ]
-      },
-      "baseline": {
-        "version": 1
-      },
-      "risk": {
-        "score": 0.6903801156178908,
-        "terms": {
-          "severity": 0.9615384615384616,
-          "criticality": 0.35,
-          "confidence": 1.0,
-          "deviation": 0.999955002332754,
-          "blast_radius": 0.15
-        }
-      },
-      "decision": {
-        "action": "block_destination",
-        "tier": 3,
-        "dry_run": true,
-        "gates_passed": [
-          "kill_switch_disengaged",
-          "dry_run_or_enforce_flag_set",
-          "protected_device_list",
-          "conformal_singleton_for_escalation",
-          "drift_gate",
-          "risk_threshold",
-          "action_rate_limit"
-        ],
-        "gates_failed": []
-      },
-      "trace": [
-        "detected via policy:declared_policy_violation",
-        "detected via ml:isolation_forest_anomaly",
-        "detected via policy:declared_policy_violation",
-        "detected via ml:isolation_forest_anomaly",
-        "correlated into incident e58f84ed-c2c2-41a2-a23c-d91575502164",
-        "risk=0.69",
-        "guard_verdict=allow",
-        "action=block_destination"
-      ],
-      "prev_bundle_hash": "51650dc8722c9c188bb02c6647357c2b591305f461f8445574e1a3b3d7f2eda5",
-      "merkle_root": "e4ff01db9107566ecbd4bd4b7086fe7d24f5bfa0ebf711f1850902e8d6167fa9"
-    },
-    "e902bf44-2753-4aa7-b897-928b0e7fa53b": {
-      "bundle_id": "e902bf44-2753-4aa7-b897-928b0e7fa53b",
-      "incident_id": "3e24ab22-20e3-40c6-b9ed-1fe10d2752f1",
-      "created_at": "2026-09-17T13:57:51.789086+00:00",
-      "device": {
-        "device_id": "smart-speaker-00",
-        "device_type": "smart-speaker",
-        "is_drifting": false,
-        "source": "synthetic"
-      },
-      "feature_vector": {
-        "window": "declared_policy_violation/isolation_forest_anomaly"
-      },
-      "detection": {
-        "sources": [
-          "ml",
-          "policy"
-        ],
-        "conformal_set": [
-          "attack"
-        ],
-        "signals": [
-          "declared_policy_violation",
-          "isolation_forest_anomaly",
-          "declared_policy_violation",
-          "isolation_forest_anomaly"
-        ],
-        "explanations": [
-          "smart-speaker-00 contacted 198.51.100.201:443, which its declared policy for device type 'smart-speaker' does not permit (1 violating flow(s) in window).",
-          "Calibrated anomaly probability 0.96 for smart-speaker-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: distinct_dns_qnames=0.0 (SHAP +0.075).",
-          "smart-speaker-00 contacted 198.51.100.201:443, which its declared policy for device type 'smart-speaker' does not permit (1 violating flow(s) in window).",
-          "Calibrated anomaly probability 0.96 for smart-speaker-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: distinct_dns_qnames=0.0 (SHAP +0.075)."
-        ],
-        "attribution": [
-          {
-            "name": "distinct_dns_qnames",
-            "value": 0.0,
-            "contribution": 0.0749
-          },
-          {
-            "name": "bytes_out_mean",
-            "value": 418.0,
-            "contribution": 0.0715
-          },
-          {
-            "name": "dns_qname_length_mean",
-            "value": 0.0,
-            "contribution": 0.0632
-          },
-          {
-            "name": "bytes_out_std",
-            "value": 0.0,
-            "contribution": 0.0623
-          },
-          {
-            "name": "dns_qname_entropy_mean",
-            "value": 0.0,
-            "contribution": 0.0616
-          }
-        ]
-      },
-      "baseline": {
-        "version": 1
-      },
-      "risk": {
-        "score": 0.6903801156178908,
-        "terms": {
-          "severity": 0.9615384615384616,
-          "criticality": 0.35,
-          "confidence": 1.0,
-          "deviation": 0.999955002332754,
-          "blast_radius": 0.15
-        }
-      },
-      "decision": {
-        "action": "block_destination",
-        "tier": 3,
-        "dry_run": true,
-        "gates_passed": [
-          "kill_switch_disengaged",
-          "dry_run_or_enforce_flag_set",
-          "protected_device_list",
-          "conformal_singleton_for_escalation",
-          "drift_gate",
-          "risk_threshold",
-          "action_rate_limit"
-        ],
-        "gates_failed": []
-      },
-      "trace": [
-        "detected via policy:declared_policy_violation",
-        "detected via ml:isolation_forest_anomaly",
-        "detected via policy:declared_policy_violation",
-        "detected via ml:isolation_forest_anomaly",
-        "correlated into incident 3e24ab22-20e3-40c6-b9ed-1fe10d2752f1",
-        "risk=0.69",
-        "guard_verdict=allow",
-        "action=block_destination"
-      ],
-      "prev_bundle_hash": "e4ff01db9107566ecbd4bd4b7086fe7d24f5bfa0ebf711f1850902e8d6167fa9",
-      "merkle_root": "789577eeb63d3395fb3605f4ba42454d54c0e80faf4e09678754572ef65dc40f"
-    },
-    "cc0c48ca-9065-4111-82f5-3452b2c3fbed": {
-      "bundle_id": "cc0c48ca-9065-4111-82f5-3452b2c3fbed",
-      "incident_id": "ee671d54-1b85-4411-8354-97b008a7121c",
-      "created_at": "2026-09-17T13:57:51.789314+00:00",
-      "device": {
-        "device_id": "smart-speaker-00",
-        "device_type": "smart-speaker",
-        "is_drifting": false,
-        "source": "synthetic"
-      },
-      "feature_vector": {
-        "window": "declared_policy_violation/isolation_forest_anomaly"
-      },
-      "detection": {
-        "sources": [
-          "ml",
-          "policy"
-        ],
-        "conformal_set": [
-          "attack"
-        ],
-        "signals": [
-          "declared_policy_violation",
-          "isolation_forest_anomaly",
-          "declared_policy_violation",
-          "isolation_forest_anomaly"
-        ],
-        "explanations": [
-          "smart-speaker-00 contacted 198.51.100.201:443, which its declared policy for device type 'smart-speaker' does not permit (1 violating flow(s) in window).",
-          "Calibrated anomaly probability 0.96 for smart-speaker-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: distinct_dns_qnames=0.0 (SHAP +0.075).",
-          "smart-speaker-00 contacted 198.51.100.201:443, which its declared policy for device type 'smart-speaker' does not permit (1 violating flow(s) in window).",
-          "Calibrated anomaly probability 0.96 for smart-speaker-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: distinct_dns_qnames=0.0 (SHAP +0.075)."
-        ],
-        "attribution": [
-          {
-            "name": "distinct_dns_qnames",
-            "value": 0.0,
-            "contribution": 0.0749
-          },
-          {
-            "name": "bytes_out_mean",
-            "value": 317.0,
-            "contribution": 0.0715
-          },
-          {
-            "name": "dns_qname_length_mean",
-            "value": 0.0,
-            "contribution": 0.0632
-          },
-          {
-            "name": "bytes_out_std",
-            "value": 0.0,
-            "contribution": 0.0623
-          },
-          {
-            "name": "dns_qname_entropy_mean",
-            "value": 0.0,
-            "contribution": 0.0616
-          }
-        ]
-      },
-      "baseline": {
-        "version": 1
-      },
-      "risk": {
-        "score": 0.6903801156178908,
-        "terms": {
-          "severity": 0.9615384615384616,
-          "criticality": 0.35,
-          "confidence": 1.0,
-          "deviation": 0.999955002332754,
-          "blast_radius": 0.15
-        }
-      },
-      "decision": {
-        "action": "block_destination",
-        "tier": 3,
-        "dry_run": true,
-        "gates_passed": [
-          "kill_switch_disengaged",
-          "dry_run_or_enforce_flag_set",
-          "protected_device_list",
-          "conformal_singleton_for_escalation",
-          "drift_gate",
-          "risk_threshold",
-          "action_rate_limit"
-        ],
-        "gates_failed": []
-      },
-      "trace": [
-        "detected via policy:declared_policy_violation",
-        "detected via ml:isolation_forest_anomaly",
-        "detected via policy:declared_policy_violation",
-        "detected via ml:isolation_forest_anomaly",
-        "correlated into incident ee671d54-1b85-4411-8354-97b008a7121c",
-        "risk=0.69",
-        "guard_verdict=allow",
-        "action=block_destination"
-      ],
-      "prev_bundle_hash": "789577eeb63d3395fb3605f4ba42454d54c0e80faf4e09678754572ef65dc40f",
-      "merkle_root": "11b7f2d0c7b3ae7ef9b68a3e1deae6cc6be5a4342c8138031ee547367198cf53"
-    },
-    "30b06cfb-87a5-4968-9a0d-1c41abe803df": {
-      "bundle_id": "30b06cfb-87a5-4968-9a0d-1c41abe803df",
-      "incident_id": "cc12f61a-a236-4d27-b2da-73d11fcf910b",
-      "created_at": "2026-09-17T13:57:51.789530+00:00",
-      "device": {
-        "device_id": "smart-speaker-00",
-        "device_type": "smart-speaker",
-        "is_drifting": false,
-        "source": "synthetic"
-      },
-      "feature_vector": {
-        "window": "declared_policy_violation/isolation_forest_anomaly"
-      },
-      "detection": {
-        "sources": [
-          "ml",
-          "policy"
-        ],
-        "conformal_set": [
-          "attack"
-        ],
-        "signals": [
-          "declared_policy_violation",
-          "isolation_forest_anomaly"
-        ],
-        "explanations": [
-          "smart-speaker-00 contacted 198.51.100.201:443, which its declared policy for device type 'smart-speaker' does not permit (1 violating flow(s) in window).",
-          "Calibrated anomaly probability 0.96 for smart-speaker-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: distinct_dns_qnames=0.0 (SHAP +0.075)."
-        ],
-        "attribution": [
-          {
-            "name": "distinct_dns_qnames",
-            "value": 0.0,
-            "contribution": 0.0749
-          },
-          {
-            "name": "bytes_out_mean",
-            "value": 487.0,
-            "contribution": 0.0715
-          },
-          {
-            "name": "dns_qname_length_mean",
-            "value": 0.0,
-            "contribution": 0.0632
-          },
-          {
-            "name": "bytes_out_std",
-            "value": 0.0,
-            "contribution": 0.0623
-          },
-          {
-            "name": "dns_qname_entropy_mean",
-            "value": 0.0,
-            "contribution": 0.0616
-          }
-        ]
-      },
-      "baseline": {
-        "version": 1
-      },
-      "risk": {
-        "score": 0.6903801156178908,
-        "terms": {
-          "severity": 0.9615384615384616,
-          "criticality": 0.35,
-          "confidence": 1.0,
-          "deviation": 0.999955002332754,
-          "blast_radius": 0.15
-        }
-      },
-      "decision": {
-        "action": "block_destination",
-        "tier": 3,
-        "dry_run": true,
-        "gates_passed": [
-          "kill_switch_disengaged",
-          "dry_run_or_enforce_flag_set",
-          "protected_device_list",
-          "conformal_singleton_for_escalation",
-          "drift_gate",
-          "risk_threshold",
-          "action_rate_limit"
-        ],
-        "gates_failed": []
-      },
-      "trace": [
-        "detected via policy:declared_policy_violation",
-        "detected via ml:isolation_forest_anomaly",
-        "correlated into incident cc12f61a-a236-4d27-b2da-73d11fcf910b",
-        "risk=0.69",
-        "guard_verdict=allow",
-        "action=block_destination"
-      ],
-      "prev_bundle_hash": "11b7f2d0c7b3ae7ef9b68a3e1deae6cc6be5a4342c8138031ee547367198cf53",
-      "merkle_root": "398b23cfff638a45d64774bee9d806c7e05bcf0899d634542671e9ac40d21f8d"
-    },
-    "77e44a1d-6d96-43eb-90ed-44148daea64f": {
-      "bundle_id": "77e44a1d-6d96-43eb-90ed-44148daea64f",
-      "incident_id": "a525d6bd-e722-49b5-a099-c2d2b82667a3",
-      "created_at": "2026-09-17T13:57:51.789740+00:00",
-      "device": {
-        "device_id": "smart-speaker-00",
-        "device_type": "smart-speaker",
-        "is_drifting": false,
-        "source": "synthetic"
-      },
-      "feature_vector": {
-        "window": "declared_policy_violation/isolation_forest_anomaly"
-      },
-      "detection": {
-        "sources": [
-          "ml",
-          "policy"
-        ],
-        "conformal_set": [
-          "attack"
-        ],
-        "signals": [
-          "declared_policy_violation",
-          "isolation_forest_anomaly",
-          "declared_policy_violation",
-          "isolation_forest_anomaly"
-        ],
-        "explanations": [
-          "smart-speaker-00 contacted 198.51.100.201:443, which its declared policy for device type 'smart-speaker' does not permit (1 violating flow(s) in window).",
-          "Calibrated anomaly probability 0.96 for smart-speaker-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: distinct_dns_qnames=0.0 (SHAP +0.075).",
-          "smart-speaker-00 contacted 198.51.100.201:443, which its declared policy for device type 'smart-speaker' does not permit (1 violating flow(s) in window).",
-          "Calibrated anomaly probability 0.96 for smart-speaker-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: distinct_dns_qnames=0.0 (SHAP +0.075)."
-        ],
-        "attribution": [
-          {
-            "name": "distinct_dns_qnames",
-            "value": 0.0,
-            "contribution": 0.0749
-          },
-          {
-            "name": "bytes_out_mean",
-            "value": 503.0,
-            "contribution": 0.0715
-          },
-          {
-            "name": "dns_qname_length_mean",
-            "value": 0.0,
-            "contribution": 0.0632
-          },
-          {
-            "name": "bytes_out_std",
-            "value": 0.0,
-            "contribution": 0.0623
-          },
-          {
-            "name": "dns_qname_entropy_mean",
-            "value": 0.0,
-            "contribution": 0.0616
-          }
-        ]
-      },
-      "baseline": {
-        "version": 1
-      },
-      "risk": {
-        "score": 0.6903801156178908,
-        "terms": {
-          "severity": 0.9615384615384616,
-          "criticality": 0.35,
-          "confidence": 1.0,
-          "deviation": 0.999955002332754,
-          "blast_radius": 0.15
-        }
-      },
-      "decision": {
-        "action": "block_destination",
-        "tier": 3,
-        "dry_run": true,
-        "gates_passed": [
-          "kill_switch_disengaged",
-          "dry_run_or_enforce_flag_set",
-          "protected_device_list",
-          "conformal_singleton_for_escalation",
-          "drift_gate",
-          "risk_threshold",
-          "action_rate_limit"
-        ],
-        "gates_failed": []
-      },
-      "trace": [
-        "detected via policy:declared_policy_violation",
-        "detected via ml:isolation_forest_anomaly",
-        "detected via policy:declared_policy_violation",
-        "detected via ml:isolation_forest_anomaly",
-        "correlated into incident a525d6bd-e722-49b5-a099-c2d2b82667a3",
-        "risk=0.69",
-        "guard_verdict=allow",
-        "action=block_destination"
-      ],
-      "prev_bundle_hash": "398b23cfff638a45d64774bee9d806c7e05bcf0899d634542671e9ac40d21f8d",
-      "merkle_root": "21fd19a6b9422f549a2fc748bb4942dabbe5b5ec39e0560f18fed98ea178b82c"
-    },
-    "50e90289-4bd2-434c-b00f-4b3ab06c081e": {
-      "bundle_id": "50e90289-4bd2-434c-b00f-4b3ab06c081e",
-      "incident_id": "5e8487b3-0053-4591-a39a-dbc8043f30ba",
-      "created_at": "2026-09-17T13:57:51.789962+00:00",
-      "device": {
-        "device_id": "smart-speaker-00",
-        "device_type": "smart-speaker",
-        "is_drifting": false,
-        "source": "synthetic"
-      },
-      "feature_vector": {
-        "window": "declared_policy_violation/isolation_forest_anomaly"
-      },
-      "detection": {
-        "sources": [
-          "ml",
-          "policy"
-        ],
-        "conformal_set": [
-          "attack"
-        ],
-        "signals": [
-          "declared_policy_violation",
-          "isolation_forest_anomaly",
-          "declared_policy_violation",
-          "isolation_forest_anomaly"
-        ],
-        "explanations": [
-          "smart-speaker-00 contacted 198.51.100.201:443, which its declared policy for device type 'smart-speaker' does not permit (1 violating flow(s) in window).",
-          "Calibrated anomaly probability 0.96 for smart-speaker-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: distinct_dns_qnames=0.0 (SHAP +0.075).",
-          "smart-speaker-00 contacted 198.51.100.201:443, which its declared policy for device type 'smart-speaker' does not permit (1 violating flow(s) in window).",
-          "Calibrated anomaly probability 0.96 for smart-speaker-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: distinct_dns_qnames=0.0 (SHAP +0.075)."
-        ],
-        "attribution": [
-          {
-            "name": "distinct_dns_qnames",
-            "value": 0.0,
-            "contribution": 0.0749
-          },
-          {
-            "name": "bytes_out_mean",
-            "value": 394.0,
-            "contribution": 0.0715
-          },
-          {
-            "name": "dns_qname_length_mean",
-            "value": 0.0,
-            "contribution": 0.0632
-          },
-          {
-            "name": "bytes_out_std",
-            "value": 0.0,
-            "contribution": 0.0623
-          },
-          {
-            "name": "dns_qname_entropy_mean",
-            "value": 0.0,
-            "contribution": 0.0616
-          }
-        ]
-      },
-      "baseline": {
-        "version": 1
-      },
-      "risk": {
-        "score": 0.6903801156178908,
-        "terms": {
-          "severity": 0.9615384615384616,
-          "criticality": 0.35,
-          "confidence": 1.0,
-          "deviation": 0.999955002332754,
-          "blast_radius": 0.15
-        }
-      },
-      "decision": {
-        "action": "block_destination",
-        "tier": 3,
-        "dry_run": true,
-        "gates_passed": [
-          "kill_switch_disengaged",
-          "dry_run_or_enforce_flag_set",
-          "protected_device_list",
-          "conformal_singleton_for_escalation",
-          "drift_gate",
-          "risk_threshold",
-          "action_rate_limit"
-        ],
-        "gates_failed": []
-      },
-      "trace": [
-        "detected via policy:declared_policy_violation",
-        "detected via ml:isolation_forest_anomaly",
-        "detected via policy:declared_policy_violation",
-        "detected via ml:isolation_forest_anomaly",
-        "correlated into incident 5e8487b3-0053-4591-a39a-dbc8043f30ba",
-        "risk=0.69",
-        "guard_verdict=allow",
-        "action=block_destination"
-      ],
-      "prev_bundle_hash": "21fd19a6b9422f549a2fc748bb4942dabbe5b5ec39e0560f18fed98ea178b82c",
-      "merkle_root": "00b736bdf4a11c13d7b44d849d282007416b2c4df15cfdba99bd2262e718b830"
-    },
-    "aedb7b80-dd58-473f-9cb6-b015dd4152c9": {
-      "bundle_id": "aedb7b80-dd58-473f-9cb6-b015dd4152c9",
-      "incident_id": "52b32f77-9b7c-4995-a6bb-ba520606cbdd",
-      "created_at": "2026-09-17T13:57:51.790173+00:00",
-      "device": {
-        "device_id": "smart-speaker-00",
-        "device_type": "smart-speaker",
-        "is_drifting": false,
-        "source": "synthetic"
-      },
-      "feature_vector": {
-        "window": "declared_policy_violation/isolation_forest_anomaly"
-      },
-      "detection": {
-        "sources": [
-          "ml",
-          "policy"
-        ],
-        "conformal_set": [
-          "attack"
-        ],
-        "signals": [
-          "declared_policy_violation",
-          "isolation_forest_anomaly"
-        ],
-        "explanations": [
-          "smart-speaker-00 contacted 198.51.100.201:443, which its declared policy for device type 'smart-speaker' does not permit (1 violating flow(s) in window).",
-          "Calibrated anomaly probability 0.96 for smart-speaker-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: distinct_dns_qnames=0.0 (SHAP +0.075)."
-        ],
-        "attribution": [
-          {
-            "name": "distinct_dns_qnames",
-            "value": 0.0,
-            "contribution": 0.0749
-          },
-          {
-            "name": "bytes_out_mean",
-            "value": 404.0,
-            "contribution": 0.0715
-          },
-          {
-            "name": "dns_qname_length_mean",
-            "value": 0.0,
-            "contribution": 0.0632
-          },
-          {
-            "name": "bytes_out_std",
-            "value": 0.0,
-            "contribution": 0.0623
-          },
-          {
-            "name": "dns_qname_entropy_mean",
-            "value": 0.0,
-            "contribution": 0.0616
-          }
-        ]
-      },
-      "baseline": {
-        "version": 1
-      },
-      "risk": {
-        "score": 0.6903801156178908,
-        "terms": {
-          "severity": 0.9615384615384616,
-          "criticality": 0.35,
-          "confidence": 1.0,
-          "deviation": 0.999955002332754,
-          "blast_radius": 0.15
-        }
-      },
-      "decision": {
-        "action": "block_destination",
-        "tier": 3,
-        "dry_run": true,
-        "gates_passed": [
-          "kill_switch_disengaged",
-          "dry_run_or_enforce_flag_set",
-          "protected_device_list",
-          "conformal_singleton_for_escalation",
-          "drift_gate",
-          "risk_threshold",
-          "action_rate_limit"
-        ],
-        "gates_failed": []
-      },
-      "trace": [
-        "detected via policy:declared_policy_violation",
-        "detected via ml:isolation_forest_anomaly",
-        "correlated into incident 52b32f77-9b7c-4995-a6bb-ba520606cbdd",
-        "risk=0.69",
-        "guard_verdict=allow",
-        "action=block_destination"
-      ],
-      "prev_bundle_hash": "00b736bdf4a11c13d7b44d849d282007416b2c4df15cfdba99bd2262e718b830",
-      "merkle_root": "55024662966cb21b2e2216ae6c36f49420ccc2795203a0a301127239f789505e"
-    },
-    "f6fa6de4-2c3d-4117-9358-a523671fe20f": {
-      "bundle_id": "f6fa6de4-2c3d-4117-9358-a523671fe20f",
-      "incident_id": "c6d3492f-9cb9-443a-8c92-e075acf4bec9",
-      "created_at": "2026-09-17T13:57:51.790361+00:00",
-      "device": {
-        "device_id": "smart-speaker-00",
-        "device_type": "smart-speaker",
-        "is_drifting": false,
-        "source": "synthetic"
-      },
-      "feature_vector": {
-        "window": "declared_policy_violation/isolation_forest_anomaly"
-      },
-      "detection": {
-        "sources": [
-          "ml",
-          "policy"
-        ],
-        "conformal_set": [
-          "attack"
-        ],
-        "signals": [
-          "declared_policy_violation",
-          "isolation_forest_anomaly",
-          "declared_policy_violation",
-          "isolation_forest_anomaly"
-        ],
-        "explanations": [
-          "smart-speaker-00 contacted 198.51.100.201:443, which its declared policy for device type 'smart-speaker' does not permit (1 violating flow(s) in window).",
-          "Calibrated anomaly probability 0.96 for smart-speaker-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: distinct_dns_qnames=0.0 (SHAP +0.075).",
-          "smart-speaker-00 contacted 198.51.100.201:443, which its declared policy for device type 'smart-speaker' does not permit (1 violating flow(s) in window).",
-          "Calibrated anomaly probability 0.96 for smart-speaker-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: distinct_dns_qnames=0.0 (SHAP +0.075)."
-        ],
-        "attribution": [
-          {
-            "name": "distinct_dns_qnames",
-            "value": 0.0,
-            "contribution": 0.0749
-          },
-          {
-            "name": "bytes_out_mean",
-            "value": 368.0,
-            "contribution": 0.0715
-          },
-          {
-            "name": "dns_qname_length_mean",
-            "value": 0.0,
-            "contribution": 0.0632
-          },
-          {
-            "name": "bytes_out_std",
-            "value": 0.0,
-            "contribution": 0.0623
-          },
-          {
-            "name": "dns_qname_entropy_mean",
-            "value": 0.0,
-            "contribution": 0.0616
-          }
-        ]
-      },
-      "baseline": {
-        "version": 1
-      },
-      "risk": {
-        "score": 0.6903801156178908,
-        "terms": {
-          "severity": 0.9615384615384616,
-          "criticality": 0.35,
-          "confidence": 1.0,
-          "deviation": 0.999955002332754,
-          "blast_radius": 0.15
-        }
-      },
-      "decision": {
-        "action": "block_destination",
-        "tier": 3,
-        "dry_run": true,
-        "gates_passed": [
-          "kill_switch_disengaged",
-          "dry_run_or_enforce_flag_set",
-          "protected_device_list",
-          "conformal_singleton_for_escalation",
-          "drift_gate",
-          "risk_threshold",
-          "action_rate_limit"
-        ],
-        "gates_failed": []
-      },
-      "trace": [
-        "detected via policy:declared_policy_violation",
-        "detected via ml:isolation_forest_anomaly",
-        "detected via policy:declared_policy_violation",
-        "detected via ml:isolation_forest_anomaly",
-        "correlated into incident c6d3492f-9cb9-443a-8c92-e075acf4bec9",
-        "risk=0.69",
-        "guard_verdict=allow",
-        "action=block_destination"
-      ],
-      "prev_bundle_hash": "55024662966cb21b2e2216ae6c36f49420ccc2795203a0a301127239f789505e",
-      "merkle_root": "164c2d580789eacc088a85d0e54cf2f18c7a6d57ace4d744adb843a40e5390f0"
-    },
-    "d2836ee1-392c-4223-a9e0-4723cc95cb4e": {
-      "bundle_id": "d2836ee1-392c-4223-a9e0-4723cc95cb4e",
-      "incident_id": "c968c133-5161-46aa-8b26-19addd5c5aba",
-      "created_at": "2026-09-17T13:57:51.790664+00:00",
-      "device": {
-        "device_id": "smart-speaker-00",
-        "device_type": "smart-speaker",
-        "is_drifting": false,
-        "source": "synthetic"
-      },
-      "feature_vector": {
-        "window": "declared_policy_violation/isolation_forest_anomaly"
-      },
-      "detection": {
-        "sources": [
-          "ml",
-          "policy"
+          "policy",
+          "ml"
         ],
         "conformal_set": [
           "attack"
@@ -1893,18 +503,18 @@
         "detected via ml:isolation_forest_anomaly",
         "detected via policy:declared_policy_violation",
         "detected via ml:isolation_forest_anomaly",
-        "correlated into incident c968c133-5161-46aa-8b26-19addd5c5aba",
+        "correlated into incident e759cd76-d0b6-45ab-9338-92b048cf8f1a",
         "risk=0.69",
         "guard_verdict=allow",
         "action=block_destination"
       ],
-      "prev_bundle_hash": "164c2d580789eacc088a85d0e54cf2f18c7a6d57ace4d744adb843a40e5390f0",
-      "merkle_root": "e08593e5abcd215cfe4ac50616c0bc787fbd56ecd6e3ee9313ac4c2ff5d3fa66"
+      "prev_bundle_hash": "1c01d2272ec77641b50cee1d816f253d2b49aab8816941a8424034ff5b377a53",
+      "merkle_root": "e65973e4c46c95deefd9e9e3f6e43d4b57c82a8fc42d1e4449a183a4e35002b8"
     },
-    "a75287ff-79f0-4a60-8f08-96ede4a0a4a1": {
-      "bundle_id": "a75287ff-79f0-4a60-8f08-96ede4a0a4a1",
-      "incident_id": "fca7a7f4-c42a-4b53-aedb-f40358b3c6d5",
-      "created_at": "2026-09-17T13:57:51.790840+00:00",
+    "c0ef7b6c-d534-4a36-b929-4655828b7d58": {
+      "bundle_id": "c0ef7b6c-d534-4a36-b929-4655828b7d58",
+      "incident_id": "a30ef704-d039-49d7-8771-af64bc47dbd7",
+      "created_at": "2026-09-17T14:09:21.034351+00:00",
       "device": {
         "device_id": "smart-speaker-00",
         "device_type": "smart-speaker",
@@ -1916,8 +526,8 @@
       },
       "detection": {
         "sources": [
-          "ml",
-          "policy"
+          "policy",
+          "ml"
         ],
         "conformal_set": [
           "attack"
@@ -1995,18 +605,18 @@
         "detected via ml:isolation_forest_anomaly",
         "detected via policy:declared_policy_violation",
         "detected via ml:isolation_forest_anomaly",
-        "correlated into incident fca7a7f4-c42a-4b53-aedb-f40358b3c6d5",
+        "correlated into incident a30ef704-d039-49d7-8771-af64bc47dbd7",
         "risk=0.69",
         "guard_verdict=allow",
         "action=block_destination"
       ],
-      "prev_bundle_hash": "e08593e5abcd215cfe4ac50616c0bc787fbd56ecd6e3ee9313ac4c2ff5d3fa66",
-      "merkle_root": "fd06e0cc5c86cc100f7d4a3737802db4a300cf73b4cd97ef84bbcd4359cd77a2"
+      "prev_bundle_hash": "e65973e4c46c95deefd9e9e3f6e43d4b57c82a8fc42d1e4449a183a4e35002b8",
+      "merkle_root": "9b886e6422018d6e2e3c10b0dc3c6756bd4d56f8d3891ff5c35ac56caa7ca7e7"
     },
-    "5407e4c2-f0a0-403e-b05b-428fe1a98599": {
-      "bundle_id": "5407e4c2-f0a0-403e-b05b-428fe1a98599",
-      "incident_id": "9ace55ab-fda8-4f1b-ba68-8ce138a06ca1",
-      "created_at": "2026-09-17T13:57:51.797562+00:00",
+    "9efcd6eb-eddd-49ed-81cf-54837708f51a": {
+      "bundle_id": "9efcd6eb-eddd-49ed-81cf-54837708f51a",
+      "incident_id": "8723e389-cdc4-4914-9f52-0e428d8c60d0",
+      "created_at": "2026-09-17T14:09:21.040990+00:00",
       "device": {
         "device_id": "smart-lock-00",
         "device_type": "smart-lock",
@@ -2018,8 +628,8 @@
       },
       "detection": {
         "sources": [
-          "ml",
-          "policy"
+          "policy",
+          "ml"
         ],
         "conformal_set": [
           "attack"
@@ -2091,18 +701,18 @@
       "trace": [
         "detected via policy:declared_policy_violation",
         "detected via ml:isolation_forest_anomaly",
-        "correlated into incident 9ace55ab-fda8-4f1b-ba68-8ce138a06ca1",
+        "correlated into incident 8723e389-cdc4-4914-9f52-0e428d8c60d0",
         "risk=0.80",
         "guard_verdict=allow",
         "action=block_destination"
       ],
-      "prev_bundle_hash": "fd06e0cc5c86cc100f7d4a3737802db4a300cf73b4cd97ef84bbcd4359cd77a2",
-      "merkle_root": "c43ba62c6146301c2f652bacb7f85cba1afa292e2cc24406ddb705185a9a9049"
+      "prev_bundle_hash": "9b886e6422018d6e2e3c10b0dc3c6756bd4d56f8d3891ff5c35ac56caa7ca7e7",
+      "merkle_root": "7485545597ba7129385aad234498e76b272a5e30122122029fe3526e81e9772c"
     },
-    "86c1d993-8875-42c8-bf14-d835023bc3b4": {
-      "bundle_id": "86c1d993-8875-42c8-bf14-d835023bc3b4",
-      "incident_id": "63895d1b-b7c7-4f7b-b229-c9055d974846",
-      "created_at": "2026-09-17T13:57:51.804514+00:00",
+    "6cb0baed-485c-4b9e-9100-cacb882185ca": {
+      "bundle_id": "6cb0baed-485c-4b9e-9100-cacb882185ca",
+      "incident_id": "df351c86-fe41-4cb0-aaee-69d773e5caff",
+      "created_at": "2026-09-17T14:09:21.048228+00:00",
       "device": {
         "device_id": "ip-camera-00",
         "device_type": "ip-camera",
@@ -2114,8 +724,8 @@
       },
       "detection": {
         "sources": [
-          "ml",
-          "policy"
+          "policy",
+          "ml"
         ],
         "conformal_set": [
           "attack"
@@ -2187,18 +797,18 @@
       "trace": [
         "detected via policy:declared_policy_violation",
         "detected via ml:isolation_forest_anomaly",
-        "correlated into incident 63895d1b-b7c7-4f7b-b229-c9055d974846",
+        "correlated into incident df351c86-fe41-4cb0-aaee-69d773e5caff",
         "risk=0.75",
         "guard_verdict=allow",
         "action=block_destination"
       ],
-      "prev_bundle_hash": "c43ba62c6146301c2f652bacb7f85cba1afa292e2cc24406ddb705185a9a9049",
-      "merkle_root": "3efed18b296cb45cd0de7a07d32bb73002c3bde04f47406b646b36f58aa12c5e"
+      "prev_bundle_hash": "7485545597ba7129385aad234498e76b272a5e30122122029fe3526e81e9772c",
+      "merkle_root": "97c531a85770110a940cdedc8a3f5cce1a5d9c05e114c39986d817c0eed877b4"
     },
-    "24427f28-3c6c-4060-91b6-afded360687d": {
-      "bundle_id": "24427f28-3c6c-4060-91b6-afded360687d",
-      "incident_id": "252ff878-5fbc-4683-9089-0c509d07a078",
-      "created_at": "2026-09-17T13:57:51.812853+00:00",
+    "ebc32796-f577-4021-b52c-da15ed93a151": {
+      "bundle_id": "ebc32796-f577-4021-b52c-da15ed93a151",
+      "incident_id": "867c5e85-4761-43e3-8ebd-5d5ba3fa509b",
+      "created_at": "2026-09-17T14:09:21.056358+00:00",
       "device": {
         "device_id": "smart-tv-00",
         "device_type": "smart-tv",
@@ -2210,9 +820,9 @@
       },
       "detection": {
         "sources": [
+          "policy",
           "rules",
-          "ml",
-          "policy"
+          "ml"
         ],
         "conformal_set": [
           "attack"
@@ -2287,18 +897,18 @@
         "detected via policy:declared_policy_violation",
         "detected via rules:dns_tunnel_suspected",
         "detected via ml:isolation_forest_anomaly",
-        "correlated into incident 252ff878-5fbc-4683-9089-0c509d07a078",
+        "correlated into incident 867c5e85-4761-43e3-8ebd-5d5ba3fa509b",
         "risk=0.67",
         "guard_verdict=allow",
         "action=block_destination"
       ],
-      "prev_bundle_hash": "3efed18b296cb45cd0de7a07d32bb73002c3bde04f47406b646b36f58aa12c5e",
-      "merkle_root": "260b61612a1f74b8e4fa5dfa4b7e4058e9ac7ba09f6b7b2f987ccb555bfc649c"
+      "prev_bundle_hash": "97c531a85770110a940cdedc8a3f5cce1a5d9c05e114c39986d817c0eed877b4",
+      "merkle_root": "dcf61213c24478fcc65990fbd7a65fd4e1fabc5fa0906ab2249f194058ce5345"
     },
-    "dec2df68-4624-4cd6-805f-97c1d0d405bf": {
-      "bundle_id": "dec2df68-4624-4cd6-805f-97c1d0d405bf",
-      "incident_id": "64a0bacb-4264-419f-a80b-2b57297ad0e8",
-      "created_at": "2026-09-17T13:57:51.825824+00:00",
+    "58fa76e5-b5b4-48ed-9cf2-aa4ac77eed23": {
+      "bundle_id": "58fa76e5-b5b4-48ed-9cf2-aa4ac77eed23",
+      "incident_id": "aa90b123-3282-4f05-8594-df886a8a3c4d",
+      "created_at": "2026-09-17T14:09:21.069561+00:00",
       "device": {
         "device_id": "doorbell-00",
         "device_type": "doorbell",
@@ -2310,9 +920,9 @@
       },
       "detection": {
         "sources": [
+          "policy",
           "rules",
-          "ml",
-          "policy"
+          "ml"
         ],
         "conformal_set": [
           "attack"
@@ -2393,18 +1003,18 @@
         "detected via rules:identity_fingerprint_mismatch",
         "detected via policy:declared_policy_violation",
         "detected via rules:identity_fingerprint_mismatch",
-        "correlated into incident 64a0bacb-4264-419f-a80b-2b57297ad0e8",
+        "correlated into incident aa90b123-3282-4f05-8594-df886a8a3c4d",
         "risk=0.73",
         "guard_verdict=allow",
         "action=block_destination"
       ],
-      "prev_bundle_hash": "260b61612a1f74b8e4fa5dfa4b7e4058e9ac7ba09f6b7b2f987ccb555bfc649c",
-      "merkle_root": "68bc8bcbce90d3e8a9c65cdba4ea1edda7018f23dc497250410475732c9a2925"
+      "prev_bundle_hash": "dcf61213c24478fcc65990fbd7a65fd4e1fabc5fa0906ab2249f194058ce5345",
+      "merkle_root": "2e4813f320e61bb8239b709aba62042b78d19af3a90bc4a2d440b1ad199e2ee0"
     },
-    "5b2e44ce-5352-40ac-a23c-c784d4e13c76": {
-      "bundle_id": "5b2e44ce-5352-40ac-a23c-c784d4e13c76",
-      "incident_id": "8905e390-3a08-4255-b023-955b0c055844",
-      "created_at": "2026-09-17T13:57:51.832846+00:00",
+    "023b90f9-c04f-4849-8430-5c51c785d988": {
+      "bundle_id": "023b90f9-c04f-4849-8430-5c51c785d988",
+      "incident_id": "f231a988-cb59-42c7-84b1-08a8fc8dec2e",
+      "created_at": "2026-09-17T14:09:21.076751+00:00",
       "device": {
         "device_id": "thermostat-00",
         "device_type": "thermostat",
@@ -2416,8 +1026,8 @@
       },
       "detection": {
         "sources": [
-          "ml",
-          "policy"
+          "policy",
+          "ml"
         ],
         "conformal_set": [
           "attack"
@@ -2489,18 +1099,18 @@
       "trace": [
         "detected via policy:declared_policy_violation",
         "detected via ml:isolation_forest_anomaly",
-        "correlated into incident 8905e390-3a08-4255-b023-955b0c055844",
+        "correlated into incident f231a988-cb59-42c7-84b1-08a8fc8dec2e",
         "risk=0.71",
         "guard_verdict=allow",
         "action=block_destination"
       ],
-      "prev_bundle_hash": "68bc8bcbce90d3e8a9c65cdba4ea1edda7018f23dc497250410475732c9a2925",
-      "merkle_root": "1b6e509028e3fe724f5a835e8329232e0362ecedb4a224636853aaca950b0150"
+      "prev_bundle_hash": "2e4813f320e61bb8239b709aba62042b78d19af3a90bc4a2d440b1ad199e2ee0",
+      "merkle_root": "3519534749ab19118feb5d2e3ad54ea5aab934e87205eaf5571b655149163c9d"
     }
   },
   "actions": [
     {
-      "action_id": "3055f950-d690-4a85-88e0-9b1914d1c784",
+      "action_id": "8bd15665-ab97-4bdb-82b1-611987e6b280",
       "device_id": "smart-plug-00",
       "tier": 4,
       "action": "isolate",
@@ -2509,7 +1119,7 @@
       "ttl_seconds": 900
     },
     {
-      "action_id": "af996c3a-3331-4b00-81ab-141a53fb74cb",
+      "action_id": "a0d6cf05-28f7-4d7b-90da-9fcdb8fad3eb",
       "device_id": "smart-speaker-00",
       "tier": 3,
       "action": "block_destination",
@@ -2518,7 +1128,7 @@
       "ttl_seconds": 900
     },
     {
-      "action_id": "3ef6d555-71a5-4b3e-adf6-51bfd72b1b46",
+      "action_id": "bf5cea91-2b0e-48b9-ba30-a8f7de9a3f94",
       "device_id": "smart-speaker-00",
       "tier": 3,
       "action": "block_destination",
@@ -2527,7 +1137,7 @@
       "ttl_seconds": 900
     },
     {
-      "action_id": "7902f82b-756c-4419-b491-4e2bc9d0d93d",
+      "action_id": "619469e7-a57f-4a2c-b724-b16478093a0c",
       "device_id": "smart-speaker-00",
       "tier": 3,
       "action": "block_destination",
@@ -2536,7 +1146,7 @@
       "ttl_seconds": 900
     },
     {
-      "action_id": "e305f5be-d0d1-4131-a5be-0e7722b77b2c",
+      "action_id": "2c1624bd-d5ae-429d-83da-d2ebb90b8d3f",
       "device_id": "smart-speaker-00",
       "tier": 3,
       "action": "block_destination",
@@ -2545,7 +1155,7 @@
       "ttl_seconds": 900
     },
     {
-      "action_id": "ccf82c52-8927-44ba-82d4-d6ba2bd13810",
+      "action_id": "5b946fa9-5de0-4b9f-80d7-5c311b461537",
       "device_id": "smart-speaker-00",
       "tier": 3,
       "action": "block_destination",
@@ -2554,7 +1164,7 @@
       "ttl_seconds": 900
     },
     {
-      "action_id": "8c138724-af57-4ca8-a26b-d366f979e8ff",
+      "action_id": "60b14803-4418-4924-9680-5e746e3dd187",
       "device_id": "smart-speaker-00",
       "tier": 3,
       "action": "block_destination",
@@ -2563,7 +1173,7 @@
       "ttl_seconds": 900
     },
     {
-      "action_id": "6f264a80-d724-4b8b-9c5d-db4ff4e9aecf",
+      "action_id": "6207e55b-43fb-4d6e-8b8b-6f30563f0f9a",
       "device_id": "smart-speaker-00",
       "tier": 3,
       "action": "block_destination",
@@ -2572,7 +1182,7 @@
       "ttl_seconds": 900
     },
     {
-      "action_id": "cff1d1d5-fd81-4e02-8271-64d2f25edcaa",
+      "action_id": "5aa4bb1f-2476-483b-b89a-45b9febeaa76",
       "device_id": "smart-speaker-00",
       "tier": 3,
       "action": "block_destination",
@@ -2581,7 +1191,7 @@
       "ttl_seconds": 900
     },
     {
-      "action_id": "9d9a123c-9bca-4304-b32a-149a12a94fc1",
+      "action_id": "3fda8ea0-d2fc-418e-8db7-6919673b9fb0",
       "device_id": "smart-speaker-00",
       "tier": 3,
       "action": "block_destination",
@@ -2590,7 +1200,7 @@
       "ttl_seconds": 900
     },
     {
-      "action_id": "6a025e75-6cb2-40a5-b9f8-1a06244f2a6e",
+      "action_id": "acfd8820-4245-46ce-aa6d-1c997b61aadf",
       "device_id": "smart-speaker-00",
       "tier": 3,
       "action": "block_destination",
@@ -2599,7 +1209,7 @@
       "ttl_seconds": 900
     },
     {
-      "action_id": "521075fe-117d-4431-8136-2f3e6118a2f0",
+      "action_id": "0f08fd7d-60cf-485d-be58-137042712dd8",
       "device_id": "smart-speaker-00",
       "tier": 3,
       "action": "block_destination",
@@ -2608,7 +1218,7 @@
       "ttl_seconds": 900
     },
     {
-      "action_id": "6505db51-29f9-4322-b151-15babc11ee72",
+      "action_id": "6e065546-3645-472b-9afd-219df7d2729d",
       "device_id": "smart-speaker-00",
       "tier": 3,
       "action": "block_destination",
@@ -2617,7 +1227,7 @@
       "ttl_seconds": 900
     },
     {
-      "action_id": "290e4ff6-a36c-477e-b111-9c178f65fa84",
+      "action_id": "885c0875-051c-4a4e-a4c5-54e7f9c2e0d5",
       "device_id": "smart-speaker-00",
       "tier": 3,
       "action": "block_destination",
@@ -2626,7 +1236,7 @@
       "ttl_seconds": 900
     },
     {
-      "action_id": "7fef6535-affd-4110-8898-9c7ddd0e96af",
+      "action_id": "b9976cc5-216f-4f01-8cb4-b6222a7c504c",
       "device_id": "smart-lock-00",
       "tier": 3,
       "action": "block_destination",
@@ -2635,7 +1245,7 @@
       "ttl_seconds": 900
     },
     {
-      "action_id": "516ad3c4-0485-4e7e-9b55-b6f91d66f4e5",
+      "action_id": "0e9b95a8-5784-4725-ba9b-4777e7dc958a",
       "device_id": "ip-camera-00",
       "tier": 3,
       "action": "block_destination",
@@ -2644,7 +1254,7 @@
       "ttl_seconds": 900
     },
     {
-      "action_id": "1a8815ea-7365-414d-9e28-2cf660b24d50",
+      "action_id": "efa6e854-07de-47a8-a5f4-f62d1ac28f3c",
       "device_id": "smart-tv-00",
       "tier": 3,
       "action": "block_destination",
@@ -2653,7 +1263,7 @@
       "ttl_seconds": 900
     },
     {
-      "action_id": "b58a5643-358d-4c72-b857-eaf1447b8e56",
+      "action_id": "af9f427f-7552-4b03-b47a-135a0048a791",
       "device_id": "doorbell-00",
       "tier": 3,
       "action": "block_destination",
@@ -2662,7 +1272,7 @@
       "ttl_seconds": 900
     },
     {
-      "action_id": "34d853c2-22fd-447d-8782-43f7dab33647",
+      "action_id": "eb74e61a-acd5-4703-a1bd-1298cb013fc5",
       "device_id": "thermostat-00",
       "tier": 3,
       "action": "block_destination",

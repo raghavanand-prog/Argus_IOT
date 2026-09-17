@@ -86,18 +86,41 @@ def main() -> None:
         for r in db.query(ActionRow).all()
     ]
 
+    # The demo scenario replays several windows for the same device (e.g. seven
+    # separate low_and_slow windows on smart-speaker-00), which produces many
+    # near-identical incidents/bundles. Cap each (device, scenario) pair at 2 kept
+    # incidents so the exported file stays small -- every kept row is still
+    # untouched real output from this same run, just not every repeat of it.
+    seen: dict[tuple[str, str], int] = {}
+    kept_incidents = []
+    for inc in incidents:
+        key = (inc["device_id"], inc["scenario"])
+        seen.setdefault(key, 0)
+        if seen[key] < 2:
+            kept_incidents.append(inc)
+            seen[key] += 1
+    kept_bundle_ids = {inc["bundle_id"] for inc in kept_incidents if inc["bundle_id"]}
+    kept_evidence = {bid: b for bid, b in evidence.items() if bid in kept_bundle_ids}
+
     snapshot = {
-        "generated_by": "scripts/export_seed_snapshot.py -- a real run of argus.pipeline.run_demo_pipeline",
+        "generated_by": (
+            "scripts/export_seed_snapshot.py -- a real run of argus.pipeline.run_demo_pipeline, "
+            "capped at 2 incidents per (device, scenario) pair to keep the exported file small "
+            "(every kept row is untouched real output from that run)"
+        ),
         "pipeline_summary": summary,
         "devices": devices,
-        "incidents": incidents,
-        "evidence": evidence,
+        "incidents": kept_incidents,
+        "evidence": kept_evidence,
         "actions": actions,
     }
     OUT_PATH.parent.mkdir(exist_ok=True)
     OUT_PATH.write_text(json.dumps(snapshot, indent=2, default=str))
     print(f"wrote {OUT_PATH} ({OUT_PATH.stat().st_size} bytes)")
-    print(f"devices={len(devices)} incidents={len(incidents)} evidence={len(evidence)} actions={len(actions)}")
+    print(
+        f"devices={len(devices)} incidents={len(kept_incidents)} (of {len(incidents)}) "
+        f"evidence={len(kept_evidence)} actions={len(actions)}"
+    )
 
 
 if __name__ == "__main__":
