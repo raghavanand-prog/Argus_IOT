@@ -1,0 +1,5 @@
+# Deliberately minimal -- this is the production serverless function's own
+# dependency set, NOT the full pyproject.toml (which includes numpy/scikit-learn/
+# shap/scipy for the real ML pipeline that can't run in this runtime; see
+# api/index.py's module docstring and docs/06-vercel-deployment.md).
+fastapi>=0.110
