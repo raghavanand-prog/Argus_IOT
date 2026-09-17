@@ -1,6 +1,23 @@
 # STATUS.md
 
-Last updated: 2026-09-11 (second build session — "complete it fully").
+Last updated: 2026-09-17 (third session — local polish, Vercel deployment, paper + guide).
+
+## This session's additions
+
+- Production-ready serverless API (`api/index.py`) for Vercel, verified end-to-end
+  in an isolated venv before deployment — real evidence replay and kill switch,
+  serving a real (non-fabricated) exported snapshot. See `docs/06-vercel-deployment.md`.
+- Expanded `README.md` with full local + production setup instructions.
+- Two portfolio PDFs: an IEEE-style paper and a 23-section technical project guide
+  (`docs/paper/`), both drawn from real, inspected project content.
+- **Vercel deployment status: unconfirmed**, not verified working. Every deploy
+  attempt via the connected Vercel MCP integration succeeded on the first call to
+  a new project, then returned 403/404 on every subsequent status/log/list call
+  against that same project — across three independently-named attempts. Reads as
+  an account/role permission gap on Vercel's side, not a code defect. See
+  `decisions.md`'s third-session entry and `progress.md` for the full account.
+  **Do not treat any `*.vercel.app` URL from this session as a confirmed-live
+  production URL** until checked directly in the Vercel dashboard.
 
 ## What works right now (verified by running it, not just reading the code)
 

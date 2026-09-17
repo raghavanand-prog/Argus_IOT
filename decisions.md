@@ -162,3 +162,58 @@ the same evidence standard.
 `argus/data/parity.py` implement the parts of docs/05's protocol that are pure
 logic, tested against a synthetic fixture — real, tested code, just not yet
 exercised against real data. See `docs/05-data-pipeline.md`.
+
+## 2026-09-17 (third session) — a separate, lighter API for the Vercel deployment
+
+**Decision:** `api/index.py` is a deliberately different, smaller FastAPI app from
+`argus/api/main.py`, not a copy-with-tweaks. It imports only `argus.evidence.bundle`,
+`argus.evidence.replay`, and `argus.respond.guard` (verified pure-stdlib, no ML
+dependency, by running the app end-to-end in a venv containing nothing but
+`api/requirements.txt` before ever deploying) and serves a static, real, exported
+snapshot of one `run_demo_pipeline` execution instead of a live SQLite-backed run.
+
+**Why:** Three real Vercel serverless constraints, not a stylistic preference: no
+root/`CAP_NET_ADMIN` (the live network-namespace testbed structurally cannot run
+there), no persistent filesystem guaranteed across separate function invocations
+(a live "seed then browse" SQLite flow doesn't hold up), and a function size/time
+budget that excludes numpy/scikit-learn/shap. Full reasoning in
+`docs/06-vercel-deployment.md`.
+
+**Rejected alternative:** Deploy the full `argus/api/main.py` unmodified and hope
+the platform tolerates it. Rejected because two of the three constraints above are
+hard platform limits, not soft ones — the app would fail at import or at first
+write, not merely run slowly.
+
+**Consequence, stated honestly:** As of this session, the actual live Vercel
+deployment status could not be confirmed. Every deploy attempt through the
+connected Vercel MCP integration succeeded on the first call to a brand-new
+project name and then returned 403/404 on every subsequent call against that same
+project — including plain status/log reads — across three independently-named
+attempts. This matches a team-member-role permission gap on Vercel's side (the
+platform's own error text points at team-role documentation), not a bug in
+`api/index.py` or `vercel.json`. Reported to the user as unverified rather than as
+a working production URL; see `progress.md`'s third-session entry for the full
+sequence.
+
+## 2026-09-17 (third session) — corrected a misattributed citation rather than reuse it
+
+**What happened:** While sourcing references for the IEEE paper deliverable, every
+candidate citation was checked against a live web search before use — including
+one already committed to `docs/00-problem-and-threat-model.md` by an earlier
+session ("Varol & Karakaya, Sensors 26(18):5744"). That citation turned out to be
+wrong: the paper at that exact venue/volume/issue/article number has different,
+verifiable authors (Ogunseyi, Thiyagarajan, He, Bist, Du), and the specific
+"~99%→~39% F1" figure attributed to it could not be verified as belonging to it.
+
+**Fix:** Removed the specific figure and corrected the citation note in `docs/00`,
+`docs/05-data-pipeline.md`, and `research/baselines.md`, rather than silently
+dropping it from the new paper while leaving the wrong claim live elsewhere in the
+repository. The one citation that *was* verified accurate (Sallam, El Barachi & Li,
+2026, DOI 10.3390/iot7010016 — title, authors, and the specific "29 of 32" and
+scalability-testing claims all confirmed) is the sole third-party gap-analysis
+citation the paper and `docs/00` now rely on.
+
+**Why this matters enough to record:** CLAUDE.md's no-fabrication rule doesn't
+carve out an exception for content inherited from an earlier session or already
+committed — a wrong number found during unrelated work still gets fixed at the
+source, not just avoided in the new document.
