@@ -103,3 +103,63 @@ track has zero real data behind it, anywhere; the evidence-replay sample (19
 bundles) is smaller than the original plan's own 100-bundle gate; the human
 evaluation of explanations was not run (cannot be, by an autonomous session) and is
 named as such. All in `STATUS.md`'s next-steps list, in priority order.
+
+## 2026-09-17 — third session: local polish, Vercel deployment, IEEE paper + project guide
+
+Asked to turn the project into a clean local package, a Vercel-deployed production
+site, and two portfolio PDFs (an IEEE-style paper and a 23-section technical guide).
+
+- **Production API for Vercel** (`api/index.py`): a deliberately lighter FastAPI
+  entrypoint than the local `argus/api/main.py` — reuses `argus.evidence.replay`
+  and `argus.respond.guard.KillSwitch` unmodified (both pure stdlib, verified by
+  running them in an isolated venv containing only `api/requirements.txt` before
+  ever deploying), and serves a real, non-fabricated snapshot of one actual
+  `argus.pipeline.run_demo_pipeline` run (`scripts/export_seed_snapshot.py` →
+  `api/seed_snapshot.json`, capped at 2 incidents per device+scenario pair to keep
+  the file a manageable size — every kept row is still untouched real output).
+  Fixed a real bug caught before deployment: routes were originally undecorated
+  (matching the local dev proxy, which strips `/api`), but Vercel's rewrite does
+  *not* strip that prefix, so production needed an explicit `APIRouter(prefix="/api")`
+  — caught and fixed by reasoning about the platform difference, then verified
+  end-to-end against a real uvicorn instance (health, devices, incidents, a real
+  authenticated evidence replay, kill-switch engage/disengage, seed-demo reset).
+- **Vercel deployment — blocked, not silently reported as done.** Three deploy
+  attempts via the Vercel MCP integration each succeeded on the *first* call to a
+  brand-new project name, then every subsequent call against that same project —
+  status checks, build logs, even `list_projects` — returned 403/404, consistently,
+  across three separate project names. This reads as a genuine account/role
+  permission gap on the connected Vercel integration (matches Vercel's own error
+  text pointing at team-member-role docs), not anything fixable by retrying or
+  renaming. The last attempt (`argus-iot-demo`) was submitted with the complete,
+  correct file set and reported "Deployment created (INITIALIZING)," but this could
+  not be confirmed to have finished building or to be serving correctly — the user
+  was told this explicitly rather than being handed an unverified URL as if it were
+  live, per the project's own no-fabrication rule extended to deployment claims.
+  Asked the user to check the Vercel dashboard directly; continued with the
+  independent remaining work while that's pending.
+- **Citation audit and fix.** While sourcing references for the IEEE paper, verified
+  every citation via web search before use. One citation already committed to
+  `docs/00-problem-and-threat-model.md` from an earlier session turned out to be
+  wrong: "Varol & Karakaya, Sensors 26(18):5744" — the real authors of that paper
+  are Ogunseyi, Thiyagarajan, He, Bist, and Du, and the specific "~99%→~39% F1"
+  figure attributed to it could not be verified as belonging to it. Corrected in
+  `docs/00`, `docs/05-data-pipeline.md`, and `research/baselines.md` rather than
+  left in place or quietly worked around.
+- **README.md** expanded with prerequisites, a tech-stack table, per-variable `.env`
+  documentation, a build/test walkthrough, a common-errors table, and a Vercel
+  production deployment section — all using the project's actual commands, not
+  generic placeholders.
+- **Two portfolio PDFs**, both generated from HTML/CSS rendered via Playwright +
+  Chromium: `docs/paper/ARGUS-IEEE-Paper.pdf` (IEEE two-column style, 7 pages, 6
+  individually-verified references, the real measured ablation/replay numbers, an
+  explicit limitations section) and `docs/paper/ARGUS-Project-Guide.pdf` (23
+  sections, 29 pages, covering architecture through viva Q&A, implemented-vs-
+  proposed features and security measures kept explicitly separate throughout).
+
+Verified again before finishing: `pytest` 45/45, `ruff check` clean, console
+production build clean (`tsc -b && vite build`).
+
+Not done, honestly: Vercel deployment status is unconfirmed (see above — a
+dashboard-permission issue, not a code issue); everything else from the prior
+sessions' gap lists (dataset track, 5 scenarios on the live-testbed/ablation paths,
+≥100-bundle replay sample, human evaluation of explanations) is unchanged.
