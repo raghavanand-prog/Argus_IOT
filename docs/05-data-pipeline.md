@@ -63,9 +63,11 @@ environment, or a contributor's own machine):
 - `research/baselines.md`'s B3 (Random Forest on the published CICIoT2023 feature
   set) and B5 (published results, cited only) are not populated with real numbers
   for this reason — see `STATUS.md`.
-- The cross-dataset generalisation test (train on CICIoT2023, test on IoT-23,
-  expected per Varol & Karakaya 2026 to show the field's typical ~99%→~39% F1
-  collapse) has not been run and cannot be, here.
+- The cross-dataset generalisation test (train on CICIoT2023, test on IoT-23) has
+  not been run and cannot be, here. Cross-dataset F1 collapse is a documented
+  phenomenon in the IoT-IDS literature generally, but see `docs/00`'s correction
+  note: an earlier draft of this document cited a specific "~99%→~39%" figure to a
+  misattributed source and that number has been removed rather than left uncorrected.
 
 If this project moves to an environment with normal internet access, the sequence
 is: download the derived CSV/feature release (not the raw PCAP — see the original
