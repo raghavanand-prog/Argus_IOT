@@ -9,12 +9,20 @@ if it were.
 
 ## Why "deploy an IDS" doesn't fix it
 
-Per the most recent systematic gap analysis (Sallam, El Barachi & Li, 2026, *IoT* 7(1):16):
-29 of 32 reviewed IoT IDS studies were evaluated solely offline, none were tested under
-realistic multi-node conditions, and mitigation capability was "often absent" — detection
-without action. A second 2026 review (Varol & Karakaya, *Sensors* 26(18):5744) found
-explainable-IDS models collapsing from ~99% F1 to ~39% cross-dataset, with explanation
-quality rarely validated by anyone.
+Per the most recent systematic gap analysis (Sallam, El Barachi & Li, "Intrusion Detection
+on the Internet of Things: A Comprehensive Review and Gap Analysis Toward Real-Time,
+Lightweight, Adaptive, and Autonomous Security," *IoT*, vol. 7, no. 1, art. 16, 2026,
+doi:10.3390/iot7010016): 29 of 32 reviewed IoT IDS studies were evaluated solely offline,
+none were tested under realistic multi-node conditions, scalability was untested under
+realistic multi-node/high-traffic conditions in every reviewed system, and mitigation
+capability was "often absent" — detection without action.
+
+*(Correction: an earlier version of this document also cited a specific "~99% F1 to ~39%
+cross-dataset" figure attributed to "Varol & Karakaya, Sensors 26(18):5744." That citation
+was wrong on inspection — the actual authors of Sensors 26(18):5744 are Ogunseyi,
+Thiyagarajan, He, Bist, and Du, and the specific figure could not be verified as belonging
+to that paper. Removed rather than left uncorrected, per CLAUDE.md rule 4: no fabricated
+numbers, no matter how minor.)*
 
 ## The falsifiable question
 
