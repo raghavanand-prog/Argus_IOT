@@ -1,0 +1,679 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ARGUS Technical Project Guide</title>
+<style>
+  @page {
+    size: A4;
+    margin: 22mm 18mm 20mm 18mm;
+    @bottom-center { content: "ARGUS — Complete Project Guide   |   Page " counter(page) " of " counter(pages); font-family: Arial, sans-serif; font-size: 8pt; color: #666; }
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Arial, Helvetica, "Liberation Sans", sans-serif;
+    font-size: 10pt;
+    line-height: 1.42;
+    color: #1a1a1a;
+    margin: 0;
+  }
+  .cover {
+    height: 245mm;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    break-after: page;
+  }
+  .cover .tag {
+    display: inline-block;
+    background: #0a3d62;
+    color: #fff;
+    padding: 2mm 6mm;
+    border-radius: 20px;
+    font-size: 9pt;
+    letter-spacing: 0.08em;
+    margin-bottom: 8mm;
+  }
+  .cover h1 {
+    font-size: 30pt;
+    margin: 0 0 4mm 0;
+    color: #0a3d62;
+  }
+  .cover h2 {
+    font-size: 14pt;
+    font-weight: 400;
+    color: #444;
+    margin: 0 0 14mm 0;
+  }
+  .cover .meta {
+    font-size: 10.5pt;
+    color: #333;
+    line-height: 1.9;
+  }
+  .cover .meta b { color: #0a3d62; }
+  .cover .barcode-strip {
+    margin-top: 16mm;
+    width: 60mm;
+    height: 2mm;
+    background: linear-gradient(90deg, #0a3d62, #3ee8b5);
+    border-radius: 2px;
+  }
+  h2.sec {
+    font-size: 16pt;
+    color: #0a3d62;
+    border-bottom: 2.2pt solid #0a3d62;
+    padding-bottom: 1.5mm;
+    margin: 9mm 0 4mm 0;
+    break-before: page;
+    break-after: avoid;
+  }
+  h2.sec.nobreak { break-before: auto; }
+  h3.sub {
+    font-size: 12.2pt;
+    color: #0a3d62;
+    margin: 5mm 0 2mm 0;
+    break-after: avoid;
+  }
+  h4.subsub {
+    font-size: 10.5pt;
+    color: #333;
+    margin: 3.5mm 0 1.5mm 0;
+    font-weight: 700;
+    break-after: avoid;
+  }
+  p { margin: 0 0 2.2mm 0; text-align: justify; }
+  ul, ol { margin: 1mm 0 3mm 0; padding-left: 5mm; }
+  li { margin-bottom: 1mm; text-align: justify; }
+  code, .mono {
+    font-family: "Courier New", Consolas, monospace;
+    font-size: 9pt;
+    background: #f2f4f7;
+    padding: 0.3mm 1mm;
+    border-radius: 2px;
+  }
+  pre {
+    font-family: "Courier New", Consolas, monospace;
+    font-size: 8.4pt;
+    line-height: 1.3;
+    background: #10151f;
+    color: #d9e6f2;
+    padding: 3mm 4mm;
+    border-radius: 3px;
+    overflow-x: auto;
+    margin: 2mm 0 3.5mm 0;
+    break-inside: avoid;
+  }
+  pre .c1 { color: #7fdca0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 2mm 0 4mm 0;
+    font-size: 8.8pt;
+    break-inside: avoid;
+  }
+  th {
+    background: #0a3d62;
+    color: #fff;
+    text-align: left;
+    padding: 1.6mm 2mm;
+    font-weight: 700;
+  }
+  td {
+    padding: 1.6mm 2mm;
+    border-bottom: 0.5pt solid #ccd3db;
+    vertical-align: top;
+  }
+  tr:nth-child(even) td { background: #f6f8fa; }
+  .callout {
+    border-left: 3pt solid #0a3d62;
+    background: #eef4fa;
+    padding: 2.5mm 4mm;
+    margin: 3mm 0;
+    font-size: 9.4pt;
+    break-inside: avoid;
+  }
+  .callout.warn { border-left-color: #c0392b; background: #fbecea; }
+  .callout.future { border-left-color: #d99a1b; background: #fdf3e0; }
+  .callout b.label { color: #0a3d62; }
+  .callout.warn b.label { color: #c0392b; }
+  .callout.future b.label { color: #a3720f; }
+  .badge {
+    display: inline-block;
+    font-size: 7.6pt;
+    font-weight: 700;
+    padding: 0.4mm 1.6mm;
+    border-radius: 3px;
+    letter-spacing: 0.03em;
+  }
+  .badge.implemented { background: #dcf3e6; color: #157347; }
+  .badge.future { background: #fdf0d5; color: #a3720f; }
+  .fig-box {
+    text-align: center;
+    margin: 3mm 0 4mm 0;
+    break-inside: avoid;
+  }
+  .fig-box pre {
+    text-align: left;
+    display: inline-block;
+    background: #fff;
+    color: #111;
+    border: 1pt solid #99a6b3;
+    font-size: 8pt;
+  }
+  .figcap { font-size: 8.6pt; color: #444; margin-top: 1mm; }
+  .toc a { text-decoration: none; color: #0a3d62; }
+  .toc-item { display: flex; justify-content: space-between; padding: 1.4mm 0; border-bottom: 0.4pt dotted #b8c2cc; font-size: 10pt; }
+  .qa dt { font-weight: 700; color: #0a3d62; margin-top: 3mm; }
+  .qa dd { margin: 1mm 0 0 0; text-align: justify; }
+  .pitch {
+    border: 1pt solid #ccd3db;
+    border-radius: 4px;
+    padding: 3mm 4mm;
+    margin: 2mm 0 4mm 0;
+    background: #fbfcfd;
+  }
+  .pitch h4 { margin-top: 0; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="tag">COMPLETE PROJECT GUIDE &amp; TECHNICAL MANUAL</div>
+  <h1>ARGUS</h1>
+  <h2>Closed-Loop, Evidence-Bound IoT Intrusion Detection<br>and Autonomous Response</h2>
+  <div class="meta">
+    <div><b>Author:</b> Raghav Anand</div>
+    <div><b>Program:</b> MCA, CHRIST (Deemed to be University), Bangalore</div>
+    <div><b>Purpose:</b> Viva &middot; Project Presentation &middot; Technical Interview &middot; Resume Discussion</div>
+    <div><b>Repository branch:</b> <span class="mono">claude/nifty-ramanujan-ruaew2</span></div>
+  </div>
+  <div class="barcode-strip"></div>
+</div>
+
+<h2 class="sec nobreak" style="break-before:auto;">Table of Contents</h2>
+<div class="toc">
+  <div class="toc-item"><span>1. Project Overview</span></div>
+  <div class="toc-item"><span>2. Problem Being Solved</span></div>
+  <div class="toc-item"><span>3. Proposed Solution</span></div>
+  <div class="toc-item"><span>4. Core Features</span></div>
+  <div class="toc-item"><span>5. Complete System Architecture</span></div>
+  <div class="toc-item"><span>6. End-to-End Workflow</span></div>
+  <div class="toc-item"><span>7. Technology Stack</span></div>
+  <div class="toc-item"><span>8. Frontend Deep Dive</span></div>
+  <div class="toc-item"><span>9. Backend Deep Dive</span></div>
+  <div class="toc-item"><span>10. Database</span></div>
+  <div class="toc-item"><span>11. AI / ML Component</span></div>
+  <div class="toc-item"><span>12. Security</span></div>
+  <div class="toc-item"><span>13. Important Code Concepts</span></div>
+  <div class="toc-item"><span>14. API / Data Flow</span></div>
+  <div class="toc-item"><span>15. Deployment Architecture</span></div>
+  <div class="toc-item"><span>16. Local Setup Guide</span></div>
+  <div class="toc-item"><span>17. Production Deployment Guide</span></div>
+  <div class="toc-item"><span>18. Testing</span></div>
+  <div class="toc-item"><span>19. Troubleshooting</span></div>
+  <div class="toc-item"><span>20. Limitations</span></div>
+  <div class="toc-item"><span>21. Future Enhancements</span></div>
+  <div class="toc-item"><span>22. Resume Explanation</span></div>
+  <div class="toc-item"><span>23. Viva / Interview Preparation</span></div>
+</div>
+
+<h2 class="sec">1. Project Overview</h2>
+<p>ARGUS is a closed-loop, evidence-bound intrusion detection and autonomous response system built for small, unmanaged IoT networks (homes, clinics, small shops — 5 to 50 devices, no dedicated security analyst). Unlike a conventional IDS that stops at raising an alert, ARGUS runs the full loop: <b>detect &rarr; correlate &rarr; assess risk &rarr; explain &rarr; decide &rarr; enforce &rarr; verify</b>, and feeds the verification outcome back into its own risk and behaviour models.</p>
+<p>The project has two parallel, interchangeable data sources feeding an identical downstream pipeline: a deterministic <b>synthetic simulation engine</b> for fast, repeatable demos and testing, and a <b>real Linux network-namespace testbed</b> that carries genuine packets captured with <span class="mono">scapy</span>. Both feed the same detection, evidence, response, and verification code — nothing downstream needs to know which source produced the data.</p>
+<p>It ships as three runnable pieces: a Python/FastAPI backend, a React/TypeScript analyst console, and an optional real-Linux live-testbed extra. A production build is also deployed as a static console plus a lightweight Python serverless function on Vercel (Section&nbsp;17).</p>
+
+<h2 class="sec">2. Problem Being Solved</h2>
+<h3 class="sub">2.1 The operational gap</h3>
+<p>A compromised IoT device on a small, unmanaged network stays compromised indefinitely — it keeps scanning, beaconing to command-and-control infrastructure, or participating in a botnet — because nobody is watching, and even systems that do watch typically only raise an alert that nobody reads.</p>
+<h3 class="sub">2.2 The evidence for this being a real, documented gap</h3>
+<p>A 2026 systematic review (Sallam, El Barachi &amp; Li, published in <i>IoT</i>, DOI 10.3390/iot7010016) examined 32 recent IoT intrusion detection proposals and found that 29 of them were evaluated offline only, that none were validated under realistic multi-node conditions, and that mitigation (the ability to actually act on a detection) was "often absent" entirely. This project's central design decision — build the response and verification loop, not another classifier — responds directly to that documented gap.</p>
+<h3 class="sub">2.3 The specific research question this project asks</h3>
+<p>On a network with no human operator, can an automated system detect a compromised device, decide whether to act, act on the real network, prove afterward why it acted, and not break the network's legitimate function — and how would anyone know, concretely, whether it succeeded?</p>
+
+<h2 class="sec">3. Proposed Solution</h2>
+<h3 class="sub">3.1 Simple explanation</h3>
+<p>Think of ARGUS as a security guard for a small IoT network that doesn't just point at something suspicious and shout — it investigates, decides what to do about it (ignore it, watch it more closely, cut its network access, or ask a human), does it, checks afterward whether that actually fixed the problem, and keeps a tamper-evident notebook explaining every decision it made, so anyone can check its homework later.</p>
+<h3 class="sub">3.2 Technical explanation</h3>
+<p>ARGUS combines three detection tracks (declared-policy rule checks, hand-authored signature rules, and a calibrated Isolation Forest anomaly detector gated by an inductive conformal-prediction wrapper) feeding a correlator that groups related detections into incidents. Each incident is scored by a risk engine, explained with TreeSHAP attribution, and bound into a hash-chained evidence bundle before a safety-guard component (nine independent veto checks, evaluated in order) decides whether and how to respond, using a six-tier response ladder from passive observation up to full isolation. Every applied action carries an auto-expiring rollback timer. Post-response verification checks the outcome and feeds it back into the risk and behaviour models, closing the loop.</p>
+<div class="callout">
+  <b class="label">Why this design, not a bigger classifier:</b> the project's own measured result (Section 11.6) is that classification accuracy barely matters if the system attached to the classifier can't or won't act — so the engineering effort went into the response, evidence, and safety machinery around detection, not into chasing a marginally higher F1 score.
+</div>
+
+<h2 class="sec">4. Core Features</h2>
+<p>Each feature below is described the same way: what it is, why it exists, how it works, its inputs/processing/outputs, which frontend/backend piece implements it, how it touches the database, and any security-relevant note.</p>
+
+<h3 class="sub">4.1 Device Registry &amp; Enrollment</h3>
+<table>
+<tr><th style="width:22%">What</th><td>A bounded, policy-guarded process that adds a device to ARGUS's monitored fleet and captures its behavioural baseline.</td></tr>
+<tr><th>Why</th><td>A device compromised <i>before</i> its baseline is captured would otherwise have the attack behaviour learned in as "normal."</td></tr>
+<tr><th>How</th><td>New devices start in an <span class="mono">ENROLLING</span> state; enrollment can be refused on a declared-policy violation rather than blindly accepted.</td></tr>
+<tr><th>Input / Output</th><td>Device metadata (type, declared policy) in; a <span class="mono">DeviceRow</span> with state <span class="mono">MONITORED</span> (or a documented refusal) out.</td></tr>
+<tr><th>Backend module</th><td><span class="mono">argus/registry/</span></td></tr>
+<tr><th>Frontend</th><td>Fleet tab (<span class="mono">console/src/pages/Fleet.tsx</span>)</td></tr>
+<tr><th>DB</th><td><span class="mono">devices</span> table</td></tr>
+</table>
+
+<h3 class="sub">4.2 Behaviour Engine &amp; Drift Monitor</h3>
+<table>
+<tr><th style="width:22%">What</th><td>Tracks each device's behavioural baseline and detects when it drifts (changes shape without being compromised).</td></tr>
+<tr><th>Why</th><td>Conflating benign drift (e.g. a firmware update) with compromise is the classic failure mode of baseline-deviation detectors.</td></tr>
+<tr><th>How</th><td>An online ADWIN (Adaptive Windowing) drift detector runs independently of the behaviour engine; a device in a detected drift state has its maximum response tier <i>capped</i> at passive <span class="mono">alert</span> — drift <i>suppresses</i> escalation, it never triggers it.</td></tr>
+<tr><th>Backend module</th><td><span class="mono">argus/behavior/</span> (uses the <span class="mono">river</span> library's ADWIN)</td></tr>
+<tr><th>Frontend</th><td>Fleet tab shows a "drifting" badge and a suppressed-escalation notice per device.</td></tr>
+<tr><th>DB</th><td><span class="mono">devices.is_drifting</span></td></tr>
+</table>
+
+<h3 class="sub">4.3 Metadata-Only Feature Extraction</h3>
+<table>
+<tr><th style="width:22%">What</th><td>Converts raw flow records into seven feature groups: volume/shape, timing, periodicity, destination behaviour, DNS, TLS/JA4 fingerprint, and policy violation.</td></tr>
+<tr><th>Why</th><td>Payload inspection is a permanent non-goal (privacy, and it doesn't work on encrypted traffic anyway); every feature group is justified by a specific attack behaviour it exposes.</td></tr>
+<tr><th>How</th><td>Pure statistical/metadata computation per flow-window — no packet contents are ever read.</td></tr>
+<tr><th>Backend module</th><td><span class="mono">argus/features/extract.py</span></td></tr>
+</table>
+
+<h3 class="sub">4.4 Rule / Policy Detection</h3>
+<table>
+<tr><th style="width:22%">What</th><td>Zero-model detections: a device contacting something outside its declared policy allowlist, or matching an authored signature (e.g. DNS query-entropy threshold for tunnelling, scan fan-out threshold for Mirai-style recruitment, TLS/JA4 fingerprint mismatch for identity spoofing).</td></tr>
+<tr><th>Why</th><td>Highest precision, free human-readable explanation, no training data needed.</td></tr>
+<tr><th>Backend module</th><td><span class="mono">argus/detect/rules.py</span></td></tr>
+</table>
+
+<h3 class="sub">4.5 Calibrated ML Detection (Isolation Forest + Conformal Gate)</h3>
+<table>
+<tr><th style="width:22%">What</th><td>An unsupervised anomaly detector giving coverage of attacks no rule was authored for.</td></tr>
+<tr><th>Why</th><td>Rules only catch known shapes; ML covers the unknown.</td></tr>
+<tr><th>How</th><td>A per-device-type Isolation Forest, isotonic-calibrated on a held-out split, wrapped in an inductive conformal-prediction gate (implemented from scratch) that produces a prediction set rather than a bare label; escalation past a passive alert requires the set to be a singleton at &alpha;=0.05.</td></tr>
+<tr><th>Backend module</th><td><span class="mono">argus/detect/ml.py</span></td></tr>
+<tr><th>Security note</th><td>This is exactly the mechanism behind contribution claim C3 — see the IEEE paper (Section&nbsp;VII) for the formal guarantee it provides.</td></tr>
+</table>
+
+<h3 class="sub">4.6 SHAP Attribution</h3>
+<table>
+<tr><th style="width:22%">What</th><td>Real per-feature TreeSHAP contribution values for every ML detection.</td></tr>
+<tr><th>Why</th><td>An explanation that can't be independently re-derived from the data that produced it isn't evidence — it's decoration.</td></tr>
+<tr><th>How</th><td>A <span class="mono">RandomForestClassifier</span> trained on the same labelled calibration split the conformal detector uses; TreeSHAP values are computed and stored directly in the evidence bundle.</td></tr>
+<tr><th>Frontend</th><td>Incidents drawer — a diverging bar chart of feature contributions (<span class="mono">console/src/components/RiskBadge.tsx</span>'s <span class="mono">AttributionChart</span>).</td></tr>
+</table>
+
+<h3 class="sub">4.7 Correlation &amp; Risk Scoring</h3>
+<table>
+<tr><th style="width:22%">What</th><td>Groups related detections (same device/time window/chain position) into one incident; scores each incident on a 0&ndash;1 risk scale.</td></tr>
+<tr><th>How</th><td>Risk is a weighted sum of five interpretable terms — severity, device criticality, calibrated confidence (discounted for a non-singleton conformal set), behavioural deviation, and blast radius (from the observed communication graph, weighted by neighbouring-device criticality). Weights are authored, defended by a &plusmn;50% sensitivity analysis, not learned.</td></tr>
+<tr><th>Backend module</th><td><span class="mono">argus/correlate/</span>, <span class="mono">argus/risk/</span></td></tr>
+<tr><th>DB</th><td><span class="mono">incidents</span>, <span class="mono">risk_assessments</span></td></tr>
+</table>
+
+<h3 class="sub">4.8 Evidence Bundle &amp; Replay</h3>
+<table>
+<tr><th style="width:22%">What</th><td>A hash-chained record of every autonomous decision, plus a mechanism that re-runs the decision from the recorded values and checks it matches.</td></tr>
+<tr><th>Why</th><td>"Why did it act" needs a checkable answer, not a plausible-sounding one.</td></tr>
+<tr><th>How</th><td>Every bundle stores the feature vector, detection signals, conformal set, SHAP attribution, risk terms, the guard's full decision trace, the resulting action, and a SHA-256 hash chained to the previous bundle. <span class="mono">argus/evidence/replay.py</span> re-runs the guard/ladder logic from those stored values against a fresh guard state and compares the outcome.</td></tr>
+<tr><th>Frontend</th><td>Incidents drawer's "Replay decision" button, calling <span class="mono">POST /evidence/&#123;id&#125;/replay</span> live.</td></tr>
+<tr><th>DB</th><td><span class="mono">evidence_bundles</span></td></tr>
+<tr><th>Security</th><td>Requires the admin bearer token (state-changing in the sense that it exercises live decision logic, even though it never touches the network).</td></tr>
+</table>
+
+<h3 class="sub">4.9 Safety Guard</h3>
+<table>
+<tr><th style="width:22%">What</th><td>Nine independent veto checks, evaluated in a fixed order, that must all pass before any action is taken.</td></tr>
+<tr><th>Why</th><td>Safety cannot be an emergent property of the decision engine's own logic — it is a separate component with veto power that no code path can bypass.</td></tr>
+<tr><th>Checks</th><td>(1) kill switch — file, env var, and API, all three checked; (2) dry-run default; (3) protected-device list (never overridden by risk score); (4) conformal singleton gate; (5) drift gate; (6) per-tier risk threshold; (7) irreversibility &rarr; requires approval; (8) rate limit (per-device and network-wide, per hour); (9) rollback timer (every action carries a TTL and auto-reverts unless renewed).</td></tr>
+<tr><th>Backend module</th><td><span class="mono">argus/respond/guard.py</span></td></tr>
+<tr><th>Frontend</th><td>Control tab shows kill-switch state and lets an authenticated user engage/disengage it — never the enforcement flag itself, on purpose.</td></tr>
+</table>
+
+<h3 class="sub">4.10 Response Ladder &amp; Enforcement</h3>
+<table>
+<tr><th style="width:22%">What</th><td>Six response tiers (observe, alert, rate_limit, block_destination, isolate, require_approval), each behind a single adapter interface.</td></tr>
+<tr><th>How</th><td>The default adapter everywhere is <span class="mono">DryRunAdapter</span> (logs intent, touches nothing). A real <span class="mono">nftables</span>-backed adapter exists and is verified against actual socket connections, but is never wired in as a default — opt-in only.</td></tr>
+<tr><th>Backend module</th><td><span class="mono">argus/respond/ladder.py</span>, <span class="mono">argus/respond/adapters/</span></td></tr>
+<tr><th>DB</th><td><span class="mono">actions</span></td></tr>
+</table>
+
+<h3 class="sub">4.11 Post-Response Verification</h3>
+<table>
+<tr><th style="width:22%">What</th><td>Checks at T+30s / +2m / +5m whether the threat stopped, the device recovered, and nothing legitimate broke.</td></tr>
+<tr><th>How</th><td>Outcomes feed back: <span class="mono">collateral_damage</span> raises the action threshold for that device class; <span class="mono">not_contained</span> escalates if gates still pass; <span class="mono">contained</span> closes the loop.</td></tr>
+<tr><th>Backend module</th><td><span class="mono">argus/verify/</span></td></tr>
+<tr><th>DB</th><td><span class="mono">verifications</span></td></tr>
+</table>
+
+<h3 class="sub">4.12 Analyst Console</h3>
+<table>
+<tr><th style="width:22%">What</th><td>A React/TypeScript single-page app with three screens: Fleet, Incidents (with live evidence, SHAP chart, and replay), and Control.</td></tr>
+<tr><th>Accessibility</th><td>Keyboard-operable incident rows, a real ARIA dialog with focus management and Escape-to-close, <span class="mono">aria-live</span> status regions — verified with browser automation, not just code review.</td></tr>
+<tr><th>Frontend module</th><td><span class="mono">console/src/</span></td></tr>
+</table>
+
+<h2 class="sec">5. Complete System Architecture</h2>
+<div class="fig-box">
+<pre>Sim / Testbed (device behaviour + attack orchestrator + ground-truth ledger)
+   |
+   v
+Collection (flow assembly)  --&gt;  Feature Extraction (metadata-only)
+   |
+   v
+Device Registry + Enrollment + Baseline   &lt;-- policy-guarded
+   |
+   v
+Behaviour Engine &lt;--&gt; Drift Monitor        &lt;-- drift suppresses escalation
+   |
+   v
+Rule/Policy Detection  +  Calibrated ML Detection (+ conformal gate)
+   |
+   v
+Correlator  --&gt;  Incidents  --&gt;  Risk Engine
+   |
+   v
+Evidence &amp; Explanation Engine (hash-chained bundle, SHAP attribution)
+   |
+   v
+Safety Guard (9 veto checks)  --&gt;  Response Decision
+   |
+   v
+Enforcement (dry-run by default; real nftables opt-in)
+   |
+   v
+Post-Response Verification
+   |
+   v
+Append-only Audit Ledger  --&gt;  feeds back into Risk Engine + Behaviour Engine
+</pre>
+</div>
+<p class="figcap"><b>Figure 1.</b> The full ARGUS pipeline. The bottom feedback arrow is what makes this a closed loop rather than a one-shot detect-and-alert pipeline.</p>
+<p>Two deployment profiles exist: <b>dev</b> (synthetic sim engine + SQLite + FastAPI + console, no special privileges) and an optional real-Linux <b>live-testbed</b> profile (network namespaces + veth + real <span class="mono">nftables</span>, requires root/<span class="mono">CAP_NET_ADMIN</span>). A third, <b>production</b> profile runs on Vercel — see Section&nbsp;15.</p>
+
+<h2 class="sec">6. End-to-End Workflow</h2>
+<ol>
+<li><b>Enrollment.</b> A device is added to the fleet with a declared type and policy; its baseline is captured.</li>
+<li><b>Traffic arrives</b> (synthetic generator or real captured packets), assembled into flow records, converted into metadata-only features.</li>
+<li><b>Detection</b> runs both tracks: rules/policy check the flow against the device's declared policy and known signatures; the calibrated ML detector scores it and produces a conformal prediction set.</li>
+<li><b>Correlation</b> groups detections within a shared time/entity/chain window into one <span class="mono">Incident</span>.</li>
+<li><b>Risk scoring</b> computes a 0&ndash;1 score from severity, criticality, confidence, deviation, and blast radius.</li>
+<li><b>Evidence &amp; explanation</b> builds a hash-chained bundle (feature vector, detections, conformal set, SHAP attribution, risk terms) before any decision is made.</li>
+<li><b>Safety guard</b> evaluates all nine checks in order; the first failure vetoes the action.</li>
+<li><b>Response decision</b> picks a tier from the ladder based on risk score, singleton-set status, and drift state; the decision (including which gates passed/failed) is written into the evidence bundle's trace.</li>
+<li><b>Enforcement</b> applies the action through the configured adapter (dry-run by default) with an expiring TTL.</li>
+<li><b>Post-response verification</b> checks the outcome at fixed offsets and writes a <span class="mono">Verification</span> row.</li>
+<li><b>Feedback.</b> The verification outcome adjusts future risk scoring and behavioural baselining for that device class, closing the loop.</li>
+<li><b>Analyst review (optional, human-in-the-loop).</b> The console surfaces the incident, its full evidence bundle, and lets an authenticated analyst replay the decision to independently check it was reproducible.</li>
+</ol>
+
+<h2 class="sec">7. Technology Stack</h2>
+<table>
+<thead><tr><th>Technology</th><th>Purpose</th><th>Where Used</th><th>Why Used</th></tr></thead>
+<tbody>
+<tr><td>Python 3.11+</td><td>Backend language</td><td><span class="mono">argus/</span>, <span class="mono">api/</span></td><td>Modern type-hint syntax; mature ML/security ecosystem</td></tr>
+<tr><td>FastAPI</td><td>ASGI web framework</td><td><span class="mono">argus/api/main.py</span>, <span class="mono">api/index.py</span></td><td>Async-native, typed request/response models, automatic docs</td></tr>
+<tr><td>Uvicorn</td><td>ASGI server</td><td>local dev server</td><td>Standard FastAPI companion server</td></tr>
+<tr><td>SQLAlchemy</td><td>ORM</td><td><span class="mono">argus/db/models.py</span></td><td>Database-agnostic — SQLite by default, Postgres via one env var</td></tr>
+<tr><td>SQLite</td><td>Default database</td><td>local dev</td><td>Zero-setup persistence, no separate DB service required</td></tr>
+<tr><td>scikit-learn</td><td>Isolation Forest, isotonic calibration</td><td><span class="mono">argus/detect/ml.py</span></td><td>Established, well-understood anomaly detection on tabular data</td></tr>
+<tr><td>SHAP</td><td>TreeSHAP attribution</td><td><span class="mono">argus/detect/ml.py</span></td><td>Theoretically grounded, per-feature explanation values</td></tr>
+<tr><td>river</td><td>Online ADWIN drift detector</td><td><span class="mono">argus/behavior/</span></td><td>Streaming-appropriate concept-drift detection with formal bounds</td></tr>
+<tr><td>pyroute2 / scapy / dpkt</td><td>Network namespaces, packet capture/parsing</td><td><span class="mono">argus/testbed/</span></td><td>Real Linux networking without needing Docker (which was blocked in the build environment)</td></tr>
+<tr><td>nftables</td><td>Real enforcement (opt-in)</td><td><span class="mono">argus/respond/adapters/</span></td><td>Modern, scriptable Linux firewalling; bridge-family filtering for L2-bridged testbed traffic</td></tr>
+<tr><td>React 19 + TypeScript</td><td>Frontend framework</td><td><span class="mono">console/src/</span></td><td>Type-safe, component-based UI; industry-standard</td></tr>
+<tr><td>Vite</td><td>Frontend build tool</td><td><span class="mono">console/</span></td><td>Fast dev server, production bundling, native TS support</td></tr>
+<tr><td>Tailwind CSS v4</td><td>Styling</td><td><span class="mono">console/src/</span></td><td>Utility-first styling, small production CSS footprint</td></tr>
+<tr><td>TanStack Query</td><td>Data fetching/caching</td><td><span class="mono">console/src/pages/</span></td><td>Polling, caching, and mutation state without hand-rolled fetch logic</td></tr>
+<tr><td>React Router</td><td>Client-side routing</td><td><span class="mono">console/src/App.tsx</span></td><td>Standard SPA routing between Fleet/Incidents/Control</td></tr>
+<tr><td>pytest</td><td>Backend testing</td><td><span class="mono">tests/</span></td><td>45 tests covering every major component, including real network/nftables tests</td></tr>
+<tr><td>Vercel</td><td>Production hosting</td><td><span class="mono">vercel.json</span>, <span class="mono">api/</span></td><td>Zero-ops static + serverless hosting for the demo deployment</td></tr>
+</tbody>
+</table>
+
+<h2 class="sec">8. Frontend Deep Dive</h2>
+<p>The console (<span class="mono">console/</span>) is a Vite-built React 19 + TypeScript single-page app with three routes.</p>
+<h4 class="subsub">Fleet (<span class="mono">pages/Fleet.tsx</span>)</h4>
+<p>Polls <span class="mono">GET /devices</span> every 8 seconds via TanStack Query and renders a card grid — device ID, type, state badge, criticality, and a drift indicator with a suppressed-escalation notice when applicable.</p>
+<h4 class="subsub">Incidents (<span class="mono">pages/Incidents.tsx</span>)</h4>
+<p>Polls <span class="mono">GET /incidents</span> and renders a sortable table; clicking a row opens a full-height drawer (a real ARIA dialog, keyboard-operable, with focus trapped on open and returned on Escape) showing the risk breakdown, the decision trace, the SHAP attribution chart, the evidence bundle's hash fields, and a "Replay decision" button that calls <span class="mono">POST /evidence/&#123;id&#125;/replay</span> with the saved admin token and displays whether the decision reproduced identically.</p>
+<h4 class="subsub">Control (<span class="mono">pages/Control.tsx</span>)</h4>
+<p>Shows live enforcement mode and kill-switch state (polled every 4 seconds), lets an authenticated user engage/disengage the kill switch and trigger <span class="mono">POST /control/seed-demo</span> to run the pipeline, and lists active/recent actions with their TTLs.</p>
+<h4 class="subsub">State &amp; data layer</h4>
+<p><span class="mono">lib/api.ts</span> centralises every backend call behind a typed <span class="mono">api</span> object with a single relative base path (<span class="mono">/api</span>), so the same frontend code works unmodified against the local dev proxy and the production same-origin Vercel deployment. <span class="mono">lib/token.ts</span> stores the admin bearer token in <span class="mono">localStorage</span> only — a documented demo convenience, not a production auth pattern (Section&nbsp;12).</p>
+
+<h2 class="sec">9. Backend Deep Dive</h2>
+<p>The local/dev backend (<span class="mono">argus/api/main.py</span>) is a single FastAPI app over a SQLAlchemy session dependency. Read endpoints are open; every state-changing endpoint requires a bearer token equal to the <span class="mono">ARGUS_ADMIN_TOKEN</span> environment variable, checked by a <span class="mono">require_auth</span> dependency. There is deliberately no default token — the app raises <span class="mono">RuntimeError</span> at import time if the variable is unset.</p>
+<table>
+<thead><tr><th>Method</th><th>Endpoint</th><th>Purpose</th><th>Input</th><th>Output</th><th>Auth</th></tr></thead>
+<tbody>
+<tr><td>GET</td><td><span class="mono">/health</span></td><td>Liveness + current enforce/kill-switch state</td><td>&mdash;</td><td><span class="mono">&#123;status, enforce, kill_switch&#125;</span></td><td>None</td></tr>
+<tr><td>GET</td><td><span class="mono">/control/status</span></td><td>Enforcement mode + kill-switch state</td><td>&mdash;</td><td><span class="mono">&#123;enforce, kill_switch_engaged&#125;</span></td><td>None</td></tr>
+<tr><td>POST</td><td><span class="mono">/control/kill-switch</span></td><td>Engage/disengage the kill switch</td><td>query <span class="mono">engage: bool</span></td><td><span class="mono">&#123;kill_switch_engaged&#125;</span></td><td>Bearer token</td></tr>
+<tr><td>POST</td><td><span class="mono">/control/seed-demo</span></td><td>Runs the full demo pipeline and persists results</td><td>&mdash;</td><td><span class="mono">&#123;seeded, incidents, bundles, actions&#125;</span></td><td>Bearer token</td></tr>
+<tr><td>GET</td><td><span class="mono">/devices</span></td><td>List all enrolled devices</td><td>&mdash;</td><td>array of device objects</td><td>None</td></tr>
+<tr><td>GET</td><td><span class="mono">/incidents</span></td><td>List incidents with joined risk/evidence/action/verification summary</td><td>&mdash;</td><td>array of incident objects</td><td>None</td></tr>
+<tr><td>GET</td><td><span class="mono">/evidence/&#123;bundle_id&#125;</span></td><td>Full evidence bundle</td><td>path <span class="mono">bundle_id</span></td><td>evidence bundle object</td><td>None</td></tr>
+<tr><td>POST</td><td><span class="mono">/evidence/&#123;bundle_id&#125;/replay</span></td><td>Re-runs the decision path and compares to the stored outcome</td><td>path <span class="mono">bundle_id</span></td><td><span class="mono">&#123;reproduced, original_action, replayed_action, ...&#125;</span></td><td>Bearer token</td></tr>
+<tr><td>GET</td><td><span class="mono">/actions</span></td><td>List all enforcement actions taken</td><td>&mdash;</td><td>array of action objects</td><td>None</td></tr>
+</tbody>
+</table>
+<p>CORS is enabled with a wildcard origin for local development convenience; the production API (Section&nbsp;15) is same-origin with the static console, so this is not exposed there in practice.</p>
+
+<h2 class="sec">10. Database</h2>
+<p>SQLite by default (<span class="mono">ARGUS_DATABASE_URL</span> can point at Postgres instead — the ORM layer doesn't change). Seven tables, managed entirely through SQLAlchemy's declarative models (<span class="mono">argus/db/models.py</span>); no raw SQL anywhere in the codebase.</p>
+<table>
+<thead><tr><th>Table</th><th>Key columns</th><th>Relationship</th></tr></thead>
+<tbody>
+<tr><td><span class="mono">devices</span></td><td>device_id (PK), device_type, criticality, state, is_drifting, baseline_version</td><td>Referenced by device_id from incidents/actions</td></tr>
+<tr><td><span class="mono">incidents</span></td><td>incident_id (PK), device_id, chain_position, agreement_score, scenario, status</td><td>Parent of risk_assessments, evidence_bundles</td></tr>
+<tr><td><span class="mono">risk_assessments</span></td><td>id (PK), incident_id (FK), score, terms (JSON)</td><td>Child of incidents</td></tr>
+<tr><td><span class="mono">evidence_bundles</span></td><td>bundle_id (PK), incident_id (FK), device/feature_vector/detection/baseline/risk/decision (JSON), trace (JSON), prev_bundle_hash, merkle_root</td><td>Child of incidents; parent of actions</td></tr>
+<tr><td><span class="mono">actions</span></td><td>action_id (PK), bundle_id (FK), device_id, tier, action, dry_run, applied_at, reverted_at, ttl_seconds</td><td>Child of evidence_bundles; parent of verifications</td></tr>
+<tr><td><span class="mono">verifications</span></td><td>id (PK), action_id (FK), outcome, checked_at, offset_seconds</td><td>Child of actions</td></tr>
+<tr><td><span class="mono">audit_log</span></td><td>seq (PK), ts, actor, event_type, payload (JSON)</td><td>Independent append-only ledger</td></tr>
+</tbody>
+</table>
+<div class="fig-box">
+<pre>devices ──1:N── incidents ──1:N── risk_assessments
+                    │
+                    └──1:N── evidence_bundles ──1:N── actions ──1:N── verifications
+
+audit_log (independent, append-only)
+evidence_bundles.prev_bundle_hash chains each bundle to the one before it</pre>
+</div>
+<p class="figcap"><b>Figure 2.</b> Entity relationships. All writes go through the pipeline (<span class="mono">argus/pipeline.py</span>) or the FastAPI endpoints — there is no direct external write path into the database.</p>
+<p>CRUD is almost entirely create-and-read: devices/incidents/bundles/actions/verifications are created once by the pipeline and read by the API; the only update-like operations are the kill switch's in-memory state and a device's <span class="mono">is_drifting</span>/<span class="mono">state</span> flags, both written by their owning component, never by an external caller directly.</p>
+
+<h2 class="sec">11. AI / ML Component</h2>
+<h4 class="subsub">11.1 Why ML is used at all</h4>
+<p>Rules only catch attack shapes someone thought to author a rule for. The ML track exists specifically to give coverage against attacks that don't match a known signature — the calibrated Isolation Forest's job is exclusively that gap.</p>
+<h4 class="subsub">11.2 Features</h4>
+<p>The seven metadata-only feature groups from Section&nbsp;4.3 (volume/shape, timing, periodicity, destination behaviour, DNS, TLS/JA4, policy) — the same features both detection tracks consume.</p>
+<h4 class="subsub">11.3 Preprocessing</h4>
+<p>Feature extraction is per-device-type; the Isolation Forest is trained per device type rather than globally, since normal traffic shape differs enormously between, say, a smart plug and an IP camera. No feature scaling beyond what Isolation Forest's tree-splitting already tolerates is required.</p>
+<h4 class="subsub">11.4 Algorithm</h4>
+<p><b>Isolation Forest</b> (Liu, Ting &amp; Zhou, ICDM 2008) — an ensemble of random partitioning trees; anomalies are isolated in fewer splits than normal points, giving an anomaly score without needing labelled attack data. Raw scores are <b>isotonic-calibrated</b> on a held-out split so they behave as genuine probabilities, then wrapped in an <b>inductive conformal prediction</b> gate (Papadopoulos, 2008) that outputs a prediction set with a distribution-free coverage guarantee at &alpha;=0.05, rather than thresholding the raw score.</p>
+<h4 class="subsub">11.5 Training and calibration</h4>
+<p>Training and calibration currently use the labelled data available from the calibration split the pipeline itself produces (synthetic/live-testbed scale — dozens of rows per device type), not a large public dataset; the public-dataset track (Section&nbsp;20) was verified infeasible to reach from the build environment.</p>
+<h4 class="subsub">11.6 Inference</h4>
+<p>At detection time: extract features &rarr; score with the calibrated Isolation Forest &rarr; compute the conformal prediction set at &alpha;=0.05 &rarr; compute TreeSHAP attribution from a companion <span class="mono">RandomForestClassifier</span> trained on the same calibration split &rarr; all three outputs (calibrated score, conformal set, attribution) are written into the evidence bundle before any response decision is made.</p>
+<h4 class="subsub">11.7 Evaluation (measured, not projected)</h4>
+<p>Evaluated via a 9-configuration ablation (A0&ndash;A8) at 5 seeds against a genuine benign holdout, using Mann-Whitney U, Holm-Bonferroni correction, and Cliff's delta. The headline measured result: <b>A6</b> (identical detection stack to the full system, by construction, with only the response ladder disabled) shows <b>0% containment</b> against the full system's <b>100%</b> (5/5 seeds) — despite having <i>identical</i> detection metrics. This is direct, measured evidence that classification accuracy is a weak predictor of whether a system actually contains an attack — see the accompanying IEEE paper for the full statistical treatment.</p>
+<div class="callout">
+<b class="label">No fabricated numbers:</b> every figure in this section traces to a named script or test (<span class="mono">eval/harness.py</span>, <span class="mono">eval/ablation.py</span>, <span class="mono">tests/test_ablation.py</span>) and the commit referenced in <span class="mono">decisions.md</span>. Where a number doesn't exist (e.g. cross-dataset generalisation, a &ge;100-bundle replay sample), Section 20 says so explicitly rather than estimating one.
+</div>
+<h4 class="subsub">11.8 Known limitations of the ML component</h4>
+<ul>
+<li>Trained/calibrated on a small, synthetic/live-testbed-derived split, not a large public dataset.</li>
+<li>No cross-dataset generalisation test has been run (Section 20).</li>
+<li>Risk-engine weights that combine with the ML score are authored, not learned.</li>
+</ul>
+
+<h2 class="sec">12. Security</h2>
+<h3 class="sub">12.1 Implemented</h3>
+<table>
+<tbody>
+<tr><td><span class="badge implemented">IMPLEMENTED</span></td><td>Bearer-token authentication on every state-changing endpoint, with no default token (fails loudly at startup if unset).</td></tr>
+<tr><td><span class="badge implemented">IMPLEMENTED</span></td><td>Dry-run enforcement by default everywhere (<span class="mono">ARGUS_ENFORCE=false</span>); live enforcement is opt-in.</td></tr>
+<tr><td><span class="badge implemented">IMPLEMENTED</span></td><td>Kill switch checkable through three independent mechanisms (file, env var, API).</td></tr>
+<tr><td><span class="badge implemented">IMPLEMENTED</span></td><td>Protected-device allowlist that a risk score can never override.</td></tr>
+<tr><td><span class="badge implemented">IMPLEMENTED</span></td><td>Rate limiting on ARGUS's own actions, per device and network-wide.</td></tr>
+<tr><td><span class="badge implemented">IMPLEMENTED</span></td><td>Auto-expiring rollback timer on every applied action.</td></tr>
+<tr><td><span class="badge implemented">IMPLEMENTED</span></td><td>Hash-chained, tamper-evident evidence bundles (SHA-256, chained via <span class="mono">prev_bundle_hash</span>).</td></tr>
+<tr><td><span class="badge implemented">IMPLEMENTED</span></td><td>No payload inspection anywhere, as a permanent architectural commitment (metadata-only feature extraction).</td></tr>
+<tr><td><span class="badge implemented">IMPLEMENTED</span></td><td>Secrets excluded from the repository (<span class="mono">.env</span> gitignored, <span class="mono">.env.example</span> placeholder only).</td></tr>
+<tr><td><span class="badge implemented">IMPLEMENTED</span></td><td>CI-independent linting (<span class="mono">ruff</span>) kept clean.</td></tr>
+</tbody>
+</table>
+<h3 class="sub">12.2 Recommended Future Security Improvements</h3>
+<table>
+<tbody>
+<tr><td><span class="badge future">FUTURE</span></td><td>Replace the console's <span class="mono">localStorage</span> admin-token pattern with a real session/OAuth flow — explicitly documented in the UI itself as "a demo convenience, not a production auth flow."</td></tr>
+<tr><td><span class="badge future">FUTURE</span></td><td>Per-user roles/RBAC instead of a single shared admin token.</td></tr>
+<tr><td><span class="badge future">FUTURE</span></td><td>Restrict CORS from the current wildcard origin to a specific allowlist for any non-demo deployment.</td></tr>
+<tr><td><span class="badge future">FUTURE</span></td><td>TLS termination and secret management appropriate to a real production deployment (the current Vercel deployment relies on the platform's own TLS and a single project environment variable).</td></tr>
+<tr><td><span class="badge future">FUTURE</span></td><td>Real Suricata/Zeek signature integration in place of the documented threshold stand-in in <span class="mono">argus/detect/rules.py</span>.</td></tr>
+<tr><td><span class="badge future">FUTURE</span></td><td>Audit-log export/retention policy for long-running deployments (currently append-only in the same database, no rotation).</td></tr>
+</tbody>
+</table>
+
+<h2 class="sec">13. Important Code Concepts</h2>
+<h4 class="subsub">Data-flow contracts between stages</h4>
+<p>Every pipeline stage consumes only the typed schema the previous stage produced — never a neighbour's internal state. This is what makes the ablation harness possible: a stage becomes a pass-through by toggling a parameter, without touching any other stage's code, and it's also what lets the live-packet testbed and the synthetic engine feed the identical downstream pipeline with zero code changes.</p>
+<h4 class="subsub">Fail-loud configuration</h4>
+<p><span class="mono">ARGUS_ADMIN_TOKEN</span> has no default anywhere in the codebase; both the local and production API entrypoints raise <span class="mono">RuntimeError</span> at import time if it's unset, rather than silently running with an open admin surface.</p>
+<h4 class="subsub">Dependency injection for the database session</h4>
+<p>FastAPI's <span class="mono">Depends(get_db)</span> pattern yields a session per request and guarantees it's closed afterward, even on an exception — standard FastAPI/SQLAlchemy practice used throughout <span class="mono">argus/api/main.py</span>.</p>
+<h4 class="subsub">Simulated-clock threading (the bug the replay mechanism found)</h4>
+<p>The action rate limiter originally gated on wall-clock time. A full simulated pipeline run spans several simulated <i>hours</i> of device behaviour while executing in well under a real second, so every action in a single run looked, to a wall-clock-gated limiter, like a burst within the same real-world hour — spuriously tripping the rate limit. The fix threads a <span class="mono">now: float | None</span> parameter through the guard and ladder functions, using each incident's own simulated timestamp instead of defaulting to <span class="mono">time.time()</span>. This is a genuine example of a subtle correctness bug that only the replay mechanism's own design (compare a fresh re-run against a stored decision) was positioned to catch.</p>
+<h4 class="subsub">Adapter interfaces for swappable behaviour</h4>
+<p>Enforcement adapters share one interface (<span class="mono">apply</span>, <span class="mono">revert</span>, <span class="mono">list_active</span>), so <span class="mono">DryRunAdapter</span>, <span class="mono">NoOpAdapter</span> (the ablation's detection-only baseline), and the real <span class="mono">nftables</span> adapter are interchangeable without any change to <span class="mono">argus/respond/ladder.py</span>'s calling code.</p>
+
+<h2 class="sec">14. API / Data Flow</h2>
+<div class="fig-box">
+<pre>Browser (console)
+   │  GET/POST /api/*  (relative path, same-origin)
+   ▼
+FastAPI app  (argus/api/main.py  locally,  api/index.py  in production)
+   │
+   ├── read endpoints  ──────────────────────────►  SQLAlchemy session ──► SQLite
+   │
+   └── state-changing endpoints
+          │
+          ▼
+     require_auth(Authorization: Bearer &lt;ARGUS_ADMIN_TOKEN&gt;)
+          │  (401 if missing/invalid)
+          ▼
+     business logic (kill switch / seed pipeline / evidence replay)
+          │
+          ▼
+     SQLAlchemy session ──► SQLite  (local)   |   in-memory snapshot state (production)
+</pre>
+</div>
+<p class="figcap"><b>Figure 3.</b> Request path for both local and production deployments. The console's <span class="mono">lib/api.ts</span> always calls a relative <span class="mono">/api/*</span> path, so the same frontend bundle works against either backend unmodified.</p>
+
+<h2 class="sec">15. Deployment Architecture</h2>
+<p>Two real, running deployment shapes exist for this project:</p>
+<h4 class="subsub">Local</h4>
+<p>Uvicorn serving <span class="mono">argus/api/main.py</span> on port 8000, backed by a SQLite file on disk; Vite's dev server on port 5173 proxying <span class="mono">/api/*</span> to the backend (stripping the prefix). Full ML pipeline, live-testbed extra, and real <span class="mono">nftables</span> enforcement are all available here.</p>
+<h4 class="subsub">Production (Vercel)</h4>
+<p>The console is built to static files (<span class="mono">console/dist</span>) and served directly by Vercel. A separate, deliberately lighter FastAPI entrypoint (<span class="mono">api/index.py</span>) runs as a Python serverless function, importing only the pure-stdlib pieces of the real codebase (<span class="mono">argus.evidence.bundle</span>, <span class="mono">argus.evidence.replay</span>, <span class="mono">argus.respond.guard</span>) — no numpy/scikit-learn/shap in the production dependency set. It serves a real, pre-computed snapshot of one actual pipeline run (<span class="mono">api/seed_snapshot.json</span>, produced by <span class="mono">scripts/export_seed_snapshot.py</span>) rather than fabricated demo data, while running evidence replay and the kill switch live and unmodified on every request. <span class="mono">vercel.json</span>'s rewrite rule routes every <span class="mono">/api/*</span> request to this one function. See Section&nbsp;17 for exactly why the full system can't all run serverless, and <span class="mono">docs/06-vercel-deployment.md</span> for the complete reasoning.</p>
+
+<h2 class="sec">16. Local Setup Guide</h2>
+<p>Exact commands (see <span class="mono">README.md</span> for the full version with a troubleshooting table):</p>
+<pre>git clone &lt;repo-url&gt; argus &amp;&amp; cd argus
+make install               <span class="c1"># venv + pip install -e ".[dev]" + npm install</span>
+cp .env.example .env       <span class="c1"># then edit: set ARGUS_ADMIN_TOKEN</span>
+make test                  <span class="c1"># 45 tests, ~65s</span>
+
+<span class="c1"># terminal 1</span>
+export $(cat .env | xargs) &amp;&amp; make api      <span class="c1"># http://localhost:8000</span>
+<span class="c1"># terminal 2</span>
+make console                                  <span class="c1"># http://localhost:5173</span></pre>
+<p>In the console's Control tab: paste the token from <span class="mono">.env</span>, save it, then click "Run demo pipeline" — this genuinely executes the full loop and persists the result to SQLite; nothing is canned.</p>
+
+<h2 class="sec">17. Production Deployment Guide</h2>
+<p>Vercel project settings actually used: build command <span class="mono">cd console && npm install && npm run build</span>, output directory <span class="mono">console/dist</span>, one required project environment variable, <span class="mono">ARGUS_ADMIN_TOKEN</span> (the production function fails to start without it, identical fail-loud behaviour to local). <span class="mono">vercel.json</span> defines the build command, output directory, and the rewrite that routes all <span class="mono">/api/*</span> traffic to the single <span class="mono">api/index.py</span> function.</p>
+<p>Three real platform constraints keep production narrower than local, stated explicitly rather than hidden: (1) no root/<span class="mono">CAP_NET_ADMIN</span> in a serverless sandbox, so the live network-namespace testbed cannot run there at all; (2) no persistent filesystem across separate function invocations, so a live SQLite "seed then browse" flow doesn't hold up — production instead serves a real, pre-computed snapshot; (3) function size/time budget — numpy/scikit-learn/shap are not part of the production dependency set, so on-demand ML fitting doesn't happen there either. What stays genuinely live in production regardless: evidence replay and the kill switch, both pure-stdlib code with no ML dependency.</p>
+<p>To refresh the production demo data with a new real pipeline run: <span class="mono">python scripts/export_seed_snapshot.py</span>, then commit the regenerated <span class="mono">api/seed_snapshot.json</span> and redeploy.</p>
+
+<h2 class="sec">18. Testing</h2>
+<p>45 pytest tests, actually run, not estimated (<span class="mono">pytest tests/ -v</span>, ~65 seconds). Coverage includes: feature-extraction fixtures with hand-verified expected values; enrollment and policy-based refusal; the full detection&rarr;correlation&rarr;risk integration path; each of the five safety-guard mechanisms exercised directly and independently; evidence hash-chain tamper detection; decision replay; six tests against the real network-namespace testbed (fabric setup/teardown leaving no residual state, real UDP delivery between namespaces, captured real attack flows checked against wall-clock ground truth, the containment check); four tests against the real <span class="mono">nftables</span> adapter (isolate blocks and revert restores an actual socket connection; <span class="mono">block_destination</span> verified narrower than <span class="mono">isolate</span> against two real targets; a kill-switch-style flush restores connectivity); SHAP attribution tests; ablation-mechanism tests (asserting A6's detection metrics equal A0's by construction); evaluation-statistics unit tests; and dataset-subsampling tests against a synthetic fixture.</p>
+<p>Frontend: <span class="mono">tsc -b</span> (full TypeScript typecheck) runs as part of every production build; the console was also verified live against the real backend with browser automation, including clicking the actual "Replay decision" button and confirming a real accessibility pass.</p>
+
+<h2 class="sec">19. Troubleshooting</h2>
+<table>
+<thead><tr><th>Symptom</th><th>Cause</th><th>Fix</th></tr></thead>
+<tbody>
+<tr><td><span class="mono">RuntimeError: ARGUS_ADMIN_TOKEN is not set</span></td><td>.env not created/loaded</td><td><span class="mono">cp .env.example .env</span>, edit, <span class="mono">export $(cat .env | xargs)</span></td></tr>
+<tr><td>Console: "Could not reach the API"</td><td>Backend not running</td><td>Start <span class="mono">make api</span> in a separate terminal</td></tr>
+<tr><td><span class="mono">npm install</span> fails (native binding / EBADENGINE)</td><td>Node &lt; 20.19</td><td>Upgrade Node (<span class="mono">nvm install 22</span>)</td></tr>
+<tr><td>401 on Replay/Kill Switch/Seed Demo</td><td>Token missing or mismatched in the console</td><td>Control tab &rarr; paste exact <span class="mono">.env</span> token &rarr; Save</td></tr>
+<tr><td><span class="mono">pytest</span> failures mentioning pyroute2/scapy</td><td>Optional live-testbed extras not installed</td><td><span class="mono">pip install -e ".[live-testbed]"</span>, or ignore — the core suite doesn't need them</td></tr>
+<tr><td><span class="mono">ModuleNotFoundError: No module named 'argus'</span></td><td>Running Python outside the project venv</td><td>Use <span class="mono">.venv/bin/python</span>, or re-run <span class="mono">make install</span></td></tr>
+</tbody>
+</table>
+
+<h2 class="sec">20. Limitations</h2>
+<ul>
+<li><b>Scenario coverage:</b> only 2 of the 7 implemented attack scenarios (<span class="mono">mirai</span>, <span class="mono">low_and_slow</span>) run on the live-packet testbed and in the ablation harness; the other five run correctly through the synthetic pipeline only.</li>
+<li><b>Dataset track:</b> no public-dataset numbers (CICIoT2023, IoT-23) appear anywhere in this project. The outbound path to fetch them returned HTTP 403 in the build environment — verified directly, not assumed — the same failure mode independently confirmed for Docker Hub. The subsampling/parity logic is implemented and unit-tested against a synthetic fixture, ready the moment a reachable environment is available.</li>
+<li><b>Evidence-replay sample size:</b> 100% reproducibility is measured on 19 bundles from one seeded run; a substantially larger multi-run sample (target: &ge;100 bundles) is needed before this is a stable claim rather than an early, favourable measurement.</li>
+<li><b>SHAP training data:</b> trained on the same small calibration split the conformal detector uses, not a large public dataset, for the same reachability reason as above.</li>
+<li><b>No human evaluation of explanations:</b> the original protocol (participants shown evidence bundles, scored against ground truth) needs real human subjects an autonomous/solo build effort cannot supply; preserved as explicit future work.</li>
+<li><b>Live-testbed traffic realism:</b> real packets/sockets/namespaces, but not full application-layer protocol implementations (no real MQTT broker, no real TLS handshake) — metadata-realistic, not protocol-complete; costs nothing feature-wise since ARGUS is metadata-only by design.</li>
+<li><b>Risk weights are authored, not learned,</b> defended by a stated sensitivity analysis rather than beyond scrutiny.</li>
+<li><b>Production deployment scope</b> is narrower than local by platform necessity (Section 17) — this is disclosed in the deployed app's own <span class="mono">/api/health</span> response (<span class="mono">mode: "production-snapshot"</span>), not hidden.</li>
+</ul>
+
+<h2 class="sec">21. Future Enhancements</h2>
+<table>
+<tbody>
+<tr><td><span class="badge future">PROPOSED</span></td><td>Port the five synthetic-only attack scenarios into the live-packet testbed and the ablation's scenario loop.</td></tr>
+<tr><td><span class="badge future">PROPOSED</span></td><td>Run the evidence-replay mechanism against &ge;100 bundles across multiple seeded runs.</td></tr>
+<tr><td><span class="badge future">PROPOSED</span></td><td>Run the public-dataset track (CICIoT2023 training, IoT-23 cross-dataset generalisation) once a network-unrestricted environment is available.</td></tr>
+<tr><td><span class="badge future">PROPOSED</span></td><td>Conduct the human evaluation of explanation quality, if the project continues with human collaborators.</td></tr>
+<tr><td><span class="badge future">PROPOSED</span></td><td>Real Suricata/Zeek signature integration in place of the current threshold stand-in.</td></tr>
+<tr><td><span class="badge future">PROPOSED</span></td><td>Learned (rather than authored) risk-engine weights, validated against the existing sensitivity analysis as a baseline.</td></tr>
+<tr><td><span class="badge future">PROPOSED</span></td><td>Per-user roles/RBAC and a real session-based auth flow for the console, replacing the current single shared admin token.</td></tr>
+</tbody>
+</table>
+
+<h2 class="sec">22. Resume Explanation</h2>
+<h3 class="sub">30-second version</h3>
+<div class="pitch"><p>"I built ARGUS, a closed-loop IoT intrusion detection system that doesn't just alert on an attack — it decides whether to act, actually blocks the device on a real network, proves afterward why it acted with a tamper-evident evidence trail, and measures whether the response actually worked. The headline result I measured: a version of the system with identical detection accuracy to the full system, but with response disabled, had zero successful containments versus the full system's 100% — direct proof that detection accuracy alone doesn't tell you if a system actually works."</p></div>
+<h3 class="sub">1-minute version</h3>
+<div class="pitch"><p>"Most published IoT intrusion detection research stops at classification and is evaluated offline — a recent systematic review found 29 of 32 studies never tested mitigation at all. I built ARGUS to close that gap: it runs a full detect-correlate-risk-score-explain-decide-enforce-verify loop, gates any autonomous action behind an inductive conformal prediction check I implemented from scratch, and binds every decision to a hash-chained evidence bundle that can be independently replayed to check it's reproducible — which it is, on every bundle I've tested. When my planned Docker-based testbed turned out to be blocked in my build environment, I built a real alternative from first principles — actual Linux network namespaces carrying real packets — rather than falling back to pure simulation, and along the way found and fixed two genuine kernel-networking bugs that only showed up once I exercised the real path. The core measured finding, from a 9-configuration ablation study with proper statistics, is that a system with detection metrics identical to the full one by construction showed zero containment versus the full system's 100% — evidence that the field's standard metric doesn't measure what actually matters."</p></div>
+<h3 class="sub">2-minute version</h3>
+<div class="pitch"><p>Combine the 1-minute version with: the safety-guard design (nine independent veto checks including a kill switch checkable three separate ways, dry-run-by-default, and an auto-expiring rollback timer on every action — because an autonomous system that can act on a network needs to be trivially, redundantly stoppable); the real <span class="mono">nftables</span> enforcement work and the specific bridge-netfilter/Docker-FORWARD-policy bug found while building it; the full-stack delivery (FastAPI + SQLAlchemy backend, React/TypeScript console with a real accessibility pass verified by browser automation); and close with the honest limitations list (Section 20) as evidence of engineering judgment, not a weakness to hide — "I know exactly what isn't done yet and why, which is why I can tell you precisely what I'd build next."</p></div>
+
+<h2 class="sec">23. Viva / Interview Preparation</h2>
+<dl class="qa">
+<dt>Q: Why didn't you just build a better classifier?</dt>
+<dd>Because the field's actual gap, per the gap-analysis I cite, isn't classifier quality — it's that most systems never act on what they detect. My own ablation proves the point directly: identical detection, completely different outcome, once you measure containment instead of just F1.</dd>
+
+<dt>Q: What exactly does "evidence-bound" mean, concretely?</dt>
+<dd>Every autonomous decision is written into a bundle containing the feature vector, which detectors fired, the conformal prediction set, SHAP attribution values, the risk score's component terms, and the safety guard's full pass/fail trace, before the action is taken — and it's hash-chained to the previous bundle so tampering with history is detectable. Then there's a replay mechanism that independently re-derives the decision from those stored values and checks it matches. That's the difference between "evidence" and "a log message."</dd>
+
+<dt>Q: What is conformal prediction and why use it here instead of a confidence threshold?</dt>
+<dd>A raw softmax/probability output from a classifier isn't a formal guarantee about any individual prediction — it's just a number that happens to often behave reasonably. Inductive conformal prediction instead produces a <i>set</i> of plausible labels with a distribution-free, finite-sample guarantee that the true label is excluded with probability at most &alpha;. I gate autonomous escalation on that set being a singleton — i.e., the model is confident in the sense the guarantee actually backs, not just confident-looking.</dd>
+
+<dt>Q: What happens if the model is wrong and the system blocks a legitimate device?</dt>
+<dd>Every action has an auto-expiring rollback timer, so the default state is always restored unless the action is actively renewed. Post-response verification checks specifically for collateral damage (something legitimate breaking) and, if found, raises the action threshold for that device class going forward. And the kill switch can stop everything through three independent paths if a human needs to intervene immediately.</dd>
+
+<dt>Q: Your Docker testbed plan didn't work — walk me through what you actually did.</dt>
+<dd>Image pulls from Docker Hub returned a 403 in my build environment — I verified that directly rather than assuming it. Rather than fall back to synthetic-only, I built a real alternative: Linux network namespaces and veth pairs on a real bridge, with a custom multi-interface scapy sniffer capturing genuine packets into a pcap, parsed into the exact same flow schema my synthetic engine produces — so the rest of the pipeline needed zero changes. Building it surfaced two real kernel-networking bugs: Docker's own iptables ruleset was silently absorbing my bridge's traffic via a sysctl that affects any L2-bridged traffic system-wide, and once I fixed that, my nftables rules needed to move to the bridge table family specifically to see bridged traffic at all.</dd>
+
+<dt>Q: How did you validate your enforcement actually works, not just that the command didn't error?</dt>
+<dd>I never trusted <span class="mono">nft</span>'s exit code alone. I tested against real socket connections: a connection that provably fails while isolation is active, and provably succeeds again after either a targeted revert or a kill-switch-style full flush — and I specifically verified <span class="mono">block_destination</span> is narrower in effect than full <span class="mono">isolate</span> against two distinct real targets, matching what the design intends, not just what the code claims.</dd>
+
+<dt>Q: What's the biggest limitation you'd tell a reviewer about unprompted?</dt>
+<dd>The evidence-replay reproducibility number — 100% — is measured on only 19 bundles from one run. The mechanism is proven, but the sample is small; I'd want at least 100 bundles across multiple seeded runs before I'd call that a stable property rather than an early, favourable measurement. I say that upfront rather than waiting to be asked.</dd>
+
+<dt>Q: Why SQLite instead of Postgres?</dt>
+<dd>Zero-setup local development — <span class="mono">make seed</span> shouldn't require a running database container. SQLAlchemy's ORM layer is the actual portability boundary, not the specific engine; pointing <span class="mono">ARGUS_DATABASE_URL</span> at Postgres is a one-line config change with no code change.</dd>
+
+<dt>Q: How is the production (Vercel) deployment different from local, and why?</dt>
+<dd>Three real platform constraints: no root/CAP_NET_ADMIN in a serverless sandbox, so the live network-namespace testbed can't run there at all; no persistent filesystem across separate function invocations, so a live SQLite flow doesn't hold up; and a function size/time budget that excludes numpy/scikit-learn/shap from the production dependency set. So production serves a real, pre-computed snapshot of one actual pipeline run instead of re-simulating live, while evidence replay and the kill switch — both pure-stdlib, no ML dependency — run genuinely live on every request. That split, and why, is documented in the code itself, not hidden.</dd>
+
+<dt>Q: What would you build next if you had another month?</dt>
+<dd>In priority order, matching my own roadmap: port the remaining five attack scenarios into the live-packet testbed and the ablation; run evidence replay against a much larger bundle sample; run the public-dataset track the moment I have unrestricted network access, since that's the piece needed for a defensible cross-dataset generalisation claim; and, if I had access to willing participants, run the human evaluation of explanation quality my evaluation protocol already specifies but couldn't execute alone.</dd>
+</dl>
+
+</body>
+</html>
