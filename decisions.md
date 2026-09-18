@@ -513,3 +513,48 @@ Two real build failures fixed along the way (both now recorded in
    files `api/index.py`'s import graph never reaches, verified locally first
    by simulating the exact surviving file set and confirming the import
    succeeds before pushing again.
+
+## 2026-09-18 — Fleet page no longer default; synthetic devices explicitly labelled everywhere
+
+User (correctly) rejected the Fleet page as-is: it renders ARGUS's own
+synthetic-testbed devices (smart-plug-00, ip-camera-00, etc. --
+argus.sim.engine.default_fleet(), 11 hardcoded devices) as the default
+landing page with zero labelling distinguishing them from the CICIoT2023
+evaluation, which has no device identity at all. Inspected before changing
+anything (per the user's explicit instruction): confirmed via grep and
+direct code reading that no CICIoT2023 row is or was ever mapped to any of
+these 11 device IDs -- run_cicioT2023_evaluation uses a wholly separate
+device_id namespace (`cicioT2023-eval-<row_index>`) and never writes a
+DeviceRow at all. The bug was presentational, not a data-fabrication bug,
+but presentational-enough to reasonably read as a fabrication from the
+Fleet page alone.
+
+Fixed by making the honesty explicit at every layer rather than just the
+frontend's own copy, per "if the data does not contain it, ARGUS must not
+pretend it exists" applied literally:
+- `/api/devices` (both api/index.py's production snapshot and
+  argus/api/main.py's local dev path) now tags every object with
+  `"source": "synthetic-demo-testbed"` / `"argus-testbed"` -- an honest
+  claim visible to *any* consumer of the API, not just this project's own
+  console.
+- Console: default route `/` changed from Fleet to IDS Evaluation (the
+  real, dataset-derived experience); Fleet moved to `/fleet`, renamed
+  "Demo Fleet (Synthetic)" in the nav, and given an unmissable banner
+  explaining it's ARGUS's simulation testbed, not CICIoT2023-derived, with
+  a link to IDS Evaluation.
+- IDS Evaluation page now states, verbatim, in the dataset panel: "Device
+  identity is not available in this benchmark export."
+- Control page's "Demo data" section now says explicitly that it seeds the
+  synthetic testbed, unrelated to the CICIoT2023 evaluation.
+
+Deliberately NOT touched: `argus/sim/engine.py`, `run_demo_pipeline`,
+`api/seed_snapshot.json`, or any of the synthetic-testbed pipeline code --
+that is a real, working, honestly-documented part of the project (the
+"two parallel data sources" architecture stated in README.md/STATUS.md),
+not a fabrication, and removing it was never what was asked; only its
+unlabelled presentation as the production-facing default was the problem.
+`/api/incidents` still legitimately mixes real CICIoT2023 incidents with
+synthetic-scenario ones (1020 vs 8 in the current snapshot) -- left as-is,
+since each incident's own `scenario` field already truthfully names its
+origin (`cicioT2023_eval` vs `mirai`/`mqtt_abuse`/etc.) and nothing there
+claims a synthetic incident is dataset-derived or vice versa.

@@ -103,12 +103,20 @@ def validate_benign(db: Session = Depends(get_db), _: None = Depends(require_aut
 
 @app.get("/devices")
 def list_devices(db: Session = Depends(get_db)):
+    """Every device here came from run_demo_pipeline (argus.sim, synthetic) or
+    run_live_demo_pipeline (argus.testbed, real network namespaces) -- never
+    from a dataset evaluation. run_cicioT2023_evaluation never writes a
+    DeviceRow at all (see docs/17-cicioT2023-validation.md: this dataset export
+    has no device identity to enroll). "source" says so explicitly on every
+    object, so any consumer of this API gets the same honest label the console
+    shows."""
     rows = db.query(DeviceRow).all()
     return [
         {
             "device_id": r.device_id, "device_type": r.device_type, "state": r.state,
             "criticality": r.criticality, "is_drifting": r.is_drifting,
             "last_seen": r.last_seen.isoformat() if r.last_seen else None,
+            "source": "argus-testbed",
         }
         for r in rows
     ]

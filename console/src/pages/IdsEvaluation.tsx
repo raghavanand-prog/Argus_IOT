@@ -207,6 +207,9 @@ function DatasetPanel({
             {summary.mode === "production-snapshot" ? "a real, precomputed run" : "a real, live-executed run"} of
             ARGUS's actual detection code against it.
           </p>
+          <p className="mt-2 max-w-2xl text-xs font-semibold text-[var(--color-risk-med)]">
+            Device identity is not available in this benchmark export.
+          </p>
         </div>
         {summary.mode === "production-snapshot" ? (
           <span className="mono whitespace-nowrap rounded-full border border-[var(--color-accent-dim)] px-2.5 py-1 text-[10px] font-semibold text-[var(--color-accent)]">

@@ -4,9 +4,9 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "../lib/api";
 
 const links = [
-  { to: "/", label: "Fleet", icon: Radar },
+  { to: "/", label: "IDS Evaluation", icon: FlaskConical },
   { to: "/incidents", label: "Incidents", icon: ShieldAlert },
-  { to: "/ids-evaluation", label: "IDS Evaluation", icon: FlaskConical },
+  { to: "/fleet", label: "Demo Fleet (Synthetic)", icon: Radar },
   { to: "/control", label: "Control", icon: SlidersHorizontal },
 ];
 
