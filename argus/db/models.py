@@ -122,6 +122,41 @@ class CicioTEvaluationRunRow(Base):
     records: Mapped[list] = mapped_column(JSON)  # per-row: record_id, ground_truth, prediction, score, incident_id, outcome
 
 
+class LiveDeviceRow(Base):
+    """A device observed by a local sensor (sensor/agent.py) via passive ARP/
+    neighbour-table discovery on a real LAN -- every field here is either
+    read verbatim from the sensor's own observation or a deterministic,
+    documented derivation of it (see sensor/discovery.py). Never seeded,
+    never fabricated. identifier is stable across polls (mac-<mac> or
+    ip-<ip> if no MAC was resolved)."""
+
+    __tablename__ = "live_devices"
+    identifier: Mapped[str] = mapped_column(String, primary_key=True)
+    ip: Mapped[str] = mapped_column(String)
+    mac: Mapped[str | None] = mapped_column(String, nullable=True)
+    vendor: Mapped[str | None] = mapped_column(String, nullable=True)
+    device_type: Mapped[str] = mapped_column(String, default="unknown")
+    interface: Mapped[str | None] = mapped_column(String, nullable=True)
+    first_seen: Mapped[datetime] = mapped_column(DateTime)
+    last_seen: Mapped[datetime] = mapped_column(DateTime)
+    flow_count: Mapped[int] = mapped_column(Integer, default=0)
+    monitored: Mapped[bool] = mapped_column(Boolean, default=False)  # has a baseline/detector been fit for it
+    sensor_id: Mapped[str] = mapped_column(String, default="")
+
+
+class SensorHeartbeatRow(Base):
+    """One row per local sensor that has ever reported in. Not a claim about
+    whether it's still connected right now -- last_seen age is what the API/
+    console use to decide that, exactly like any heartbeat."""
+
+    __tablename__ = "sensor_heartbeats"
+    sensor_id: Mapped[str] = mapped_column(String, primary_key=True)
+    hostname: Mapped[str] = mapped_column(String)
+    monitoring_active: Mapped[bool] = mapped_column(Boolean, default=False)
+    devices_discovered: Mapped[int] = mapped_column(Integer, default=0)
+    last_seen: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
 class AuditLogRow(Base):
     __tablename__ = "audit_log"
     seq: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)

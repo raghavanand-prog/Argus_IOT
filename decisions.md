@@ -558,3 +558,73 @@ synthetic-scenario ones (1020 vs 8 in the current snapshot) -- left as-is,
 since each incident's own `scenario` field already truthfully names its
 origin (`cicioT2023_eval` vs `mirai`/`mqtt_abuse`/etc.) and nothing there
 claims a synthetic incident is dataset-derived or vice versa.
+
+## 2026-09-18 — live-network detector kept structurally separate from CalibratedDetector
+
+`argus.detect.ml.CalibratedDetector`'s isotonic calibration and conformal
+prediction gate both require labelled calibration data -- some feature-vector
+windows known-benign, some known-attack -- to fit. No such labels exist for real
+LAN traffic: nothing tells a passive sensor which of a user's own real devices,
+if any, were ever compromised, and no ground-truth ledger exists to check
+against. Fabricating labels to force-fit that class would be exactly the kind of
+invented ground truth CLAUDE.md's no-fabrication rule (`no fabricated results`,
+`metadata-only features`) forbids.
+
+Decision: built a genuinely separate `sensor.live_detect.LiveAnomalyDetector` --
+an unsupervised `IsolationForest` fit on a device's own historical baseline
+windows, scored by percentile rank against that same baseline's own score
+distribution. Its output is explicitly "how unusual relative to this device's
+own history," never a calibrated probability, and every `Detection` it emits
+carries `conformal_set=None` so nothing downstream can mistake it for the
+calibrated/conformal-backed benchmark track's output. Same 14-feature schema
+(`argus.detect.ml.FEATURE_KEYS`, unmodified) so the rest of the pipeline
+(correlate/risk/respond/evidence) needs no adaptation -- only the model and its
+scoring logic differ, because only the calibration inputs differ.
+
+## 2026-09-18 — MIN_BASELINE_WINDOWS raised from 4 to 20 (measured, not guessed)
+
+`LiveAnomalyDetector.fit()`'s original floor was 4 samples -- `IsolationForest`'s
+bare minimum to not raise on `.fit()`. Real end-to-end testing (see progress.md's
+same-dated entry for the full sequence) showed this floor is not just weak but
+*degenerate*: fit on 4 near-identical real captured windows, the model scored
+every input identically, including its own training data, regardless of how
+different a later window actually was. A model that cannot distinguish itself
+from an obvious outlier is not a conservative detector, it's a non-functional
+one -- worse than having none, because it looks like real detection coverage
+exists when it structurally cannot fire.
+
+Root-caused with a synthetic unit test isolating sample count from traffic
+shape: scores stayed flat through n=4-8, started meaningfully varying by n=10,
+were usefully spread by n=20-40. Chose 20 as the new floor -- enough to be
+reliably non-degenerate in testing, not tuned to any specific attack shape (no
+labelled live-attack data exists to tune against, consistent with the decision
+above). Recorded explicitly in `live_detect.py` as measured-not-guessed and
+"subject to revision once real longitudinal deployment data exists," per
+CLAUDE.md's rule that a number must come from a recorded run or be `TBD`.
+
+Practical cost, stated plainly: with the default `--window-seconds 60`, a
+device needs ~20 minutes of continuous observation before its first anomaly
+score is even possible. Accepted as the correct trade-off -- fitting a model
+that can't tell anything apart is not a smaller cost, it's zero benefit at any
+speed.
+
+## 2026-09-18 — no enforcement and no post-response verification for live-network incidents (structural, not missing)
+
+Two things `_process_live_detection` (both `argus/pipeline.py`'s local-DB
+version and `api/index.py`'s in-memory production version) deliberately never
+does, hardcoded rather than left as a flag:
+
+- **`enforce_enabled=False`**, always, regardless of `ARGUS_ENFORCE`. The
+  project's safety requirement is explicit: no destructive actions against real
+  discovered devices. No enforcement adapter for a real device exists at all --
+  there is nothing an operator could set a flag to enable.
+- **`verify()` is not called.** Post-response verification checks a simulated or
+  testbed environment's actual recovered state against a ground-truth ledger of
+  attack phases. A real device discovered by passive ARP observation has no such
+  ledger and no environment this process controls to check. Calling `verify()`
+  anyway and reporting *some* outcome would be fabricating a result CLAUDE.md's
+  "no fabricated results" rule forbids just as much as a fake number would.
+
+Both are documented in the functions' own docstrings and in docs/18 section 2,
+not just here -- the goal is that reading the code alone tells the same story as
+this decision log.

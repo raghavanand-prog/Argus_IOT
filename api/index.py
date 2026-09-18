@@ -41,6 +41,7 @@ import copy
 import json
 import os
 import sys
+from datetime import datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -48,9 +49,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from fastapi import APIRouter, Depends, FastAPI, Header, HTTPException  # noqa: E402
 from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
 
-from argus.evidence.bundle import EvidenceBundle  # noqa: E402
+from argus.correlate.correlator import correlate  # noqa: E402
+from argus.evidence.bundle import EvidenceBundle, EvidenceLedger  # noqa: E402
 from argus.evidence.replay import replay  # noqa: E402
-from argus.respond.guard import KillSwitch  # noqa: E402
+from argus.respond.guard import ActionRateLimiter, KillSwitch  # noqa: E402
+from argus.respond.ladder import DryRunAdapter, decide_and_respond  # noqa: E402
+from argus.risk.engine import assess_risk  # noqa: E402
+from argus.schemas import Detection  # noqa: E402
 
 # ARGUS_ADMIN_TOKEN gates only the write/admin endpoints below (kill switch, seed
 # reset, replay). It deliberately has no default (docs/14: a default credential in
@@ -80,6 +85,22 @@ CICIOT2023_SNAPSHOT_PATH = Path(__file__).resolve().parent / "cicioT2023_eval_sn
 _CICIOT2023_SNAPSHOT = json.loads(CICIOT2023_SNAPSHOT_PATH.read_text())
 _STATE["incidents"] = _CICIOT2023_SNAPSHOT["incidents"] + _STATE["incidents"]
 _STATE["evidence"].update(_CICIOT2023_SNAPSHOT["evidence"])
+
+# Live-network track: real devices discovered/detected by a user's local sensor
+# (sensor/agent.py -- see docs/18-live-sensor.md), POSTed here. Kept in its own
+# in-memory store, deliberately separate from _STATE -- /control/seed-demo resets
+# _STATE back to the synthetic/CICIoT2023 snapshot, and a live sensor's real
+# observations must never be wiped by that (or by anything unrelated to the sensor
+# itself disconnecting). Same "warm instance only, not guaranteed across cold
+# starts" honesty as the kill switch and _STATE -- see module docstring.
+SENSOR_STALE_AFTER_SECONDS = 90
+_LIVE_DEVICES: dict[str, dict] = {}
+_LIVE_SENSORS: dict[str, dict] = {}
+_LIVE_INCIDENTS: list[dict] = []
+_LIVE_EVIDENCE: dict[str, dict] = {}
+live_ledger = EvidenceLedger()
+live_rate_limiter = ActionRateLimiter()
+live_adapter = DryRunAdapter()
 
 app = FastAPI(title="ARGUS API (production snapshot)", version="0.1.0")
 app.add_middleware(
@@ -170,12 +191,15 @@ def list_devices():
 
 @api.get("/incidents")
 def list_incidents():
-    return _STATE["incidents"]
+    # live_network incidents first (most recent real activity), then the
+    # precomputed synthetic/CICIoT2023 snapshot -- distinguished by scenario,
+    # same convention used throughout (see docs/17, this module's docstring).
+    return _LIVE_INCIDENTS + _STATE["incidents"]
 
 
 @api.get("/evidence/{bundle_id}")
 def get_evidence(bundle_id: str):
-    bundle = _STATE["evidence"].get(bundle_id)
+    bundle = _STATE["evidence"].get(bundle_id) or _LIVE_EVIDENCE.get(bundle_id)
     if not bundle:
         raise HTTPException(status_code=404, detail="bundle not found")
     return bundle
@@ -183,7 +207,7 @@ def get_evidence(bundle_id: str):
 
 @api.post("/evidence/{bundle_id}/replay")
 def replay_evidence(bundle_id: str, _: None = Depends(require_auth)):
-    row = _STATE["evidence"].get(bundle_id)
+    row = _STATE["evidence"].get(bundle_id) or _LIVE_EVIDENCE.get(bundle_id)
     if not row:
         raise HTTPException(status_code=404, detail="bundle not found")
     bundle = EvidenceBundle(
@@ -231,6 +255,158 @@ def cicioT2023_eval_record(record_id: str):
         if rec["record_id"] == record_id:
             return rec
     raise HTTPException(status_code=404, detail="record not found")
+
+
+def _process_live_detection(dev_id: str, detections: list[Detection]) -> int:
+    """Serverless counterpart to argus.pipeline._process_live_detection: the
+    same correlate -> risk -> decide -> evidence tail, using the exact same
+    argus.correlate/argus.risk/argus.respond/argus.evidence modules -- these
+    are pure Python (no numpy/scikit-learn), unlike argus.detect.ml, so unlike
+    the CICIoT2023 track this one genuinely runs live in this function rather
+    than serving a precomputed snapshot. Writes to this module's own in-memory
+    live-incident store instead of a SQLAlchemy DB, for the same
+    no-persistent-filesystem reason _STATE and kill_switch already are.
+
+    Never enforces against a real device (enforce_enabled=False, always) and
+    never runs verify() -- no environment-recovery check exists for a live
+    device found by a user's own sensor. Risk terms deviation/blast_radius
+    are 0.0: a device the sensor only just discovered has no drift history or
+    communication-graph view computed here.
+    """
+    if not detections:
+        return 0
+    incidents = correlate(detections)
+    det_map = {d.detection_id: d for d in detections}
+    n_created = 0
+
+    for incident in incidents:
+        risk = assess_risk(incident, detections, "unknown", 0.0, 0.0)
+        incident_dets = [det_map[i] for i in incident.detection_ids if i in det_map]
+        best_conformal = next((d.conformal_set for d in incident_dets if d.conformal_set), None)
+
+        outcome = decide_and_respond(
+            device_id=dev_id, device_type="unknown", risk_score=risk.score,
+            conformal_set=best_conformal, is_drifting=False,
+            kill_switch=kill_switch, rate_limiter=live_rate_limiter,
+            enforce_enabled=False,  # never live enforcement against a real discovered device
+            adapter=live_adapter, now=incident.last_seen.timestamp(),
+        )
+
+        bundle = live_ledger.append(
+            incident_id=incident.incident_id,
+            device={
+                "device_id": dev_id, "device_type": "unknown", "source": "live_network",
+                "note": "Real device discovered by a local sensor via passive ARP/neighbour-table "
+                        "observation; device_type is unknown because nothing in passive discovery "
+                        "can legitimately determine it.",
+            },
+            feature_vector={"window": incident.chain_position},
+            detection={
+                "sources": list({d.source for d in incident_dets}),
+                "conformal_set": best_conformal,
+                "signals": [d.signal_name for d in incident_dets],
+                "explanations": [d.explanation for d in incident_dets],
+                "attribution": next((d.attribution for d in incident_dets if d.attribution), None),
+            },
+            baseline={"note": "per-device baseline built from this device's own real observed traffic (sensor/baseline.py)"},
+            risk={"score": risk.score, "terms": risk.terms},
+            decision={
+                "action": outcome.action, "tier": outcome.tier, "dry_run": outcome.dry_run,
+                "gates_passed": outcome.guard.gates_passed, "gates_failed": outcome.guard.gates_failed,
+            },
+            trace=[f"detected via {d.source}:{d.signal_name}" for d in incident_dets] + [
+                f"correlated into incident {incident.incident_id}",
+                f"risk={risk.score:.2f}", f"guard_verdict={'allow' if outcome.guard.allow else 'veto'}",
+                f"action={outcome.action}",
+                "no enforcement adapter exists for real discovered devices -- dry-run only, always",
+                "post-response verification skipped: no environment-recovery check is implemented for live devices",
+            ],
+        )
+
+        _LIVE_INCIDENTS.insert(0, {
+            "incident_id": incident.incident_id, "device_id": dev_id,
+            "first_seen": incident.first_seen.isoformat(), "last_seen": incident.last_seen.isoformat(),
+            "chain_position": incident.chain_position, "agreement_score": incident.agreement_score,
+            "detection_sources": list({d.source for d in incident_dets}), "scenario": "live_network",
+            "risk_score": risk.score, "bundle_id": bundle.bundle_id,
+        })
+        _LIVE_EVIDENCE[bundle.bundle_id] = {
+            "bundle_id": bundle.bundle_id, "incident_id": bundle.incident_id, "created_at": bundle.created_at,
+            "device": bundle.device, "feature_vector": bundle.feature_vector, "detection": bundle.detection,
+            "baseline": bundle.baseline, "risk": bundle.risk, "decision": bundle.decision, "trace": bundle.trace,
+            "prev_bundle_hash": bundle.prev_bundle_hash, "merkle_root": bundle.merkle_root,
+        }
+        n_created += 1
+
+    return n_created
+
+
+@api.post("/live/ingest")
+def live_ingest(payload: dict, _: None = Depends(require_auth)):
+    """Receives a real local sensor's actual observations (sensor/agent.py).
+    ``devices``: dicts matching sensor.discovery.DiscoveredDevice's fields.
+    ``detections``: dicts matching argus.schemas.Detection's fields, already
+    produced by the sensor's own detector run against real captured traffic
+    -- this endpoint persists what the sensor already computed, it does not
+    run detection itself. Never creates an incident from discovery alone,
+    only from detections the sensor actually found (mirrors the CICIoT2023
+    track's "ground truth never forces a detection" rule; here there is no
+    ground truth at all, only what the detectors themselves found)."""
+    sensor_id = payload["sensor_id"]
+    devices = payload.get("devices", [])
+    detections_in = payload.get("detections", [])
+
+    for d in devices:
+        _LIVE_DEVICES[d["identifier"]] = {**d, "sensor_id": sensor_id}
+    _LIVE_SENSORS[sensor_id] = {
+        "sensor_id": sensor_id, "hostname": payload.get("hostname", "unknown"),
+        "monitoring_active": payload.get("monitoring_active", False),
+        "devices_discovered": len(devices), "last_seen": datetime.utcnow().isoformat(),
+    }
+
+    by_device: dict[str, list[Detection]] = {}
+    for det_dict in detections_in:
+        det = Detection(
+            detection_id=det_dict["detection_id"], ts=datetime.fromisoformat(det_dict["ts"]),
+            device_id=det_dict["device_id"], source=det_dict["source"], signal_name=det_dict["signal_name"],
+            severity=det_dict["severity"], confidence=det_dict["confidence"], explanation=det_dict["explanation"],
+            evidence_refs=det_dict.get("evidence_refs", []), conformal_set=det_dict.get("conformal_set"),
+            attribution=det_dict.get("attribution"),
+        )
+        by_device.setdefault(det.device_id, []).append(det)
+
+    incidents_generated = sum(_process_live_detection(dev_id, dets) for dev_id, dets in by_device.items())
+
+    return {
+        "devices_ingested": len(devices), "detections_received": len(detections_in),
+        "incidents_generated": incidents_generated, "bundles_generated": incidents_generated,
+    }
+
+
+@api.get("/live/devices")
+def list_live_devices():
+    """Real devices a local sensor has actually discovered and reported --
+    empty if no sensor has ever POSTed to this warm instance. Never fabricated;
+    see /live/status for whether a sensor is currently connected."""
+    return list(_LIVE_DEVICES.values())
+
+
+@api.get("/live/status")
+def live_status():
+    now = datetime.utcnow()
+    sensors = []
+    for s in _LIVE_SENSORS.values():
+        age_s = (now - datetime.fromisoformat(s["last_seen"])).total_seconds()
+        sensors.append({**s, "connected": age_s <= SENSOR_STALE_AFTER_SECONDS})
+    return {
+        "sensors": sensors, "any_connected": any(s["connected"] for s in sensors),
+        "note": (
+            "Sensor state lives only in this deployment's current warm function "
+            "instance and is not guaranteed to persist across cold starts -- the "
+            "same limitation already documented for the kill switch and the demo "
+            "snapshot state (see module docstring)."
+        ),
+    }
 
 
 app.include_router(api)

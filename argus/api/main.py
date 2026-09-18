@@ -6,6 +6,7 @@ default token and startup fails loudly if one is unset").
 from __future__ import annotations
 
 import os
+from datetime import datetime
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, Header, HTTPException
@@ -18,7 +19,9 @@ from argus.db.models import (
     DeviceRow,
     EvidenceBundleRow,
     IncidentRow,
+    LiveDeviceRow,
     RiskAssessmentRow,
+    SensorHeartbeatRow,
     VerificationRow,
     init_db,
     make_engine,
@@ -26,11 +29,14 @@ from argus.db.models import (
 from argus.evidence.bundle import EvidenceBundle
 from argus.evidence.replay import replay
 from argus.pipeline import (
+    ingest_live_observation,
     run_benign_validation,
     run_cicioT2023_evaluation,
     run_demo_pipeline,
 )
 from argus.respond.guard import KillSwitch
+
+SENSOR_STALE_AFTER_SECONDS = 90  # 3x a sensor's default 30s poll interval
 
 CICIOT2023_CSV = os.getenv(
     "ARGUS_CICIOT2023_CSV",
@@ -290,6 +296,55 @@ def cicioT2023_eval_record(record_id: str, db: Session = Depends(get_db)):
         if rec["record_id"] == record_id:
             return rec
     raise HTTPException(status_code=404, detail="record not found")
+
+
+@app.post("/live/ingest")
+def live_ingest(payload: dict, db: Session = Depends(get_db), _: None = Depends(require_auth)):
+    """Receives a real local sensor's actual observations (sensor/agent.py)
+    and persists them for real -- see argus.pipeline.ingest_live_observation.
+    Authenticated with the same ARGUS_ADMIN_TOKEN as every other state-
+    changing endpoint; no separate sensor credential to manage."""
+    result = ingest_live_observation(
+        db, sensor_id=payload["sensor_id"], hostname=payload.get("hostname", "unknown"),
+        monitoring_active=payload.get("monitoring_active", False),
+        devices=payload.get("devices", []), detections=payload.get("detections", []),
+    )
+    return result
+
+
+@app.get("/live/devices")
+def list_live_devices(db: Session = Depends(get_db)):
+    rows = db.query(LiveDeviceRow).order_by(LiveDeviceRow.last_seen.desc()).all()
+    return [
+        {
+            "identifier": r.identifier, "ip": r.ip, "mac": r.mac, "vendor": r.vendor,
+            "device_type": r.device_type, "interface": r.interface,
+            "first_seen": r.first_seen.isoformat(), "last_seen": r.last_seen.isoformat(),
+            "flow_count": r.flow_count, "monitored": r.monitored, "sensor_id": r.sensor_id,
+        }
+        for r in rows
+    ]
+
+
+@app.get("/live/status")
+def live_status(db: Session = Depends(get_db)):
+    """"No live network sensor connected" is a real fact derived from
+    whether any sensor has ever reported in, and if so, how long ago --
+    never assumed true or false."""
+    sensors = db.query(SensorHeartbeatRow).all()
+    now = datetime.utcnow()
+    out = []
+    for s in sensors:
+        age_s = (now - s.last_seen).total_seconds()
+        out.append({
+            "sensor_id": s.sensor_id, "hostname": s.hostname, "monitoring_active": s.monitoring_active,
+            "devices_discovered": s.devices_discovered, "last_seen": s.last_seen.isoformat(),
+            "connected": age_s <= SENSOR_STALE_AFTER_SECONDS,
+        })
+    return {
+        "sensors": out,
+        "any_connected": any(s["connected"] for s in out),
+    }
 
 
 @app.get("/actions")
