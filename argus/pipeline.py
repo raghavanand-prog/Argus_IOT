@@ -33,7 +33,7 @@ from argus.evidence.bundle import EvidenceLedger
 from argus.features.extract import device_ja4_set, extract_device_window
 from argus.registry.enrollment import enroll
 from argus.respond.guard import ActionRateLimiter, KillSwitch
-from argus.respond.ladder import DryRunAdapter, decide_and_respond
+from argus.respond.ladder import TIERS, DryRunAdapter, decide_and_respond, tier_for_risk
 from argus.risk.engine import BlastRadiusGraph, assess_risk
 from argus.schemas import DeviceState
 from argus.sim.engine import (
@@ -147,20 +147,18 @@ def _process_scenario(
         }))
 
 
-def run_demo_pipeline(db: Session, seed: int = 42) -> dict:
-    """Runs enrollment -> a benign window -> two attack scenarios -> the full detect/
-    respond/verify loop, and persists devices, incidents, risk, evidence bundles,
-    actions and verifications. Returns a small summary dict for logging."""
-
-    devices = default_fleet()
+def _enroll_and_train(db: Session, devices: list, t0: datetime, seed: int) -> tuple[
+    dict[str, object], dict[str, str], CalibratedDetector, ShapExplainer,
+]:
+    """Shared setup used by every pipeline entrypoint (``run_demo_pipeline`` and the
+    validation script alike): enroll each device on its own benign baseline, then fit
+    the *one* calibrated detector + explainer on a benign-only training split plus a
+    labelled calibration split (benign + a few injected attack-shaped vectors),
+    disjoint from training (docs/02: "never on training or test data"). Factored out
+    so a benign-only validation run exercises the identical trained detector a real
+    demo run would -- not a second, parallel one that could quietly drift out of sync.
+    """
     ip_to_type = build_ip_to_type(devices)
-    t0 = datetime(2026, 1, 1, 0, 0)
-    ledger = EvidenceLedger()
-    kill_switch = KillSwitch()
-    rate_limiter = ActionRateLimiter()
-    drift_monitor = DeviceDriftMonitor()
-    adapter = DryRunAdapter()
-
     baselines: dict[str, object] = {}
     for dev in devices:
         flows = run_benign_window([dev], t0, duration_minutes=90, seed=seed)
@@ -177,9 +175,6 @@ def run_demo_pipeline(db: Session, seed: int = 42) -> dict:
         ))
     db.commit()
 
-    # train the ML detector on a longer benign corpus (train) + a labelled calibration
-    # split with a few injected attack-shaped vectors, disjoint from training (docs/02:
-    # "never on training or test data")
     train_flows = run_benign_window(devices, t0 + timedelta(hours=6), 240, seed=seed + 1)
     train_windows = window_flows(train_flows, window_seconds=120)
     train_fvs = [extract_device_window(w[2][0].device_id, w[2], w[0], w[1]) for w in train_windows if w[2]]
@@ -204,6 +199,105 @@ def run_demo_pipeline(db: Session, seed: int = 42) -> dict:
     detector.fit(train_fvs, calib_fvs, calib_labels)
     explainer = ShapExplainer()
     explainer.fit(calib_fvs, calib_labels)
+
+    return baselines, ip_to_type, detector, explainer
+
+
+def run_benign_validation(db: Session, seed: int = 42, held_out_hours: int = 18) -> dict:
+    """IDS validation Test 1 / Test 4 (see docs/16-ids-validation.md): enrolls and
+    trains exactly as ``run_demo_pipeline`` does, then runs a *fresh, held-out* benign
+    window per device -- disjoint in time and RNG seed from both the enrollment and
+    the training/calibration windows above -- through the same four detectors the real
+    pipeline uses (policy, signature, ml, identity), with zero attack traffic mixed in.
+
+    Any raw detection is then run through the *same* correlate -> risk -> tier_for_risk
+    path ``run_demo_pipeline`` uses (read-only here -- no decide_and_respond call, no
+    evidence bundle, no DB write) so the report distinguishes a low-confidence flag the
+    response guard would have capped at tier 0/1 from one with a singleton {"attack"}
+    conformal set that could actually have reached an enforcement tier -- the
+    safety-relevant question, not just "did a Detection object get created."
+
+    No incident is ever expected here: this measures whether the IDS stays quiet on
+    traffic it has never specifically been shown, not whether it can be tuned to be
+    quiet on the exact windows it was calibrated against. Writes nothing to the
+    database -- a validation run with zero detections should leave zero trace,
+    matching what "no false incident was raised" means on the Incidents page.
+    """
+    devices = default_fleet()
+    t0 = datetime(2026, 1, 1, 0, 0)
+    baselines, ip_to_type, detector, explainer = _enroll_and_train(db, devices, t0, seed)
+
+    held_out_start = t0 + timedelta(hours=held_out_hours)
+    per_device: dict[str, list[dict]] = {}
+    for dev in devices:
+        flows = run_benign_window([dev], held_out_start, duration_minutes=90, seed=seed + 99)
+        windows = window_flows(flows, window_seconds=300)
+        baseline = baselines.get(dev.device_id)
+        detections = []
+        for w_start, w_end, w_flows in windows:
+            fv = extract_device_window(dev.device_id, w_flows, w_start, w_end)
+            if not fv.values:
+                continue
+            observed_ja4 = device_ja4_set(dev.device_id, w_flows)
+            detections += (
+                policy_detections(dev.device_id, dev.device_type, w_flows, w_start)
+                + signature_detections(dev.device_id, fv, w_start)
+                + ml_detections(dev.device_id, fv, detector, w_start, explainer=explainer)
+                + identity_detections(dev.device_id, observed_ja4, baseline, w_start)
+            )
+
+        findings = [{
+            "signal": d.signal_name, "source": d.source, "explanation": d.explanation,
+            "conformal_set": d.conformal_set,
+        } for d in detections]
+
+        if detections:
+            graph = BlastRadiusGraph(edges={dev.device_id: {f.dst_ip for f in flows}})
+            blast = graph.score(dev.device_id, device_type_of=ip_to_type.get)
+            for incident in correlate(detections):
+                det_map = {d.detection_id: d for d in detections}
+                incident_dets = [det_map[i] for i in incident.detection_ids if i in det_map]
+                risk = assess_risk(incident, detections, dev.device_type, 0.0, blast)
+                best_conformal = next((d.conformal_set for d in incident_dets if d.conformal_set), None)
+                singleton = bool(best_conformal) and len(best_conformal) == 1
+                would_be_tier = tier_for_risk(risk.score, singleton, False)
+                for f in findings:
+                    if f["signal"] in {d.signal_name for d in incident_dets}:
+                        f["would_be_tier"] = would_be_tier
+                        f["would_be_action"] = TIERS[would_be_tier]
+                        f["would_be_risk_score"] = risk.score
+
+        per_device[dev.device_id] = findings
+
+    total_detections = sum(len(v) for v in per_device.values())
+    escalating = sum(
+        1 for v in per_device.values() for f in v if f.get("would_be_tier", 0) >= 2
+    )
+    return {
+        "devices_tested": len(devices),
+        "detections_that_would_escalate_to_tier2plus": escalating,
+        "windows_per_device_approx": 90 // 5,
+        "total_detections": total_detections,
+        "false_positives_by_device": {k: v for k, v in per_device.items() if v},
+        "clean_devices": [k for k, v in per_device.items() if not v],
+    }
+
+
+def run_demo_pipeline(db: Session, seed: int = 42) -> dict:
+    """Runs enrollment -> a benign window -> two attack scenarios -> the full detect/
+    respond/verify loop, and persists devices, incidents, risk, evidence bundles,
+    actions and verifications. Returns a small summary dict for logging."""
+
+    devices = default_fleet()
+    ip_to_type = build_ip_to_type(devices)
+    t0 = datetime(2026, 1, 1, 0, 0)
+    ledger = EvidenceLedger()
+    kill_switch = KillSwitch()
+    rate_limiter = ActionRateLimiter()
+    drift_monitor = DeviceDriftMonitor()
+    adapter = DryRunAdapter()
+
+    baselines, _, detector, explainer = _enroll_and_train(db, devices, t0, seed)
 
     summary = {"incidents": 0, "bundles": 0, "actions": 0}
 

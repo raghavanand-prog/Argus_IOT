@@ -23,7 +23,7 @@ from argus.db.models import (
 )
 from argus.evidence.bundle import EvidenceBundle
 from argus.evidence.replay import replay
-from argus.pipeline import run_demo_pipeline
+from argus.pipeline import run_benign_validation, run_demo_pipeline
 from argus.respond.guard import KillSwitch
 
 ADMIN_TOKEN = os.getenv("ARGUS_ADMIN_TOKEN")
@@ -79,6 +79,15 @@ def toggle_kill_switch(engage: bool, _: None = Depends(require_auth)):
 def seed_demo(db: Session = Depends(get_db), _: None = Depends(require_auth)):
     summary = run_demo_pipeline(db)
     return {"seeded": True, **summary}
+
+
+@app.post("/control/validate-benign")
+def validate_benign(db: Session = Depends(get_db), _: None = Depends(require_auth)):
+    """IDS validation Test 1 / Test 4 (docs/16-ids-validation.md): runs the real
+    detectors against fresh, held-out benign-only traffic and reports what (if
+    anything) fired. Writes nothing to the database -- a clean run leaves no trace,
+    matching what "no false incident" means on the Incidents page."""
+    return run_benign_validation(db)
 
 
 @app.get("/devices")

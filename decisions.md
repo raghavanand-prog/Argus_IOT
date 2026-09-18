@@ -301,6 +301,51 @@ is catching platform-specific surprises the local run can't see (as happened
 twice already this session, with connector scope and the import-time crash) --
 claiming a live test that wasn't actually sent would defeat that purpose.
 
+## 2026-09-18 — IDS validation found a real calibration gap; reported it, did not tune around it
+
+**What happened:** Asked for a real, reproducible end-to-end IDS validation
+(docs/16-ids-validation.md). Building Tests 1 and 4 ("confirm normal traffic
+doesn't raise false incidents") required a capability that didn't exist:
+nothing in the codebase ran the real detectors against pure benign traffic --
+`run_demo_pipeline` always mixes in all 7 attack scenarios. Added
+`argus.pipeline._enroll_and_train()` (the enroll+train logic, factored out of
+`run_demo_pipeline` so both it and the new validation path share one trained
+detector, not two that could drift apart) and `run_benign_validation()`
+(read-only: fresh held-out benign window per device through the same four
+detectors, then the same correlate/risk/tier_for_risk path, no DB writes).
+
+**The result:** a real, measured 75/198 window-level false-positive rate from
+the ML detector on genuinely held-out benign traffic (only 3 of 11 devices
+stayed clean), 40 of which carried a singleton conformal set and would have
+reached an enforcement tier. Investigated the cause directly rather than
+guessing: re-ran the same check at the detector's own 120s training-window
+size as well as the 300s inference size used elsewhere -- false positives
+persisted at both (142 and 75 respectively), ruling out a window-size
+mismatch in the validation script itself. Root cause: the `IsolationForest`
+is trained on one ~4-hour benign window at one RNG seed -- too narrow a
+benign distribution to generalize to a genuinely different slice of equally
+legitimate traffic.
+
+**Why this wasn't fixed by retraining on more data before reporting it:**
+the obvious fix (a broader, multi-seed benign training corpus) is a real
+methodology change. Applying it now, with direct knowledge of this specific
+test's held-out seed, would mean tuning the model to pass the one check
+built to catch this -- the exact "fake PASS indicator" the validation was
+explicitly asked not to produce. Reported as a genuine `FAIL` for Tests 1
+and 4 in the test matrix, with the root cause and the identified-but-not-
+applied fix both stated plainly, and locked in as an exact-count regression
+test (`tests/test_ids_validation.py`) so it can't silently drift either
+better or worse without the change being deliberate and recorded.
+
+**Rejected alternative:** Loosen the validation's definition of "false
+positive" (e.g., only count non-singleton conformal sets, or only count
+detections above a higher tier) until the number looked acceptable.
+Rejected for the same reason as above -- redefining the test to fit the
+result is a more subtle version of the same fakery the user explicitly
+ruled out, and the raw ML detector genuinely does fire on this traffic at
+the same p_attack>=0.5 threshold `argus/detect/ml.py`'s own production code
+uses, singleton set or not.
+
 ## 2026-09-18 — full "any device, any network" architecture audit; two real mobile layout bugs found and fixed
 
 **What happened:** Asked directly to confirm ARGUS is a universally-accessible
