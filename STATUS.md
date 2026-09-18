@@ -46,7 +46,15 @@ Last updated: 2026-09-18 (fourth session — Vercel production deployment confir
   KV/Postgres); the read data (devices/incidents/evidence) doesn't have this
   problem since it ships inside the deployed bundle itself. No tool available
   in this session can provision Vercel storage, and doing so is a real
-  infrastructure/cost decision for the user, not a bug fix.
+  infrastructure/cost decision for the user, not a bug fix. **User decision
+  (2026-09-18): stay on the free Hobby plan, no database added.**
+- **User-confirmed on a real phone (2026-09-18).** After the sandbox-side
+  mobile-viewport verification above, the user independently opened
+  `https://argus-iot.vercel.app` on their own phone, over their own network,
+  and confirmed it works -- the one check this session's sandboxed network
+  policy could never perform itself (outbound to `*.vercel.app` is blocked
+  here). This is the actual "any device, any network" confirmation, not a
+  simulated stand-in for it.
 
 ## What works right now (verified by running it, not just reading the code)
 
