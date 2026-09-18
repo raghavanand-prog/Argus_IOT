@@ -472,3 +472,44 @@ anchoring both `data/` and `results/` to `/data/`/`/results/`; confirmed via
 `git check-ignore -v` that `argus/data/*` is no longer matched while the
 top-level `data/cicioT2023/` (where the real, un-committed 40MB original
 CICIoT2023 CSV lives locally) still is.
+
+## 2026-09-18 — CICIoT2023 evaluation deployed to a new git-linked Vercel project, not the original `argus-iot`
+
+Deploying this feature to production hit a real infrastructure constraint:
+the existing `argus-iot` Vercel project (serving `argus-iot.vercel.app`) was
+never connected to GitHub -- every prior deploy there was a one-off manual
+upload -- and `create_git_project` cannot reconnect an existing unlinked
+project of the same name (confirmed: attempting `projectName: "argus-iot"`
+returned a 409 conflict). Linking also required installing the Vercel GitHub
+App on the user's account first, a one-time action only they could take
+(done, confirmed by the user). Rather than attempt a risky, hard-to-reverse
+domain move without asking, created a new project (`argus-iot-live`, prj_
+Z2qwga7RAqza8h8yWH1BHudwDz4C) git-linked to `raghavanand-prog/Argus_IOT`,
+production branch `claude/nifty-ramanujan-ruaew2` -- auto-deploys on every
+push now, unlike the original project. Live at
+`https://argus-iot-live.vercel.app`, verified via real HTTP calls (health,
+`/api/cicioT2023/eval` returning the exact same real numbers as the local
+run, `/api/incidents` showing 1028 = 1020 CICIoT2023 + 8 original synthetic-
+seed incidents correctly merged). Whether to move the `argus-iot.vercel.app`
+custom domain onto this project is the user's call, not made unilaterally.
+
+Two real build failures fixed along the way (both now recorded in
+`.vercelignore`'s own comments, not just here):
+1. Vercel's framework auto-detection found the repo-root `pyproject.toml`
+   (the full local ML dependency set -- numpy/scikit-learn/river/shap) and
+   tried to build the entire repo as one FastAPI app via `uv sync`, which
+   failed (`river` pulls in `llvmlite`, which doesn't compile in Vercel's
+   build sandbox). Fixed with `"framework": null` in `vercel.json` plus a
+   `.vercelignore` excluding `pyproject.toml` and the non-deployment parts of
+   the repo, so the build falls back to vercel.json's own buildCommand/
+   rewrites (the console static build + the lightweight `api/index.py`
+   function with its own `api/requirements.txt`) -- the same shape the
+   original manual deploy always used.
+2. That first fix over-excluded: `.vercelignore`'s blanket `argus/` rule also
+   hid `argus/evidence/` and `argus/respond/`, which `api/index.py` genuinely
+   imports at runtime (pure standard-library code, no ML dependency -- see
+   its own module docstring). Caused `ModuleNotFoundError: No module named
+   'argus'` in production. Fixed by excluding only the specific subpackages/
+   files `api/index.py`'s import graph never reaches, verified locally first
+   by simulating the exact surviving file set and confirming the import
+   succeeds before pushing again.
