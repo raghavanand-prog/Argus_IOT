@@ -345,3 +345,14 @@ kill-switch toggle state is genuinely ephemeral per function instance.
 **Why this matters enough to record:** the instruction was specifically to
 verify rather than assume, and two of three findings (the mobile scroll bugs)
 were real defects an assumption-based answer would have missed entirely.
+
+**Follow-up, same day:** asked directly whether to add real persistent storage
+for the kill-switch/demo-reset state (Vercel KV/Postgres/Blob). User's answer:
+stay on the free tier, skip the database for now. Decision recorded rather
+than silently revisited later: `argus-iot` stays on Vercel's Hobby plan with
+no attached storage add-on; kill-switch state remains per-serverless-instance
+in-memory, exactly as documented above. `/health` and `/control/status`
+already surface `admin_token_configured` and the in-memory nature of this
+state is documented in `docs/06-vercel-deployment.md`, so this isn't a hidden
+limitation -- it's a deliberate scope line, the same kind CLAUDE.md's scope
+section already draws elsewhere in this project.
