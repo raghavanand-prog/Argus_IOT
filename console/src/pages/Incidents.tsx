@@ -9,11 +9,23 @@ import { useAdminToken } from "../lib/token";
 // Derived purely from the incident's own (already-truthful) `scenario` field --
 // not a new classification, just making an existing distinction visible. See
 // docs/17-cicioT2023-validation.md: `cicioT2023_eval` is ARGUS's real detector
-// run against the real dataset; every other scenario name is ARGUS's own
-// synthetic simulation testbed (argus.sim.engine), never dataset-derived.
-function isRealDataset(scenario: string): boolean {
-  return scenario === "cicioT2023_eval";
+// run against the real labelled dataset; `live_network` is a real device on the
+// user's own LAN, detected by a local sensor (docs/18-live-sensor.md), with no
+// labelled ground truth; every other scenario name is ARGUS's own synthetic
+// simulation testbed (argus.sim.engine), never dataset- or LAN-derived.
+type Origin = "benchmark" | "live" | "synthetic";
+
+function originOf(scenario: string): Origin {
+  if (scenario === "cicioT2023_eval") return "benchmark";
+  if (scenario === "live_network") return "live";
+  return "synthetic";
 }
+
+const ORIGIN_LABEL: Record<Origin, string> = {
+  benchmark: "CICIoT2023 (real)",
+  live: "Live Network (real)",
+  synthetic: "Synthetic demo",
+};
 
 const PAGE_SIZE = 25;
 
@@ -24,21 +36,22 @@ export function Incidents() {
     refetchInterval: 8000,
   });
   const [selected, setSelected] = useState<Incident | null>(null);
-  const [filter, setFilter] = useState<"all" | "real" | "synthetic">("all");
+  const [filter, setFilter] = useState<"all" | Origin>("all");
   const [page, setPage] = useState(0);
 
   const counts = useMemo(() => {
-    if (!incidents) return { real: 0, synthetic: 0 };
+    if (!incidents) return { benchmark: 0, live: 0, synthetic: 0 };
     return {
-      real: incidents.filter((i) => isRealDataset(i.scenario)).length,
-      synthetic: incidents.filter((i) => !isRealDataset(i.scenario)).length,
+      benchmark: incidents.filter((i) => originOf(i.scenario) === "benchmark").length,
+      live: incidents.filter((i) => originOf(i.scenario) === "live").length,
+      synthetic: incidents.filter((i) => originOf(i.scenario) === "synthetic").length,
     };
   }, [incidents]);
 
   const filtered = useMemo(() => {
     if (!incidents) return [];
     if (filter === "all") return incidents;
-    return incidents.filter((i) => (filter === "real" ? isRealDataset(i.scenario) : !isRealDataset(i.scenario)));
+    return incidents.filter((i) => originOf(i.scenario) === filter);
   }, [incidents, filter]);
   const pageRows = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
@@ -57,7 +70,8 @@ export function Incidents() {
           <div className="flex gap-1 text-xs">
             {([
               ["all", `All (${incidents.length})`],
-              ["real", `CICIoT2023 real (${counts.real})`],
+              ["benchmark", `CICIoT2023 real (${counts.benchmark})`],
+              ["live", `Live Network real (${counts.live})`],
               ["synthetic", `Synthetic demo (${counts.synthetic})`],
             ] as const).map(([f, label]) => (
               <button
@@ -112,7 +126,7 @@ export function Incidents() {
                     className="cursor-pointer border-t border-[var(--color-border)] bg-[var(--color-surface)] transition-colors hover:bg-[var(--color-surface-2)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--color-accent)] focus-visible:-outline-offset-2"
                   >
                     <td className="px-4 py-2.5">
-                      <OriginPill real={isRealDataset(inc.scenario)} />
+                      <OriginPill origin={originOf(inc.scenario)} />
                     </td>
                     <td className="mono px-4 py-2.5">{inc.device_id}</td>
                     <td className="px-4 py-2.5 text-[var(--color-text-dim)]">{inc.scenario}</td>
@@ -143,7 +157,7 @@ export function Incidents() {
           <div className="mt-3 flex items-center justify-between text-xs text-[var(--color-text-dim)]">
             <span>
               {filtered.length} incident{filtered.length === 1 ? "" : "s"}
-              {filter !== "all" ? ` (${filter === "real" ? "CICIoT2023 real" : "synthetic demo"})` : ""}
+              {filter !== "all" ? ` (${ORIGIN_LABEL[filter]})` : ""}
             </span>
             <div className="flex items-center gap-2">
               <button
@@ -171,18 +185,20 @@ export function Incidents() {
   );
 }
 
-function OriginPill({ real }: { real: boolean }) {
+const ORIGIN_COLOR: Record<Origin, string> = {
+  benchmark: "var(--color-accent)",
+  live: "var(--color-risk-low)",
+  synthetic: "var(--color-risk-med)",
+};
+
+function OriginPill({ origin }: { origin: Origin }) {
+  const color = ORIGIN_COLOR[origin];
   return (
     <span
       className="mono inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-semibold"
-      style={{
-        color: real ? "var(--color-accent)" : "var(--color-risk-med)",
-        backgroundColor: real
-          ? "color-mix(in srgb, var(--color-accent) 12%, transparent)"
-          : "color-mix(in srgb, var(--color-risk-med) 12%, transparent)",
-      }}
+      style={{ color, backgroundColor: `color-mix(in srgb, ${color} 12%, transparent)` }}
     >
-      {real ? "CICIoT2023 (real)" : "Synthetic demo"}
+      {ORIGIN_LABEL[origin]}
     </span>
   );
 }
@@ -251,7 +267,7 @@ function IncidentDrawer({ incident, onClose }: { incident: Incident; onClose: ()
       >
         <div className="mb-4 flex items-start justify-between">
           <div>
-            <div className="mb-1"><OriginPill real={isRealDataset(incident.scenario)} /></div>
+            <div className="mb-1"><OriginPill origin={originOf(incident.scenario)} /></div>
             <h2 id={titleId} className="mono text-lg font-semibold">{incident.device_id}</h2>
             <p className="text-xs text-[var(--color-text-dim)]">{incident.scenario} · {incident.chain_position}</p>
           </div>

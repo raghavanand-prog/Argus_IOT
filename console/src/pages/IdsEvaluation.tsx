@@ -50,11 +50,13 @@ export function IdsEvaluation() {
       <div className="mb-5">
         <h1 className="flex items-center gap-2 text-xl font-semibold">
           <FlaskConical className="h-5 w-5 text-[var(--color-accent)]" aria-hidden="true" />
-          IDS Evaluation
+          Benchmark Evaluation
         </h1>
         <p className="text-sm text-[var(--color-text-dim)]">
-          Real detections from ARGUS's actual detection pipeline against a publicly available IoT cybersecurity
-          benchmark dataset — not simulated telemetry, not a hardcoded result.
+          Real detections from ARGUS's actual detection pipeline against the labelled CICIoT2023 benchmark
+          dataset — real prediction vs. ground truth, real TP/TN/FP/FN metrics. Not simulated telemetry, not a
+          hardcoded result, and not live network traffic (see Live Network mode for that — real LAN data has no
+          labelled ground truth to score against).
         </p>
       </div>
 
