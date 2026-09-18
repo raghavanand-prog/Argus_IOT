@@ -34,8 +34,12 @@ export function Fleet() {
             built to exercise the full detect → respond → verify loop. They are not derived from the CICIoT2023
             benchmark or any other uploaded dataset — <strong>device identity is not available in that benchmark
             export</strong>. For real, dataset-derived detection results, see{" "}
-            <Link to="/ids-evaluation" className="inline-flex items-center gap-1 font-semibold text-[var(--color-accent)] underline">
-              <FlaskConical className="h-3.5 w-3.5" aria-hidden="true" /> IDS Evaluation
+            <Link to="/" className="inline-flex items-center gap-1 font-semibold text-[var(--color-accent)] underline">
+              <FlaskConical className="h-3.5 w-3.5" aria-hidden="true" /> Benchmark Evaluation
+            </Link>
+            . For real devices on your own network, see{" "}
+            <Link to="/live" className="inline-flex items-center gap-1 font-semibold text-[var(--color-accent)] underline">
+              Live Network
             </Link>
             .
           </p>

@@ -1,6 +1,7 @@
 # STATUS.md
 
-Last updated: 2026-09-18 (fourth session — Vercel production deployment confirmed live).
+Last updated: 2026-09-18 (fifth session — live network sensor: a third real data
+track, alongside the synthetic testbed and CICIoT2023 benchmark).
 
 ## This session's additions
 
@@ -260,3 +261,57 @@ of this repo before today would have been missing them, silently breaking
 reflects unusually clean class separation in this specific 8-feature export (see
 docs/17 section 6 and 20) — not evidence this detector generalizes to adversarial
 or evasive traffic, which this benchmark, by construction, does not contain.
+
+## Live network sensor (2026-09-18) — `docs/18-live-sensor.md`
+
+A third, fully real data track, alongside the synthetic testbed and CICIoT2023
+benchmark: real devices on the project owner's own LAN, discovered and
+(optionally) monitored by a new local agent (`python -m sensor.agent`) that
+reports to a deployed ARGUS API over HTTPS — the architecture the project owner
+specified, since Vercel has no route to a private LAN. Existing components
+audited first and reused unmodified where the feature space allowed
+(`CaptureSession`, `window_flows`, `extract_device_window`,
+`signature_detections`, `correlate`, `assess_risk`, `decide_and_respond`,
+`DryRunAdapter`, `KillSwitch`, `EvidenceLedger`); adapted where it didn't
+(`enroll()`'s `FLEET[device_type]` policy guard would `KeyError` on
+`device_type="unknown"`, so `sensor/baseline.py` reuses only its baseline math);
+built new where nothing existed (`sensor/discovery.py`,
+`sensor/live_detect.py::LiveAnomalyDetector` — a structurally separate
+unsupervised detector, since the calibrated/conformal ML track needs labelled
+data no live LAN traffic has). Full inventory in docs/18 section 2.
+
+**Two real bugs found and fixed while testing end-to-end** (not claimed working
+without running it): the capture loop only ever called
+`LiveAnomalyDetector.fit()` once, with a single window, so the detector never
+actually fit and could never produce a detection regardless of input; and the
+original fit floor of 4 samples produced a *degenerate* model even once fitting
+was fixed (every score identical, including the training data's own). Both
+confirmed via multiple real packet-capture runs in this sandbox (real UDP
+traffic, `CaptureSession`, real ARP-discovered neighbour), root-caused with
+instrumented diagnostics and a synthetic unit test isolating sample count from
+traffic shape, and fixed (`MIN_BASELINE_WINDOWS` raised from 4 to 20, moved to
+`live_detect.py` as the single source of truth). Final confirmation: a real
+capture run with a deliberately varied baseline and a sharp traffic-shape
+change produced four consecutive real detections
+(`raw=0.6182 pct=100.0`) with zero false positives across the 20-window
+baseline. See `progress.md` and `decisions.md`'s matching 2026-09-18 entries for
+the full sequence.
+
+Wired end-to-end: new DB tables (`LiveDeviceRow`, `SensorHeartbeatRow`), local
+dev API endpoints (`/live/ingest`, `/live/devices`, `/live/status` in
+`argus/api/main.py`), the same three endpoints against production
+`api/index.py`'s own in-memory store (verified by calling the route functions
+directly, real ingest → real correlate/risk/decide/evidence chain → real
+incident with `scenario="live_network"`), and console support (a prominent
+BENCHMARK EVALUATION / LIVE NETWORK mode selector, a new Live Network page with
+an honest "No live network sensor connected" empty state, "IDS Evaluation"
+relabelled "Benchmark Evaluation," Incidents' origin split extended to 3-way).
+21 new tests (`tests/sensor/`, `tests/test_live_ingest.py`); full suite 77/77
+passing, `ruff` clean.
+
+**Named honestly as not implemented, structurally rather than as a gap**: no
+enforcement adapter exists for real discovered devices at all
+(`enforce_enabled=False` hardcoded, not a flag), and post-response `verify()` is
+never called for live incidents (no environment-recovery check exists for a
+real device this process doesn't control). Both are the safety requirement
+working as intended, not missing functionality.

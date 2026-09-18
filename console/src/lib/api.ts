@@ -141,6 +141,35 @@ export interface CicioTRecord {
   outcome: "TP" | "TN" | "FP" | "FN";
 }
 
+export interface LiveDevice {
+  identifier: string;
+  ip: string;
+  mac: string | null;
+  vendor: string | null;
+  device_type: string;
+  interface: string | null;
+  first_seen: string;
+  last_seen: string;
+  flow_count: number;
+  monitored: boolean;
+  sensor_id: string;
+}
+
+export interface LiveSensor {
+  sensor_id: string;
+  hostname: string;
+  monitoring_active: boolean;
+  devices_discovered: number;
+  last_seen: string;
+  connected: boolean;
+}
+
+export interface LiveStatus {
+  sensors: LiveSensor[];
+  any_connected: boolean;
+  note?: string;
+}
+
 async function req<T>(path: string, opts: RequestInit = {}): Promise<T> {
   const res = await fetch(`${BASE}${path}`, opts);
   if (!res.ok) {
@@ -181,4 +210,6 @@ export const api = {
       "/control/run-cicioT2023-eval",
       { method: "POST", headers: authHeaders(token) },
     ),
+  liveDevices: () => req<LiveDevice[]>("/live/devices"),
+  liveStatus: () => req<LiveStatus>("/live/status"),
 };

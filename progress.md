@@ -351,3 +351,91 @@ confusion matrix, all six metrics, incident count, real example TP/FP records,
 an honest "zero FN occurred" note rather than a fabricated example, and eight
 stated limitations including the binary-only ground truth and the unusually
 clean class separation in this specific export).
+
+## 2026-09-18 — live network sensor: a third data track (`docs/18-live-sensor.md`)
+
+Built the local sensor/agent architecture the project owner specified: `Real LAN
+-> ARGUS Local Sensor/Agent -> device discovery + flow metadata -> ARGUS API ->
+feature extraction -> ARGUS IDS -> Detection -> Incident + Evidence ->
+Control/Response (dry-run)`. Inspected the existing architecture first, per
+instruction, and recorded exactly what was reused unmodified vs. adapted vs.
+built new in docs/18 section 2.
+
+New package `sensor/`: `discovery.py` (passive ARP/neighbour-table reads only --
+`/proc/net/arp` on Linux, `arp -a` fallback, no active probing), `oui.py` (a
+small static real IEEE OUI table, no network fetch), `flows.py`
+(`packets_to_live_flows`, adapted from `argus/testbed/pcap_to_flows.py`, keyed
+off actually-discovered devices), `baseline.py` (`build_live_baseline`, reusing
+`argus.registry.enrollment.Baseline`'s output shape but never the
+`FLEET[device_type]` policy guard, which would `KeyError` on `"unknown"`),
+`live_detect.py` (`LiveAnomalyDetector`, a genuinely separate unsupervised
+detector -- see below), `client.py` (stdlib-only HTTP client), `agent.py` (the
+CLI entrypoint, `python -m sensor.agent`).
+
+**Two real bugs found while testing end-to-end, not just claimed fixed:**
+
+1. **Detector never actually fit.** The first version of `agent.py`'s capture
+   loop called `LiveAnomalyDetector.fit()` exactly once per device, with a
+   single feature vector from that device's first-ever window --
+   `fit()`'s own floor (then 4 samples) meant it silently returned `False` and
+   left the detector permanently unfitted, so `live_anomaly_detections()`
+   returned `[]` forever regardless of how anomalous later traffic was.
+   Confirmed via three separate real capture runs (7, then 3, then 6+ windows,
+   real generated UDP traffic including a deliberately sharp burst) all showing
+   0 detections. Fixed by accumulating a rolling per-device feature-vector
+   history and only fitting once `MIN_BASELINE_WINDOWS` windows have
+   accumulated (`agent.py`'s loop now tracks `feature_history` and only
+   constructs/fits a `LiveAnomalyDetector` once that floor is met).
+
+2. **The floor itself was too low.** Even after fixing (1), a real capture test
+   still produced 0 detections. Instrumented diagnostics (real captures, printed
+   raw score + percentile per window) showed the n=4 floor fits a *degenerate*
+   model -- every score, baseline and burst alike, came back identical
+   (`raw=0.4730` for all of them). A follow-up synthetic unit test (same real
+   feature dict shapes, controlled jitter) confirmed the pattern generalizes:
+   flat/uninformative at n=4, meaningfully varying by n=10, usefully spread by
+   n=20. Separately, root-causing why an even longer real capture test *still*
+   produced 0 detections surfaced a second cause: the test's baseline traffic
+   varied only in `bytes_in_mean`, which is not one of
+   `argus.detect.ml.FEATURE_KEYS`'s 14 tracked features -- so the actually-used
+   feature vectors were bit-for-bit constant across the whole baseline
+   regardless of sample count. Regenerated baseline traffic with real variation
+   in a tracked dimension (destination port count, natural timing jitter) and
+   reran the full real capture -> flow -> feature -> baseline -> detector chain:
+   `window 23: n_flows=99 raw=0.6182 pct=100.0 detections=1`, four consecutive
+   real detections during the injected burst, zero false positives across the
+   20-window baseline and 2-window ramp-up. `MIN_BASELINE_WINDOWS` raised to 20
+   and moved into `live_detect.py` as the single source of truth (previously
+   duplicated as a separate constant in `agent.py`, which was itself a latent
+   bug waiting to happen -- the two could have drifted).
+
+Wired both APIs: `argus/db/models.py` gained `LiveDeviceRow`/
+`SensorHeartbeatRow`; `argus/pipeline.py` gained `ingest_live_observation()` and
+`_process_live_detection()` (the same correlate -> risk -> decide -> evidence
+tail every other track uses, `enforce_enabled=False` hardcoded, `verify()`
+skipped -- both documented as structural, not missing); `argus/api/main.py`
+gained `/live/ingest`, `/live/devices`, `/live/status`. Production
+`api/index.py` got the same three endpoints against its own in-memory store
+(`_LIVE_DEVICES`/`_LIVE_SENSORS`/`_LIVE_INCIDENTS`/`_LIVE_EVIDENCE`,
+deliberately separate from `_STATE` so a demo-snapshot reset can never wipe real
+sensor data) -- verified by calling the route functions directly end-to-end
+(ingest -> devices -> status -> incidents -> evidence lookup), since this
+sandbox has no `httpx` for `TestClient`.
+
+Console: a genuinely prominent BENCHMARK EVALUATION / LIVE NETWORK mode
+selector in the header (not just a nav link), a new Live Network page (real
+device table, sensor connection status, explicit "No live network sensor
+connected" empty state -- never a fallback demo), "IDS Evaluation" relabelled
+to "Benchmark Evaluation" everywhere including its own page copy, and
+Incidents' origin split extended from 2-way to 3-way (`cicioT2023_eval` /
+`live_network` / synthetic). `tsc --noEmit` and `npm run build` both clean.
+
+New tests: `tests/sensor/` (discovery parsing against real-shaped fixture text,
+flow assembly against real in-memory scapy packets, baseline math, and the
+`LiveAnomalyDetector` behaviour pinning down both bugs above -- fit refuses
+below the floor, an unfitted detector is inert, a genuinely different window
+scores above `ANOMALY_PERCENTILE` once enough varied baseline exists) and
+`tests/test_live_ingest.py` (`ingest_live_observation` against a real in-memory
+SQLite DB -- discovery-only never forces an incident, a real detection produces
+a real `IncidentRow`+`EvidenceBundleRow` with `dry_run=True`). Full suite:
+77/77 passing, `ruff` clean on every touched file.

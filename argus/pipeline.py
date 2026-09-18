@@ -37,7 +37,9 @@ from argus.db.models import (
     DeviceRow,
     EvidenceBundleRow,
     IncidentRow,
+    LiveDeviceRow,
     RiskAssessmentRow,
+    SensorHeartbeatRow,
     VerificationRow,
 )
 from argus.detect.ml import CalibratedDetector, ShapExplainer, ml_detections
@@ -712,4 +714,171 @@ def run_cicioT2023_evaluation(
         "run_id": run_id, "manifest": manifest, "confusion_matrix": cm.to_dict(), "metrics": metrics,
         "n_incidents_generated": summary["incidents"], "n_evidence_bundles": summary["bundles"],
         "records": records,
+    }
+
+
+def _process_live_detection(
+    db: Session, *, ledger: EvidenceLedger, kill_switch: KillSwitch, rate_limiter: ActionRateLimiter,
+    dev_id: str, detections: list, adapter, summary: dict,
+) -> str | None:
+    """Live-network counterpart to ``_process_cicioT2023_detection``: the same
+    correlate -> risk -> decide -> evidence -> persist tail, minus
+    ``verify()`` for the same reason -- see that function's docstring -- plus
+    one more: no enforcement adapter exists for real discovered devices (the
+    project's safety requirement is explicit: no destructive actions against
+    real devices), so ``decide_and_respond`` can only ever produce a dry-run
+    "would act" outcome here regardless of ARGUS_ENFORCE, and there is
+    nothing for ``verify()`` to check a real environment against.
+
+    Risk terms ``deviation``/``blast_radius`` are 0.0, the same treatment the
+    CICIoT2023 track uses and for the same reason: a discovered device has no
+    behaviour-drift history or communication-graph view computed here. Risk
+    is driven by the real detection's own severity/confidence.
+    """
+    if not detections:
+        return None
+    incidents = correlate(detections)
+    det_map = {d.detection_id: d for d in detections}
+    incident_id: str | None = None
+
+    for incident in incidents:
+        risk = assess_risk(incident, detections, "unknown", 0.0, 0.0)
+        incident_dets = [det_map[i] for i in incident.detection_ids if i in det_map]
+        best_conformal = next((d.conformal_set for d in incident_dets if d.conformal_set), None)
+
+        outcome = decide_and_respond(
+            device_id=dev_id, device_type="unknown", risk_score=risk.score,
+            conformal_set=best_conformal, is_drifting=False,
+            kill_switch=kill_switch, rate_limiter=rate_limiter,
+            enforce_enabled=False,  # never live enforcement against a real discovered device
+            adapter=adapter, now=incident.last_seen.timestamp(),
+        )
+
+        bundle = ledger.append(
+            incident_id=incident.incident_id,
+            device={
+                "device_id": dev_id, "device_type": "unknown", "source": "live_network",
+                "note": "Real device discovered by a local sensor via passive ARP/neighbour-table "
+                        "observation; device_type is unknown because nothing in passive discovery "
+                        "can legitimately determine it.",
+            },
+            feature_vector={"window": incident.chain_position},
+            detection={
+                "sources": list({d.source for d in incident_dets}),
+                "conformal_set": best_conformal,
+                "signals": [d.signal_name for d in incident_dets],
+                "explanations": [d.explanation for d in incident_dets],
+                "attribution": next((d.attribution for d in incident_dets if d.attribution), None),
+            },
+            baseline={"note": "per-device baseline built from this device's own real observed traffic (sensor/baseline.py)"},
+            risk={"score": risk.score, "terms": risk.terms},
+            decision={
+                "action": outcome.action, "tier": outcome.tier, "dry_run": outcome.dry_run,
+                "gates_passed": outcome.guard.gates_passed, "gates_failed": outcome.guard.gates_failed,
+            },
+            trace=[f"detected via {d.source}:{d.signal_name}" for d in incident_dets] + [
+                f"correlated into incident {incident.incident_id}",
+                f"risk={risk.score:.2f}", f"guard_verdict={'allow' if outcome.guard.allow else 'veto'}",
+                f"action={outcome.action}",
+                "no enforcement adapter exists for real discovered devices -- dry-run only, always",
+                "post-response verification skipped: no environment-recovery check is implemented for live devices",
+            ],
+        )
+        summary["bundles"] += 1
+
+        db.add(IncidentRow(
+            incident_id=incident.incident_id, device_id=dev_id,
+            first_seen=incident.first_seen, last_seen=incident.last_seen,
+            chain_position=incident.chain_position, agreement_score=incident.agreement_score,
+            detection_sources=",".join({d.source for d in incident_dets}), scenario="live_network",
+        ))
+        db.add(RiskAssessmentRow(incident_id=incident.incident_id, score=risk.score, terms=risk.terms))
+        db.add(EvidenceBundleRow(
+            bundle_id=bundle.bundle_id, incident_id=incident.incident_id,
+            created_at=bundle.created_at, device=bundle.device, feature_vector=bundle.feature_vector,
+            detection=bundle.detection, baseline=bundle.baseline, risk=bundle.risk,
+            decision=bundle.decision, trace=bundle.trace, prev_bundle_hash=bundle.prev_bundle_hash,
+            merkle_root=bundle.merkle_root,
+        ))
+        summary["incidents"] += 1
+        incident_id = incident.incident_id
+
+        if outcome.action_id:
+            db.add(ActionRow(
+                action_id=outcome.action_id, bundle_id=bundle.bundle_id, device_id=dev_id,
+                tier=outcome.tier, action=outcome.action, dry_run=outcome.dry_run,
+                applied_at=incident.last_seen,
+            ))
+            summary["actions"] += 1
+
+        db.add(AuditLogRow(actor="argus-live-sensor", event_type="decision", payload={
+            "incident_id": incident.incident_id, "action": outcome.action, "dry_run": outcome.dry_run,
+            "source": "live_network",
+        }))
+
+    return incident_id
+
+
+def ingest_live_observation(
+    db: Session, *, sensor_id: str, hostname: str, monitoring_active: bool,
+    devices: list[dict], detections: list[dict],
+) -> dict:
+    """Receives a real local sensor's actual observations (sensor/agent.py)
+    and persists them through the exact same downstream pipeline every other
+    track uses. Never inserts an incident because a device was merely
+    *discovered* -- only ``detections`` the sensor itself produced (via
+    argus.detect.rules.signature_detections/identity_detections and
+    sensor.live_detect.live_anomaly_detections, run locally against real
+    captured traffic) can create one, exactly mirroring the CICIoT2023 track's
+    "ground truth never forces a detection" rule -- here there is no ground
+    truth at all, only what the detectors themselves found.
+
+    ``devices``: dicts matching sensor.discovery.DiscoveredDevice's fields.
+    ``detections``: dicts matching argus.schemas.Detection's fields, already
+    produced by the sensor's own detector run (this function does not run
+    detection itself -- it persists what the sensor already computed).
+    """
+    now = datetime.utcnow()
+    for d in devices:
+        db.merge(LiveDeviceRow(
+            identifier=d["identifier"], ip=d["ip"], mac=d.get("mac"), vendor=d.get("vendor"),
+            device_type=d.get("device_type", "unknown"), interface=d.get("interface"),
+            first_seen=datetime.fromisoformat(d["first_seen"]), last_seen=datetime.fromisoformat(d["last_seen"]),
+            flow_count=d.get("flow_count", 0), monitored=d.get("monitored", False), sensor_id=sensor_id,
+        ))
+    db.merge(SensorHeartbeatRow(
+        sensor_id=sensor_id, hostname=hostname, monitoring_active=monitoring_active,
+        devices_discovered=len(devices), last_seen=now,
+    ))
+    db.commit()
+
+    from argus.schemas import Detection as DetectionType
+
+    by_device: dict[str, list] = {}
+    for det_dict in detections:
+        det = DetectionType(
+            detection_id=det_dict["detection_id"], ts=datetime.fromisoformat(det_dict["ts"]),
+            device_id=det_dict["device_id"], source=det_dict["source"], signal_name=det_dict["signal_name"],
+            severity=det_dict["severity"], confidence=det_dict["confidence"], explanation=det_dict["explanation"],
+            evidence_refs=det_dict.get("evidence_refs", []), conformal_set=det_dict.get("conformal_set"),
+            attribution=det_dict.get("attribution"),
+        )
+        by_device.setdefault(det.device_id, []).append(det)
+
+    ledger = EvidenceLedger()
+    kill_switch = KillSwitch()
+    rate_limiter = ActionRateLimiter()
+    adapter = DryRunAdapter()
+    summary = {"incidents": 0, "bundles": 0, "actions": 0}
+
+    for dev_id, dets in by_device.items():
+        _process_live_detection(
+            db, ledger=ledger, kill_switch=kill_switch, rate_limiter=rate_limiter,
+            dev_id=dev_id, detections=dets, adapter=adapter, summary=summary,
+        )
+    db.commit()
+
+    return {
+        "devices_ingested": len(devices), "detections_received": len(detections),
+        "incidents_generated": summary["incidents"], "bundles_generated": summary["bundles"],
     }

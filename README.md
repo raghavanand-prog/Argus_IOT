@@ -11,7 +11,7 @@ instead of a plot. See `MASTER-PLAN.md` for the full contribution claims and
 
 ## What's here right now
 
-A working, tested, end-to-end system, on **two parallel data sources** feeding the
+A working, tested, end-to-end system, on **three parallel data sources** feeding the
 identical downstream pipeline:
 
 - A deterministic **synthetic testbed** (`argus/sim/`) — 10 IoT device behaviour
@@ -56,7 +56,14 @@ identical downstream pipeline:
   8 features, never the synthetic pipeline's), producing a real confusion matrix,
   precision/recall/F1/FPR/FNR, and real incidents/evidence — never a hardcoded
   result. See `docs/17-cicioT2023-validation.md` for the full 20-section report and
-  the "IDS Evaluation" page in the console.
+  the "Benchmark Evaluation" page in the console.
+- A **local network sensor** (`sensor/agent.py`, `python -m sensor.agent`) — real
+  passive device discovery (ARP/neighbour-table reads, no active scanning) and
+  optional real packet capture on the user's own LAN, feeding a structurally
+  separate unsupervised anomaly detector (no labelled ground truth exists for
+  live traffic to calibrate a conformal gate against). Reports to a deployed
+  ARGUS API since Vercel has no route to a private LAN. Never enforces against a
+  real device. See `docs/18-live-sensor.md` and the console's "Live Network" mode.
 
 See `STATUS.md` for exactly what's stubbed or not yet built — it's a longer, more
 honest list than most READMEs carry, on purpose.
@@ -112,7 +119,7 @@ cp .env.example .env  # then edit .env and set a real ARGUS_ADMIN_TOKEN (see bel
 ### Run the tests
 
 ```bash
-make test    # .venv/bin/python -m pytest tests/ -v -- 45 tests, ~65s
+make test    # .venv/bin/python -m pytest tests/ -v -- 77 tests, ~75s
 ```
 
 ### Start the dev servers
@@ -137,6 +144,30 @@ Or headless, without the console:
 make seed       # runs the synthetic pipeline once, prints a summary
 make evaluate   # full A0-A8 ablation, writes results/<timestamp>/results.json
 ```
+
+### Run the local network sensor (real devices on your own LAN)
+
+With the backend API running (local or the deployed production one), start the
+sensor on the machine actually connected to your LAN — a Mac, a Linux box, a
+Raspberry Pi:
+
+```bash
+python -m sensor.agent --api-url http://localhost:8000 --token $ARGUS_ADMIN_TOKEN
+
+# or against the deployed production API
+python -m sensor.agent --api-url https://argus-iot-live.vercel.app/api --token $ARGUS_ADMIN_TOKEN
+
+# opt in to real packet capture + flow-based anomaly detection (discovery-only by default)
+python -m sensor.agent --api-url http://localhost:8000 --token $ARGUS_ADMIN_TOKEN \
+  --enable-capture --interfaces eth0
+```
+
+Open the console's **Live Network** mode to see real discovered devices, sensor
+connection status, and (once a sensor with `--enable-capture` has been running
+long enough to build a baseline) real detections. No sensor connected shows "No
+live network sensor connected" — never fabricated devices. See
+`docs/18-live-sensor.md` for the full architecture, safety posture, and why the
+live detector is a structurally separate model from the calibrated ML track.
 
 ### Build the console for production
 
