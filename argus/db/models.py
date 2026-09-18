@@ -94,6 +94,34 @@ class VerificationRow(Base):
     offset_seconds: Mapped[int] = mapped_column(Integer)
 
 
+class CicioTEvaluationRunRow(Base):
+    """One real, actually-executed CICIoT2023 evaluation run (argus/pipeline.py's
+    ``run_cicioT2023_evaluation``). ``records`` and ``metrics``/``confusion_matrix``
+    are computed from actual detector predictions vs. the dataset's ``sub_label``
+    ground truth for this run -- never hardcoded (see docs/17). Multiple rows here
+    are the "evaluation history" the IDS Evaluation page lists."""
+
+    __tablename__ = "cicioT2023_evaluation_runs"
+    run_id: Mapped[str] = mapped_column(String, primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    dataset_filename: Mapped[str] = mapped_column(String)
+    dataset_sha256: Mapped[str] = mapped_column(String)
+    seed: Mapped[int] = mapped_column(Integer)
+    feature_keys: Mapped[list] = mapped_column(JSON)
+    model_config_json: Mapped[dict] = mapped_column(JSON)
+    threshold: Mapped[float] = mapped_column(Float)
+    n_total_rows: Mapped[int] = mapped_column(Integer)
+    n_train_benign: Mapped[int] = mapped_column(Integer)
+    n_calib_benign: Mapped[int] = mapped_column(Integer)
+    n_calib_attack: Mapped[int] = mapped_column(Integer)
+    n_test_benign: Mapped[int] = mapped_column(Integer)
+    n_test_attack: Mapped[int] = mapped_column(Integer)
+    confusion_matrix: Mapped[dict] = mapped_column(JSON)
+    metrics: Mapped[dict] = mapped_column(JSON)
+    n_incidents_generated: Mapped[int] = mapped_column(Integer)
+    records: Mapped[list] = mapped_column(JSON)  # per-row: record_id, ground_truth, prediction, score, incident_id, outcome
+
+
 class AuditLogRow(Base):
     __tablename__ = "audit_log"
     seq: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)

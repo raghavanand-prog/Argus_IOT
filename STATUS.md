@@ -169,8 +169,11 @@ Last updated: 2026-09-18 (fourth session — Vercel production deployment confir
    (`argus/testbed/live_attacks.py`) and into `eval/ablation.py`'s scenario list.
 3. Run the evidence-replay mechanism against ≥100 bundles (multiple seeded runs)
    to close the original plan's own gate.
-4. If/when run in an environment with normal internet access: the dataset track,
-   per `docs/05-data-pipeline.md`'s closing section.
+4. ~~If/when run in an environment with normal internet access: the dataset
+   track, per `docs/05-data-pipeline.md`'s closing section.~~ **Done
+   (2026-09-18)** — not via internet access (still blocked, unchanged), but the
+   project owner uploaded a real CICIoT2023 export directly. See the
+   2026-09-18 entry below and `docs/17-cicioT2023-validation.md`.
 5. The human evaluation of explanations, if the project continues with human
    collaborators (`research/experiment-plan.md`).
 
@@ -196,3 +199,64 @@ locally at a fixed seed, results not adjusted after the fact:
   no existing code path could previously test the detectors against
   attack-free traffic. Locked in as `tests/test_ids_validation.py` (46/46
   full suite still green).
+
+## CICIoT2023 real-dataset evaluation (2026-09-18) — `docs/17-cicioT2023-validation.md`
+
+The dataset track is real and run, not stubbed. The project owner uploaded a real
+CICIoT2023 export (`df_Binary_FL_CICIoT2023.rar`, 600,000 rows, 8 pre-computed
+features + binary `sub_label`) after direct verification confirmed the full
+authoritative CICIoT2023/TON_IoT/Edge-IIoTset hosts remain unreachable from this
+environment (still true — this is a real upload, not a changed network policy).
+
+Built new: `argus/data/cicioT2023.py` (loader, inferred label-mapping documented
+with evidence, `FeatureVector` builder, seeded disjoint train/calib/test split —
+no temporal split possible, no timestamp column in this export), `argus/data/
+metrics.py` (dependency-free confusion-matrix/precision/recall/F1/FPR/FNR),
+`argus.pipeline.run_cicioT2023_evaluation()` (the real detect → correlate → risk →
+respond → evidence chain per test row), and a new `CicioTEvaluationRunRow` table.
+One adaptation to existing code: `CalibratedDetector`/`ShapExplainer`
+(`argus/detect/ml.py`) gained an injectable `feature_keys` field (default:
+unchanged, the synthetic pipeline's 14-key `FEATURE_KEYS`) so a *separate,
+same-class instance* could be fit on this dataset's own 8 features rather than
+reusing a model trained on an incompatible feature space. Post-response
+`verify()` is deliberately skipped for these detections (documented in
+`_process_cicioT2023_detection`'s docstring): it checks environment recovery
+against a ground-truth ledger of attack phases with start/end times, which a
+static dataset row has none of.
+
+Real, measured result at seed=42 (2,000-row held-out test split, 1,020 real
+incidents generated, one full run, not cherry-picked): confusion matrix
+TP=1000 TN=980 FP=20 FN=0 → accuracy 99.0%, precision 98.04%, recall 100%,
+F1 99.01%, FPR 2.0%, FNR 0.0%. Verified directly (not assumed) that this isn't
+label leakage: train/calib/test row-index sets are disjoint by construction and
+checked pairwise-empty, the label column never appears in the feature dict passed
+to the detector, and both FP and FN examples (where they occur) show the
+prediction genuinely diverging from ground truth in both directions. Full 20-section
+report, real example records, and stated limitations (binary-only ground truth, only
+the ML track exercised, inferred label direction, no live-network claim) in
+`docs/17-cicioT2023-validation.md`.
+
+Shipped end-to-end, not just as a script: a new "IDS Evaluation" console page
+(metrics, confusion matrix, reproducibility manifest, paginated per-record table,
+a per-record "Live Evaluation/Replay" detail drawer), local dev API endpoints to
+run it live and browse history, and — because Vercel's serverless function has no
+scikit-learn (documented constraint, unchanged from `docs/06`) — a precomputed
+snapshot (`api/cicioT2023_eval_snapshot.json`, 4.8MB, from one real local run) the
+production API serves read-only, with its real incidents/evidence merged into the
+same `_STATE` `/api/incidents` already reads. Verified live in a headless browser
+against the real local API (screenshots: full page, a TN record's drawer, an FP
+record's drawer) and via direct HTTP calls (run, read, evidence replay on a real
+CICIoT2023-sourced bundle — `reproduced: true`).
+
+**Also found and fixed while building this**: `.gitignore`'s bare `data/` line was
+matching `argus/data/` too (gitignore patterns without a leading `/` match at any
+depth), which meant `argus/data/subsample.py`/`parity.py` — the dataset-track
+scaffolding from the prior session — were never actually committed. A fresh clone
+of this repo before today would have been missing them, silently breaking
+`tests/test_subsampling.py`'s imports. Fixed by anchoring both `data/` and
+`results/` to the repo root (`/data/`, `/results/`); `argus/data/` is committed now.
+
+**Known limitation carried forward**: this result's FN=0/near-perfect separation
+reflects unusually clean class separation in this specific 8-feature export (see
+docs/17 section 6 and 20) — not evidence this detector generalizes to adversarial
+or evasive traffic, which this benchmark, by construction, does not contain.

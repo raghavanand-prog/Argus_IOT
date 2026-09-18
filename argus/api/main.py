@@ -6,6 +6,7 @@ default token and startup fails loudly if one is unset").
 from __future__ import annotations
 
 import os
+from pathlib import Path
 
 from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,6 +14,7 @@ from sqlalchemy.orm import Session
 
 from argus.db.models import (
     ActionRow,
+    CicioTEvaluationRunRow,
     DeviceRow,
     EvidenceBundleRow,
     IncidentRow,
@@ -23,8 +25,17 @@ from argus.db.models import (
 )
 from argus.evidence.bundle import EvidenceBundle
 from argus.evidence.replay import replay
-from argus.pipeline import run_benign_validation, run_demo_pipeline
+from argus.pipeline import (
+    run_benign_validation,
+    run_cicioT2023_evaluation,
+    run_demo_pipeline,
+)
 from argus.respond.guard import KillSwitch
+
+CICIOT2023_CSV = os.getenv(
+    "ARGUS_CICIOT2023_CSV",
+    str(Path(__file__).resolve().parent.parent.parent / "data" / "cicioT2023" / "df_Binary_FL_CICIoT2023.csv"),
+)
 
 ADMIN_TOKEN = os.getenv("ARGUS_ADMIN_TOKEN")
 if not ADMIN_TOKEN:
@@ -157,6 +168,120 @@ def replay_evidence(bundle_id: str, db: Session = Depends(get_db), _: None = Dep
         "original_action": result.original_action, "replayed_action": result.replayed_action,
         "original_tier": result.original_tier, "replayed_tier": result.replayed_tier,
     }
+
+
+@app.post("/control/run-cicioT2023-eval")
+def run_cicioT2023_eval(db: Session = Depends(get_db), _: None = Depends(require_auth)):
+    """Actually runs the real CICIoT2023 evaluation pipeline (argus.pipeline.
+    run_cicioT2023_evaluation) against the real uploaded dataset -- trains a fresh
+    dataset-specific detector, scores the held-out test split, and persists real
+    incidents/evidence. Requires the full original CSV at ARGUS_CICIOT2023_CSV (or
+    the default data/cicioT2023/ path) -- not committed to the repo (see
+    docs/17-cicioT2023-validation.md); the committed fixture at
+    argus/data/fixtures/cicioT2023_eval_subset.csv is the *output* of a run like
+    this one, not an input to it."""
+    if not os.path.exists(CICIOT2023_CSV):
+        raise HTTPException(
+            status_code=404,
+            detail=(
+                f"CICIoT2023 source file not found at {CICIOT2023_CSV}. Set "
+                "ARGUS_CICIOT2023_CSV to the full df_Binary_FL_CICIoT2023.csv "
+                "(see docs/17-cicioT2023-validation.md)."
+            ),
+        )
+    result = run_cicioT2023_evaluation(db, CICIOT2023_CSV)
+    return {
+        "run_id": result["run_id"], "manifest": result["manifest"],
+        "confusion_matrix": result["confusion_matrix"], "metrics": result["metrics"],
+        "n_incidents_generated": result["n_incidents_generated"],
+        "n_evidence_bundles": result["n_evidence_bundles"],
+    }
+
+
+@app.get("/cicioT2023/evaluations")
+def list_cicioT2023_evaluations(db: Session = Depends(get_db)):
+    rows = db.query(CicioTEvaluationRunRow).order_by(CicioTEvaluationRunRow.created_at.desc()).all()
+    return [
+        {
+            "run_id": r.run_id, "created_at": r.created_at.isoformat(),
+            "dataset_filename": r.dataset_filename, "seed": r.seed,
+            "confusion_matrix": r.confusion_matrix, "metrics": r.metrics,
+            "n_incidents_generated": r.n_incidents_generated,
+        }
+        for r in rows
+    ]
+
+
+@app.get("/cicioT2023/evaluations/{run_id}")
+def get_cicioT2023_evaluation(run_id: str, db: Session = Depends(get_db)):
+    r = db.query(CicioTEvaluationRunRow).filter_by(run_id=run_id).first()
+    if not r:
+        raise HTTPException(status_code=404, detail="evaluation run not found")
+    return _run_detail(r)
+
+
+def _run_detail(r: CicioTEvaluationRunRow) -> dict:
+    return {
+        "run_id": r.run_id, "created_at": r.created_at.isoformat(),
+        "dataset_filename": r.dataset_filename, "dataset_sha256": r.dataset_sha256,
+        "seed": r.seed, "feature_keys": r.feature_keys, "model_config": r.model_config_json,
+        "threshold": r.threshold, "n_total_rows": r.n_total_rows,
+        "n_train_benign": r.n_train_benign, "n_calib_benign": r.n_calib_benign,
+        "n_calib_attack": r.n_calib_attack, "n_test_benign": r.n_test_benign, "n_test_attack": r.n_test_attack,
+        "confusion_matrix": r.confusion_matrix, "metrics": r.metrics,
+        "n_incidents_generated": r.n_incidents_generated, "records": r.records,
+    }
+
+
+def _latest_run(db: Session) -> CicioTEvaluationRunRow | None:
+    return db.query(CicioTEvaluationRunRow).order_by(CicioTEvaluationRunRow.created_at.desc()).first()
+
+
+@app.get("/cicioT2023/eval")
+def cicioT2023_eval_summary(db: Session = Depends(get_db)):
+    """Same response shape as production's /api/cicioT2023/eval, sourced from the
+    most recent real run in the local database instead of a static snapshot file --
+    lets the console use one code path against either backend."""
+    r = _latest_run(db)
+    if not r:
+        raise HTTPException(
+            status_code=404,
+            detail="No CICIoT2023 evaluation has been run yet. POST /control/run-cicioT2023-eval first.",
+        )
+    detail = _run_detail(r)
+    return {
+        "run_id": detail["run_id"], "manifest": {
+            "run_id": detail["run_id"], "dataset_filename": detail["dataset_filename"],
+            "dataset_sha256": detail["dataset_sha256"], "seed": detail["seed"],
+            "feature_keys": detail["feature_keys"], "model_config": detail["model_config"],
+            "detection_threshold": detail["threshold"], "generated_at": detail["created_at"],
+            "n_train_benign": detail["n_train_benign"], "n_calib_benign": detail["n_calib_benign"],
+            "n_calib_attack": detail["n_calib_attack"], "n_test_benign": detail["n_test_benign"],
+            "n_test_attack": detail["n_test_attack"], "n_total_rows_in_file": detail["n_total_rows"],
+        },
+        "confusion_matrix": detail["confusion_matrix"], "metrics": detail["metrics"],
+        "n_incidents_generated": detail["n_incidents_generated"], "n_records": len(detail["records"]),
+        "mode": "local-live",
+    }
+
+
+@app.get("/cicioT2023/eval/records")
+def cicioT2023_eval_records(db: Session = Depends(get_db)):
+    r = _latest_run(db)
+    if not r:
+        raise HTTPException(status_code=404, detail="No CICIoT2023 evaluation has been run yet.")
+    return r.records
+
+
+@app.get("/cicioT2023/eval/records/{record_id}")
+def cicioT2023_eval_record(record_id: str, db: Session = Depends(get_db)):
+    r = _latest_run(db)
+    if not r:
+        raise HTTPException(status_code=404, detail="No CICIoT2023 evaluation has been run yet.")
+    for rec in r.records:
+        if rec["record_id"] == record_id:
+            return rec
+    raise HTTPException(status_code=404, detail="record not found")
 
 
 @app.get("/actions")

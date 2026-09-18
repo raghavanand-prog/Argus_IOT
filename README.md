@@ -49,6 +49,14 @@ identical downstream pipeline:
 - A full **A0–A8 ablation** (`eval/harness.py`, `eval/ablation.py`) — 9 configurations
   × 5 seeds, real Mann-Whitney U / Holm-Bonferroni / Cliff's delta statistics, against
   a genuine benign holdout so F1 is a real, non-trivial number.
+- A **real CICIoT2023 benchmark-dataset evaluation** (`argus/data/cicioT2023.py`,
+  `argus.pipeline.run_cicioT2023_evaluation`) — a real, uploaded export of the
+  published CICIoT2023 IoT-IDS benchmark run through ARGUS's actual detection
+  pipeline (a separately-trained `CalibratedDetector` instance on the dataset's own
+  8 features, never the synthetic pipeline's), producing a real confusion matrix,
+  precision/recall/F1/FPR/FNR, and real incidents/evidence — never a hardcoded
+  result. See `docs/17-cicioT2023-validation.md` for the full 20-section report and
+  the "IDS Evaluation" page in the console.
 
 See `STATUS.md` for exactly what's stubbed or not yet built — it's a longer, more
 honest list than most READMEs carry, on purpose.
