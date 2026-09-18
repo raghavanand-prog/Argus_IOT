@@ -87,7 +87,21 @@ def _parse_arp_a_output(text: str) -> list[ObservedNeighbour]:
 
 
 def _read_arp_a() -> list[ObservedNeighbour]:
-    result = subprocess.run(["arp", "-a"], capture_output=True, text=True, timeout=5, check=False)
+    # -n suppresses reverse-DNS hostname lookups. Without it, BSD/macOS arp -a tries
+    # to resolve a hostname for every neighbour before printing anything -- on a real
+    # home/office LAN where the router doesn't answer PTR queries quickly, this
+    # routinely blows past a 5s timeout (confirmed: a real run on a real Mac hung on
+    # exactly this). -n makes the command itself fast; _parse_arp_a_output already
+    # handles the unresolved-hostname ("? (ip) at mac ...") output shape either way,
+    # so this changes nothing about what's parsed, only how long it takes to get it.
+    try:
+        result = subprocess.run(["arp", "-a", "-n"], capture_output=True, text=True, timeout=10, check=False)
+    except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
+        # a single bad poll (arp still slow for some other reason, binary missing,
+        # permission issue) must not crash the whole sensor process -- same
+        # never-let-one-failure-kill-the-loop principle agent.py's ingest already
+        # follows. The next poll just tries again.
+        return []
     return _parse_arp_a_output(result.stdout)
 
 
