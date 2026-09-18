@@ -10,9 +10,9 @@ export default function App() {
     <div className="min-h-screen bg-[var(--color-bg)]">
       <Nav />
       <Routes>
-        <Route path="/" element={<Fleet />} />
+        <Route path="/" element={<IdsEvaluation />} />
         <Route path="/incidents" element={<Incidents />} />
-        <Route path="/ids-evaluation" element={<IdsEvaluation />} />
+        <Route path="/fleet" element={<Fleet />} />
         <Route path="/control" element={<Control />} />
       </Routes>
     </div>

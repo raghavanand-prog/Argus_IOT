@@ -159,7 +159,13 @@ def seed_demo(_: None = Depends(require_auth)):
 
 @api.get("/devices")
 def list_devices():
-    return _STATE["devices"]
+    """These are ARGUS's own synthetic simulation-testbed devices
+    (argus.sim.engine.default_fleet), not derived from any uploaded dataset --
+    CICIoT2023's binary export has no device/IP identity at all (see
+    docs/17-cicioT2023-validation.md). The "source" field says so explicitly on
+    every object, not just in the console's own presentation of it, so any
+    consumer of this API gets the same honest label."""
+    return [{**d, "source": "synthetic-demo-testbed"} for d in _STATE["devices"]]
 
 
 @api.get("/incidents")

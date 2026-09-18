@@ -7,6 +7,9 @@ export interface Device {
   criticality: number;
   is_drifting: boolean;
   last_seen: string | null;
+  /** Always ARGUS's own testbed (synthetic or live-network) -- never derived
+   * from an uploaded dataset. See docs/17-cicioT2023-validation.md. */
+  source?: string;
 }
 
 export interface Incident {
