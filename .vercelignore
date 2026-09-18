@@ -39,6 +39,10 @@ argus/sim/attacks.py
 argus/testbed/
 argus/verify/
 argus/pipeline.py
+# argus/control.py is the local-dev DB-backed command-queue implementation
+# (needs argus.db.models -> SQLAlchemy); api/index.py has its own separate
+# in-memory implementation of the same endpoints and never imports this file.
+argus/control.py
 compose/
 data/
 docs/
