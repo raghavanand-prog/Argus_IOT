@@ -109,6 +109,14 @@ def run(args: argparse.Namespace) -> int:
     print(f"  discovery mode: passive ARP/neighbour-table read (interval {args.poll_interval}s)")
     if args.enable_capture:
         print(f"  capture mode: ENABLED on interfaces {args.interfaces} -- real packet capture, opt-in")
+        if args.target_host:
+            print(f"    scoped to --target-host {args.target_host} only (BPF filter, enforced by the kernel --")
+            print("    no other device's traffic is ever captured, let alone reported)")
+        else:
+            print("    WARNING: no --target-host set -- this captures ALL traffic on the given interface(s).")
+            print("    On a network you don't administer (e.g. a shared/college/office LAN), that captures other")
+            print("    people's traffic shapes without their consent. Use --target-host <ip> to scope this to a")
+            print("    single device you own, or get explicit authorization from the network owner first.")
     else:
         print("  capture mode: disabled (device discovery only -- pass --enable-capture to detect on real traffic)")
     print("  Never sends traffic to discovered devices. Never blocks or isolates anything.")
@@ -128,7 +136,8 @@ def run(args: argparse.Namespace) -> int:
         detections_payload: list[dict] = []
 
         if args.enable_capture:
-            cap = cap_stack["CaptureSession"](ifaces=args.interfaces)
+            bpf_filter = f"host {args.target_host}" if args.target_host else None
+            cap = cap_stack["CaptureSession"](ifaces=args.interfaces, bpf_filter=bpf_filter)
             cap.start()
             time.sleep(args.window_seconds)
             packets = cap.stop()
@@ -215,6 +224,13 @@ def main() -> int:
     parser.add_argument("--window-seconds", type=float, default=60.0, help="Capture window length in capture mode")
     parser.add_argument("--enable-capture", action="store_true", help="Opt in to real packet capture + flow-based detection")
     parser.add_argument("--interfaces", nargs="+", default=["eth0"], help="Interfaces to capture on, if --enable-capture")
+    parser.add_argument(
+        "--target-host", default=None,
+        help="Scope --enable-capture to exactly one device's IP via a real BPF filter (enforced by the kernel, "
+             "not a post-hoc filter) -- no other device's traffic is ever captured. Strongly recommended on any "
+             "network you don't administer yourself; without it, --enable-capture captures ALL traffic on the "
+             "given interface(s).",
+    )
     parser.add_argument("--once", action="store_true", help="Run a single poll and exit (for testing)")
     args = parser.parse_args()
     return run(args)
