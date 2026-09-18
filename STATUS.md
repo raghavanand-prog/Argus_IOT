@@ -158,11 +158,41 @@ Last updated: 2026-09-18 (fourth session — Vercel production deployment confir
 
 ## Immediate next steps, in priority order
 
-1. Port the 5 synthetic-only attack scenarios to the live-testbed path
+1. **Broaden the ML detector's benign training corpus** (multi-seed, longer
+   duration) — the real, identified fix for the false-positive rate `docs/16-
+   ids-validation.md` measured (75/198 held-out benign windows flagged, 40 of
+   those with a singleton conformal set). Not applied yet, deliberately — see
+   `decisions.md`'s 2026-09-18 entry for why doing it now, using knowledge of
+   the validation's own held-out seed, would itself be a form of tuning to
+   the test.
+2. Port the 5 synthetic-only attack scenarios to the live-testbed path
    (`argus/testbed/live_attacks.py`) and into `eval/ablation.py`'s scenario list.
-2. Run the evidence-replay mechanism against ≥100 bundles (multiple seeded runs)
+3. Run the evidence-replay mechanism against ≥100 bundles (multiple seeded runs)
    to close the original plan's own gate.
-3. If/when run in an environment with normal internet access: the dataset track,
+4. If/when run in an environment with normal internet access: the dataset track,
    per `docs/05-data-pipeline.md`'s closing section.
-4. The human evaluation of explanations, if the project continues with human
+5. The human evaluation of explanations, if the project continues with human
    collaborators (`research/experiment-plan.md`).
+
+## IDS validation (2026-09-18) — `docs/16-ids-validation.md`
+
+A real, reproducible 6-test end-to-end validation (telemetry → detection →
+classification → incident → evidence → response → replay), executed once
+locally at a fixed seed, results not adjusted after the fact:
+
+- **PASS**: Test 2 (suspicious activity / mqtt_abuse), Test 3 (high-severity /
+  mirai, reaches `isolate`/tier 4), Test 5 (kill-switch gating — verified the
+  switch actually vetoes new automated actions, not just that the UI toggles),
+  Test 6 (evidence replay — `reproduced: true`, original bundle unaltered).
+- **FAIL**: Test 1 (baseline, whole fleet) and Test 4 (benign stress test on
+  the hardest real case, smart-speaker-00) — a real, measured false-positive
+  rate from the ML detector on genuinely held-out benign traffic, root-caused
+  to a narrow (single-seed, ~4-hour) benign training corpus, not fixed in this
+  pass to avoid tuning to the validation's own test seed. See "Immediate next
+  steps" above and `decisions.md`.
+- Added `argus.pipeline.run_benign_validation()` (and the shared
+  `_enroll_and_train()` refactor it and `run_demo_pipeline` both call) as the
+  minimal missing capability needed to make Tests 1/4 executable at all —
+  no existing code path could previously test the detectors against
+  attack-free traffic. Locked in as `tests/test_ids_validation.py` (46/46
+  full suite still green).

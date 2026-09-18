@@ -1,0 +1,1012 @@
+{
+  "test_1_baseline": {
+    "fleet_before_devices": 0,
+    "fleet_after": [
+      {
+        "device_id": "smart-plug-00",
+        "state": "MONITORED",
+        "is_drifting": false
+      },
+      {
+        "device_id": "smart-plug-01",
+        "state": "MONITORED",
+        "is_drifting": false
+      },
+      {
+        "device_id": "ip-camera-00",
+        "state": "MONITORED",
+        "is_drifting": false
+      },
+      {
+        "device_id": "thermostat-00",
+        "state": "MONITORED",
+        "is_drifting": false
+      },
+      {
+        "device_id": "smart-speaker-00",
+        "state": "MONITORED",
+        "is_drifting": false
+      },
+      {
+        "device_id": "smart-tv-00",
+        "state": "MONITORED",
+        "is_drifting": false
+      },
+      {
+        "device_id": "doorbell-00",
+        "state": "MONITORED",
+        "is_drifting": false
+      },
+      {
+        "device_id": "air-sensor-00",
+        "state": "MONITORED",
+        "is_drifting": false
+      },
+      {
+        "device_id": "smart-lock-00",
+        "state": "MONITORED",
+        "is_drifting": false
+      },
+      {
+        "device_id": "hub-00",
+        "state": "MONITORED",
+        "is_drifting": false
+      },
+      {
+        "device_id": "user-laptop-00",
+        "state": "MONITORED",
+        "is_drifting": false
+      }
+    ],
+    "total_detections": 75,
+    "detections_that_would_escalate_to_tier2plus": 40,
+    "false_positives_by_device": {
+      "smart-plug-00": [
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for smart-plug-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: distinct_dns_qnames=0.0 (SHAP +0.093).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 2,
+          "would_be_action": "rate_limit",
+          "would_be_risk_score": 0.5707692307692308
+        }
+      ],
+      "smart-plug-01": [
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for smart-plug-01; conformal set at alpha=0.05: ['attack']. Top contributing feature: distinct_dns_qnames=0.0 (SHAP +0.093).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 2,
+          "would_be_action": "rate_limit",
+          "would_be_risk_score": 0.5707692307692308
+        }
+      ],
+      "ip-camera-00": [
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.77 for ip-camera-00; conformal set at alpha=0.05: ['benign', 'attack']. Top contributing feature: bytes_out_mean=29099.25 (SHAP -0.082).",
+          "conformal_set": [
+            "benign",
+            "attack"
+          ],
+          "would_be_tier": 1,
+          "would_be_action": "alert",
+          "would_be_risk_score": 0.4903846153846154
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for ip-camera-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: bytes_out_mean=35220.6923 (SHAP -0.082).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 1,
+          "would_be_action": "alert",
+          "would_be_risk_score": 0.4903846153846154
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for ip-camera-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: bytes_out_mean=32777.1905 (SHAP -0.085).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 1,
+          "would_be_action": "alert",
+          "would_be_risk_score": 0.4903846153846154
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for ip-camera-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: bytes_out_mean=31778.375 (SHAP -0.082).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 1,
+          "would_be_action": "alert",
+          "would_be_risk_score": 0.4903846153846154
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for ip-camera-00; conformal set at alpha=0.05: ['benign', 'attack']. Top contributing feature: bytes_out_mean=27532.4 (SHAP -0.082).",
+          "conformal_set": [
+            "benign",
+            "attack"
+          ],
+          "would_be_tier": 1,
+          "would_be_action": "alert",
+          "would_be_risk_score": 0.4903846153846154
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for ip-camera-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: bytes_out_mean=27565.5294 (SHAP -0.085).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 1,
+          "would_be_action": "alert",
+          "would_be_risk_score": 0.4903846153846154
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.84 for ip-camera-00; conformal set at alpha=0.05: ['benign', 'attack']. Top contributing feature: bytes_out_mean=31275.9231 (SHAP -0.082).",
+          "conformal_set": [
+            "benign",
+            "attack"
+          ],
+          "would_be_tier": 1,
+          "would_be_action": "alert",
+          "would_be_risk_score": 0.4903846153846154
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for ip-camera-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: bytes_out_mean=34010.8 (SHAP -0.082).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 1,
+          "would_be_action": "alert",
+          "would_be_risk_score": 0.4903846153846154
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for ip-camera-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: bytes_out_mean=31381.2667 (SHAP -0.082).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 1,
+          "would_be_action": "alert",
+          "would_be_risk_score": 0.4903846153846154
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for ip-camera-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: bytes_out_mean=27471.6875 (SHAP -0.082).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 1,
+          "would_be_action": "alert",
+          "would_be_risk_score": 0.4903846153846154
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for ip-camera-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: bytes_out_mean=27575.8333 (SHAP -0.082).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 1,
+          "would_be_action": "alert",
+          "would_be_risk_score": 0.4903846153846154
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for ip-camera-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: bytes_out_mean=28588.9231 (SHAP -0.082).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 1,
+          "would_be_action": "alert",
+          "would_be_risk_score": 0.4903846153846154
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for ip-camera-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: bytes_out_mean=33125.9375 (SHAP -0.082).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 1,
+          "would_be_action": "alert",
+          "would_be_risk_score": 0.4903846153846154
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for ip-camera-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: bytes_out_mean=32538.4375 (SHAP -0.082).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 1,
+          "would_be_action": "alert",
+          "would_be_risk_score": 0.4903846153846154
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for ip-camera-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: bytes_out_mean=31734.125 (SHAP -0.085).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 1,
+          "would_be_action": "alert",
+          "would_be_risk_score": 0.4903846153846154
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for ip-camera-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: bytes_out_mean=29757.0 (SHAP -0.082).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 1,
+          "would_be_action": "alert",
+          "would_be_risk_score": 0.4903846153846154
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.75 for ip-camera-00; conformal set at alpha=0.05: ['benign', 'attack']. Top contributing feature: bytes_out_mean=26507.6875 (SHAP -0.085).",
+          "conformal_set": [
+            "benign",
+            "attack"
+          ],
+          "would_be_tier": 1,
+          "would_be_action": "alert",
+          "would_be_risk_score": 0.4903846153846154
+        }
+      ],
+      "thermostat-00": [
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for thermostat-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: mean_iat_s=70.3699 (SHAP -0.108).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 1,
+          "would_be_action": "alert",
+          "would_be_risk_score": 0.4503846153846154
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for thermostat-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: mean_iat_s=74.396 (SHAP -0.127).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 1,
+          "would_be_action": "alert",
+          "would_be_risk_score": 0.4503846153846154
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for thermostat-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: mean_iat_s=74.5189 (SHAP -0.129).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 1,
+          "would_be_action": "alert",
+          "would_be_risk_score": 0.4503846153846154
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for thermostat-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: mean_iat_s=84.3542 (SHAP -0.108).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 1,
+          "would_be_action": "alert",
+          "would_be_risk_score": 0.4503846153846154
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.85 for thermostat-00; conformal set at alpha=0.05: ['benign', 'attack']. Top contributing feature: mean_iat_s=80.2282 (SHAP -0.108).",
+          "conformal_set": [
+            "benign",
+            "attack"
+          ],
+          "would_be_tier": 1,
+          "would_be_action": "alert",
+          "would_be_risk_score": 0.4503846153846154
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for thermostat-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: mean_iat_s=80.057 (SHAP -0.108).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 1,
+          "would_be_action": "alert",
+          "would_be_risk_score": 0.4503846153846154
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for thermostat-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: mean_iat_s=72.8743 (SHAP -0.125).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 1,
+          "would_be_action": "alert",
+          "would_be_risk_score": 0.4503846153846154
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for thermostat-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: mean_iat_s=81.4392 (SHAP -0.108).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 1,
+          "would_be_action": "alert",
+          "would_be_risk_score": 0.4503846153846154
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for thermostat-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: mean_iat_s=71.6018 (SHAP -0.129).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 1,
+          "would_be_action": "alert",
+          "would_be_risk_score": 0.4503846153846154
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for thermostat-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: mean_iat_s=70.1799 (SHAP -0.108).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 1,
+          "would_be_action": "alert",
+          "would_be_risk_score": 0.4503846153846154
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for thermostat-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: mean_iat_s=75.3425 (SHAP -0.108).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 1,
+          "would_be_action": "alert",
+          "would_be_risk_score": 0.4503846153846154
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for thermostat-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: mean_iat_s=68.755 (SHAP -0.108).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 1,
+          "would_be_action": "alert",
+          "would_be_risk_score": 0.4503846153846154
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for thermostat-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: mean_iat_s=77.243 (SHAP -0.108).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 1,
+          "would_be_action": "alert",
+          "would_be_risk_score": 0.4503846153846154
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for thermostat-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: mean_iat_s=74.0476 (SHAP -0.129).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 1,
+          "would_be_action": "alert",
+          "would_be_risk_score": 0.4503846153846154
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for thermostat-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: mean_iat_s=86.9487 (SHAP -0.108).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 1,
+          "would_be_action": "alert",
+          "would_be_risk_score": 0.4503846153846154
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for thermostat-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: mean_iat_s=82.3499 (SHAP -0.108).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 1,
+          "would_be_action": "alert",
+          "would_be_risk_score": 0.4503846153846154
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.89 for thermostat-00; conformal set at alpha=0.05: ['benign', 'attack']. Top contributing feature: mean_iat_s=80.8551 (SHAP -0.108).",
+          "conformal_set": [
+            "benign",
+            "attack"
+          ],
+          "would_be_tier": 1,
+          "would_be_action": "alert",
+          "would_be_risk_score": 0.4503846153846154
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for thermostat-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: mean_iat_s=78.5276 (SHAP -0.108).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 1,
+          "would_be_action": "alert",
+          "would_be_risk_score": 0.4503846153846154
+        }
+      ],
+      "smart-speaker-00": [
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for smart-speaker-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: distinct_dns_qnames=0.0 (SHAP +0.113).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 2,
+          "would_be_action": "rate_limit",
+          "would_be_risk_score": 0.5807692307692308
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for smart-speaker-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: distinct_dns_qnames=0.0 (SHAP +0.101).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 2,
+          "would_be_action": "rate_limit",
+          "would_be_risk_score": 0.5807692307692308
+        }
+      ],
+      "doorbell-00": [
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 1.00 for doorbell-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: mean_iat_s=140.6 (SHAP -0.101).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 3,
+          "would_be_action": "block_destination",
+          "would_be_risk_score": 0.64
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.97 for doorbell-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: mean_iat_s=76.4893 (SHAP -0.101).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 3,
+          "would_be_action": "block_destination",
+          "would_be_risk_score": 0.64
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.86 for doorbell-00; conformal set at alpha=0.05: ['benign', 'attack']. Top contributing feature: mean_iat_s=121.3511 (SHAP -0.082).",
+          "conformal_set": [
+            "benign",
+            "attack"
+          ],
+          "would_be_tier": 3,
+          "would_be_action": "block_destination",
+          "would_be_risk_score": 0.64
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for doorbell-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: distinct_dns_qnames=0.0 (SHAP +0.088).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 3,
+          "would_be_action": "block_destination",
+          "would_be_risk_score": 0.64
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for doorbell-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: distinct_dns_qnames=0.0 (SHAP +0.107).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 3,
+          "would_be_action": "block_destination",
+          "would_be_risk_score": 0.64
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.99 for doorbell-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: distinct_dns_qnames=0.0 (SHAP +0.088).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 3,
+          "would_be_action": "block_destination",
+          "would_be_risk_score": 0.64
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for doorbell-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: distinct_dns_qnames=0.0 (SHAP +0.107).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 3,
+          "would_be_action": "block_destination",
+          "would_be_risk_score": 0.64
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for doorbell-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: mean_iat_s=82.0331 (SHAP -0.083).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 3,
+          "would_be_action": "block_destination",
+          "would_be_risk_score": 0.64
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 1.00 for doorbell-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: distinct_dns_qnames=0.0 (SHAP +0.088).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 3,
+          "would_be_action": "block_destination",
+          "would_be_risk_score": 0.64
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.97 for doorbell-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: mean_iat_s=78.0124 (SHAP -0.101).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 3,
+          "would_be_action": "block_destination",
+          "would_be_risk_score": 0.64
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for doorbell-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: dns_qname_entropy_mean=3.3565 (SHAP -0.070).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 3,
+          "would_be_action": "block_destination",
+          "would_be_risk_score": 0.64
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for doorbell-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: distinct_dns_qnames=0.0 (SHAP +0.107).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 3,
+          "would_be_action": "block_destination",
+          "would_be_risk_score": 0.64
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 1.00 for doorbell-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: mean_iat_s=216.5924 (SHAP -0.101).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 3,
+          "would_be_action": "block_destination",
+          "would_be_risk_score": 0.64
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for doorbell-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: mean_iat_s=108.1231 (SHAP -0.083).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 3,
+          "would_be_action": "block_destination",
+          "would_be_risk_score": 0.64
+        }
+      ],
+      "air-sensor-00": [
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for air-sensor-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: distinct_dns_qnames=0.0 (SHAP +0.069).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 2,
+          "would_be_action": "rate_limit",
+          "would_be_risk_score": 0.5407692307692308
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for air-sensor-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: distinct_dns_qnames=0.0 (SHAP +0.069).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 2,
+          "would_be_action": "rate_limit",
+          "would_be_risk_score": 0.5407692307692308
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for air-sensor-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: distinct_dns_qnames=0.0 (SHAP +0.069).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 2,
+          "would_be_action": "rate_limit",
+          "would_be_risk_score": 0.5407692307692308
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for air-sensor-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: distinct_dns_qnames=0.0 (SHAP +0.069).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 2,
+          "would_be_action": "rate_limit",
+          "would_be_risk_score": 0.5407692307692308
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for air-sensor-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: distinct_dns_qnames=0.0 (SHAP +0.069).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 2,
+          "would_be_action": "rate_limit",
+          "would_be_risk_score": 0.5407692307692308
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for air-sensor-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: distinct_dns_qnames=0.0 (SHAP +0.069).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 2,
+          "would_be_action": "rate_limit",
+          "would_be_risk_score": 0.5407692307692308
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for air-sensor-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: distinct_dns_qnames=0.0 (SHAP +0.069).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 2,
+          "would_be_action": "rate_limit",
+          "would_be_risk_score": 0.5407692307692308
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for air-sensor-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: distinct_dns_qnames=0.0 (SHAP +0.069).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 2,
+          "would_be_action": "rate_limit",
+          "would_be_risk_score": 0.5407692307692308
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for air-sensor-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: distinct_dns_qnames=0.0 (SHAP +0.069).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 2,
+          "would_be_action": "rate_limit",
+          "would_be_risk_score": 0.5407692307692308
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for air-sensor-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: distinct_dns_qnames=0.0 (SHAP +0.069).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 2,
+          "would_be_action": "rate_limit",
+          "would_be_risk_score": 0.5407692307692308
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for air-sensor-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: distinct_dns_qnames=0.0 (SHAP +0.069).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 2,
+          "would_be_action": "rate_limit",
+          "would_be_risk_score": 0.5407692307692308
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for air-sensor-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: distinct_dns_qnames=0.0 (SHAP +0.069).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 2,
+          "would_be_action": "rate_limit",
+          "would_be_risk_score": 0.5407692307692308
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for air-sensor-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: distinct_dns_qnames=0.0 (SHAP +0.069).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 2,
+          "would_be_action": "rate_limit",
+          "would_be_risk_score": 0.5407692307692308
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for air-sensor-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: distinct_dns_qnames=0.0 (SHAP +0.069).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 2,
+          "would_be_action": "rate_limit",
+          "would_be_risk_score": 0.5407692307692308
+        }
+      ],
+      "smart-lock-00": [
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for smart-lock-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: mean_iat_s=109.7678 (SHAP -0.122).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 3,
+          "would_be_action": "block_destination",
+          "would_be_risk_score": 0.6807692307692308
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for smart-lock-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: mean_iat_s=92.9632 (SHAP -0.122).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 3,
+          "would_be_action": "block_destination",
+          "would_be_risk_score": 0.6807692307692308
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for smart-lock-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: mean_iat_s=113.1542 (SHAP -0.120).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 3,
+          "would_be_action": "block_destination",
+          "would_be_risk_score": 0.6807692307692308
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.77 for smart-lock-00; conformal set at alpha=0.05: ['benign', 'attack']. Top contributing feature: mean_iat_s=117.7423 (SHAP -0.125).",
+          "conformal_set": [
+            "benign",
+            "attack"
+          ],
+          "would_be_tier": 3,
+          "would_be_action": "block_destination",
+          "would_be_risk_score": 0.6807692307692308
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for smart-lock-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: mean_iat_s=135.861 (SHAP -0.118).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 3,
+          "would_be_action": "block_destination",
+          "would_be_risk_score": 0.6807692307692308
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for smart-lock-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: mean_iat_s=113.8731 (SHAP -0.122).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 3,
+          "would_be_action": "block_destination",
+          "would_be_risk_score": 0.6807692307692308
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for smart-lock-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: mean_iat_s=101.8252 (SHAP -0.118).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 3,
+          "would_be_action": "block_destination",
+          "would_be_risk_score": 0.6807692307692308
+        },
+        {
+          "signal": "isolation_forest_anomaly",
+          "source": "ml",
+          "explanation": "Calibrated anomaly probability 0.96 for smart-lock-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: mean_iat_s=114.621 (SHAP -0.124).",
+          "conformal_set": [
+            "attack"
+          ],
+          "would_be_tier": 3,
+          "would_be_action": "block_destination",
+          "would_be_risk_score": 0.6807692307692308
+        }
+      ]
+    },
+    "clean_devices": [
+      "smart-tv-00",
+      "hub-00",
+      "user-laptop-00"
+    ],
+    "incidents_created": 0,
+    "pass": false
+  },
+  "test_2_suspicious_mqtt_abuse": {
+    "scenario": "mqtt_abuse",
+    "incident": {
+      "incident_id": "e6048ee2-a889-4c4a-959f-720be7fb510b",
+      "device_id": "smart-lock-00",
+      "scenario": "mqtt_abuse",
+      "first_seen": "2026-01-01T02:00:00",
+      "last_seen": "2026-01-01T02:00:00",
+      "chain_position": "declared_policy_violation/isolation_forest_anomaly",
+      "agreement_score": 0.6666666666666666,
+      "detection_sources": [
+        "ml",
+        "policy"
+      ],
+      "risk_score": 0.7999999218316621,
+      "risk_terms": {
+        "severity": 1.0,
+        "criticality": 0.85,
+        "confidence": 1.0,
+        "deviation": 0.9999992183166204,
+        "blast_radius": 0.15
+      },
+      "bundle_id": "d18d86b6-b13e-4471-8d70-5f6483f8338d",
+      "action": "block_destination",
+      "tier": 3,
+      "dry_run": true,
+      "verification_outcome": "contained"
+    },
+    "pass": true
+  },
+  "test_3_high_severity_mirai": {
+    "scenario": "mirai",
+    "incident": {
+      "incident_id": "1467ee04-bd30-4f9f-a447-b2f4a9b90765",
+      "device_id": "smart-plug-00",
+      "scenario": "mirai",
+      "first_seen": "2026-01-01T02:00:00",
+      "last_seen": "2026-01-01T02:00:00",
+      "chain_position": "declared_policy_violation/isolation_forest_anomaly/scan_fanout",
+      "agreement_score": 1.0,
+      "detection_sources": [
+        "ml",
+        "rules",
+        "policy"
+      ],
+      "risk_score": 0.8599999957652185,
+      "risk_terms": {
+        "severity": 1.0,
+        "criticality": 0.3,
+        "confidence": 1.0,
+        "deviation": 0.9999999576521834,
+        "blast_radius": 1.0
+      },
+      "bundle_id": "c95e10ab-e000-4bf3-a080-ce123c6a292b",
+      "action": "isolate",
+      "tier": 4,
+      "dry_run": true,
+      "verification_outcome": "contained"
+    },
+    "pass": true
+  },
+  "test_4_false_positive_stress": {
+    "device": "smart-speaker-00",
+    "reason": "smart-speaker-00 is the device whose real attack scenario (low_and_slow) is deliberately shaped to resemble its own normal beaconing -- the hardest real false-positive case in this codebase, per argus/sim/attacks.py.",
+    "findings_on_benign_traffic": [
+      {
+        "signal": "isolation_forest_anomaly",
+        "source": "ml",
+        "explanation": "Calibrated anomaly probability 0.96 for smart-speaker-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: distinct_dns_qnames=0.0 (SHAP +0.113).",
+        "conformal_set": [
+          "attack"
+        ],
+        "would_be_tier": 2,
+        "would_be_action": "rate_limit",
+        "would_be_risk_score": 0.5807692307692308
+      },
+      {
+        "signal": "isolation_forest_anomaly",
+        "source": "ml",
+        "explanation": "Calibrated anomaly probability 0.96 for smart-speaker-00; conformal set at alpha=0.05: ['attack']. Top contributing feature: distinct_dns_qnames=0.0 (SHAP +0.101).",
+        "conformal_set": [
+          "attack"
+        ],
+        "would_be_tier": 2,
+        "would_be_action": "rate_limit",
+        "would_be_risk_score": 0.5807692307692308
+      }
+    ],
+    "pass": false
+  }
+}
