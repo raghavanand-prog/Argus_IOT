@@ -30,6 +30,9 @@ from dataclasses import asdict
 from datetime import UTC, datetime
 
 from sensor.client import ArgusApiClient
+from sensor.control.audit import AuditLog
+from sensor.control.authorization import AuthorizationStore
+from sensor.control.registry import execute_command
 from sensor.discovery import DiscoveryState
 
 # Everything below is capture-mode-only (needs scapy, an optional dependency --
@@ -45,7 +48,8 @@ from sensor.discovery import DiscoveryState
 def _device_to_payload(d) -> dict:
     return {
         "identifier": d.identifier, "ip": d.ip, "mac": d.mac, "vendor": d.vendor,
-        "device_type": d.device_type, "interface": d.interface,
+        "device_type": d.device_type, "interface": d.interface, "hostname": d.hostname,
+        "discovery_sources": d.discovery_sources,
         "first_seen": d.first_seen.isoformat(), "last_seen": d.last_seen.isoformat(),
         "flow_count": d.flow_count, "monitored": d.monitored,
     }
@@ -98,6 +102,16 @@ def run(args: argparse.Namespace) -> int:
             print(f"ERROR: {e}", file=sys.stderr)
             return 1
 
+    mdns = None
+    if args.enable_mdns:
+        try:
+            from sensor.mdns import MDNSListener
+        except ImportError as e:
+            print(f"ERROR: {e}", file=sys.stderr)
+            return 1
+        mdns = MDNSListener()
+        mdns.start()
+
     print(f"ARGUS local sensor starting -- sensor_id={sensor_id}")
     print(f"  target API: {args.api_url}")
     reachable, detail = client.check_reachable()
@@ -119,14 +133,82 @@ def run(args: argparse.Namespace) -> int:
             print("    single device you own, or get explicit authorization from the network owner first.")
     else:
         print("  capture mode: disabled (device discovery only -- pass --enable-capture to detect on real traffic)")
+    if args.resolve_hostnames:
+        print(f"  hostname resolution: ENABLED (reverse DNS, bounded to {args.max_hostname_lookups_per_poll} new lookups/poll)")
+    if args.enable_mdns:
+        print("  mDNS discovery: ENABLED (standard multicast-DNS queries, same mechanism any Chromecast/AirPlay finder uses)")
+    if args.enable_control:
+        print("  device control: ENABLED -- fulfills commands queued from the console, but ONLY for devices")
+        print("    authorized on THIS machine (~/.argus/authorized_devices.json). The cloud can queue a request;")
+        print("    it can never grant authorization -- that only ever happens via 'python -m sensor.control_cli")
+        print("    authorize <ip>', run here, by you.")
     print("  Never sends traffic to discovered devices. Never blocks or isolates anything.")
     print()
 
-    discovery = DiscoveryState()
+    discovery = DiscoveryState(
+        resolve_hostnames=args.resolve_hostnames, mdns=mdns,
+        max_hostname_lookups_per_poll=args.max_hostname_lookups_per_poll,
+    )
+    try:
+        return _run_loop(args, client, sensor_id, discovery, cap_stack)
+    finally:
+        if mdns is not None:
+            mdns.stop()
+
+
+def _fulfil_control_commands(client, sensor_id, auth_store, audit_log, audit_entries_reported: int) -> int:
+    """Reports this machine's own local authorization/capability state and
+    any new local audit entries, then fetches and fulfils commands the
+    console has queued for this sensor -- each one re-checked against the
+    LOCAL AuthorizationStore by execute_command(), never trusting the queue
+    entry itself as authorization (see sensor/control/registry.py's module
+    docstring). Returns the updated audit_entries_reported count. A failure
+    anywhere here (network error, one bad command) is caught and logged,
+    never allowed to crash the sensor's main loop -- same principle as the
+    ingest submission just above it."""
+    try:
+        control_devices = [
+            {"identifier": d.identifier, "protocol": d.protocol, "capabilities": d.capabilities, "authorized": True}
+            for d in auth_store.list()
+        ]
+        all_entries = audit_log.read_all()
+        new_entries = all_entries[audit_entries_reported:]
+        client.report_control_state(sensor_id, control_devices, new_entries)
+        audit_entries_reported = len(all_entries)
+
+        pending = client.poll_control_commands(sensor_id)
+        for cmd in pending:
+            result = execute_command(
+                cmd["device_identifier"], _ip_for(auth_store, cmd["device_identifier"]) or "",
+                cmd["action"], auth_store=auth_store, audit_log=audit_log, requested_by="cloud-console",
+            )
+            status = "fulfilled" if result["result"] == "SUCCESS" else result["result"].lower()
+            client.report_command_result(cmd["command_id"], status, result)
+            print(f"  [control] {cmd['action']} on {cmd['device_identifier']}: {result['result']} -- {result['detail']}")
+            # execute_command already wrote its own local audit entry; report it next poll too
+        if pending:
+            all_entries = audit_log.read_all()
+            client.report_control_state(sensor_id, control_devices, all_entries[audit_entries_reported:])
+            audit_entries_reported = len(all_entries)
+    except Exception as e:  # noqa: BLE001 -- one failed control cycle must not crash the sensor loop
+        print(f"  [control] FAILED to sync with API: {e}")
+    return audit_entries_reported
+
+
+def _ip_for(auth_store, identifier: str) -> str | None:
+    device = auth_store.get(identifier)
+    return device.ip if device else None
+
+
+def _run_loop(args, client, sensor_id, discovery, cap_stack) -> int:
     baselines: dict[str, object] = {}
     detectors: dict[str, object] = {}
     feature_history: dict[str, list] = {}
     flow_counts: dict[str, int] = {}
+
+    auth_store = AuthorizationStore() if args.enable_control else None
+    audit_log = AuditLog() if args.enable_control else None
+    audit_entries_reported = 0
 
     iteration = 0
     while True:
@@ -205,6 +287,11 @@ def run(args: argparse.Namespace) -> int:
         except Exception as e:  # noqa: BLE001 -- a single failed submission must not crash the sensor loop
             print(f"[{datetime.now().strftime('%H:%M:%S')}] poll #{iteration}: FAILED to submit to API: {e}")
 
+        if args.enable_control:
+            audit_entries_reported = _fulfil_control_commands(
+                client, sensor_id, auth_store, audit_log, audit_entries_reported,
+            )
+
         if args.once:
             return 0
         if not args.enable_capture:
@@ -232,6 +319,28 @@ def main() -> int:
              "given interface(s).",
     )
     parser.add_argument("--once", action="store_true", help="Run a single poll and exit (for testing)")
+    parser.add_argument(
+        "--resolve-hostnames", action="store_true",
+        help="Opt in to reverse-DNS hostname lookups for discovered devices (a real network call, bounded per "
+             "poll -- off by default, matching passive-minimal discovery).",
+    )
+    parser.add_argument(
+        "--max-hostname-lookups-per-poll", type=int, default=5,
+        help="Cap on new reverse-DNS lookups per poll, if --resolve-hostnames is set (keeps a large network's "
+             "neighbour table from making a single poll take hours).",
+    )
+    parser.add_argument(
+        "--enable-mdns", action="store_true",
+        help="Opt in to mDNS/Bonjour discovery (standard multicast-DNS queries -- the same mechanism any "
+             "Chromecast/AirPlay/printer-finder app uses, not port scanning). Off by default.",
+    )
+    parser.add_argument(
+        "--enable-control", action="store_true",
+        help="Opt in to fulfilling device-control commands queued from the console (e.g. a [Power Off] click). "
+             "Every command is re-checked against THIS machine's own local authorization store "
+             "(~/.argus/authorized_devices.json, managed via 'python -m sensor.control_cli') before anything "
+             "happens -- the cloud can request, never authorize. Off by default.",
+    )
     args = parser.parse_args()
     return run(args)
 

@@ -41,6 +41,7 @@ import copy
 import json
 import os
 import sys
+import uuid
 from datetime import datetime
 from pathlib import Path
 
@@ -101,6 +102,15 @@ _LIVE_EVIDENCE: dict[str, dict] = {}
 live_ledger = EvidenceLedger()
 live_rate_limiter = ActionRateLimiter()
 live_adapter = DryRunAdapter()
+
+# Device-control command queue + audit mirror (docs/19-device-control.md), same
+# in-memory-per-warm-instance pattern as the rest of this file. The cloud is the
+# authoritative *queue*, never the authority on whether a command is *allowed* --
+# that's decided on the sensor itself, against its own local authorization file,
+# every time (see sensor/control/registry.py::execute_command). A row here is a
+# request, not a grant.
+_CONTROL_COMMANDS: dict[str, dict] = {}
+_CONTROL_AUDIT: list[dict] = []
 
 app = FastAPI(title="ARGUS API (production snapshot)", version="0.1.0")
 app.add_middleware(
@@ -357,7 +367,18 @@ def live_ingest(payload: dict, _: None = Depends(require_auth)):
     detections_in = payload.get("detections", [])
 
     for d in devices:
-        _LIVE_DEVICES[d["identifier"]] = {**d, "sensor_id": sensor_id}
+        # Preserve control_protocol/control_capabilities/authorized across a plain
+        # re-discovery -- those are set by the separate /live/control/report path
+        # and must not be silently reset every poll (the same real bug found and
+        # fixed in argus.pipeline.ingest_live_observation's SQLAlchemy equivalent
+        # this session -- see decisions.md).
+        existing = _LIVE_DEVICES.get(d["identifier"], {})
+        _LIVE_DEVICES[d["identifier"]] = {
+            **d, "sensor_id": sensor_id,
+            "control_protocol": existing.get("control_protocol"),
+            "control_capabilities": existing.get("control_capabilities", []),
+            "authorized": existing.get("authorized", False),
+        }
     _LIVE_SENSORS[sensor_id] = {
         "sensor_id": sensor_id, "hostname": payload.get("hostname", "unknown"),
         "monitoring_active": payload.get("monitoring_active", False),
@@ -407,6 +428,64 @@ def live_status():
             "snapshot state (see module docstring)."
         ),
     }
+
+
+@api.post("/live/control/report")
+def live_control_report(payload: dict, _: None = Depends(require_auth)):
+    """The sensor reporting its OWN local authorization/capability state and
+    new local audit entries -- a read-only mirror for console display. The
+    cloud never decides authorization; it only displays what the sensor, the
+    only party with actual LAN access, says about itself."""
+    for d in payload.get("control_devices", []):
+        identifier = d["identifier"]
+        if identifier in _LIVE_DEVICES:
+            _LIVE_DEVICES[identifier]["control_protocol"] = d.get("protocol")
+            _LIVE_DEVICES[identifier]["control_capabilities"] = d.get("capabilities", [])
+            _LIVE_DEVICES[identifier]["authorized"] = d.get("authorized", False)
+    _CONTROL_AUDIT[0:0] = payload.get("audit_entries", [])  # newest-relevant-first, mirrors DB ORDER BY ts DESC intent
+    return {"ok": True}
+
+
+@api.post("/live/control/commands")
+def queue_command(payload: dict, _: None = Depends(require_auth)):
+    """Queues a control intent from the console -- a REQUEST, not a grant
+    (see this module's control-queue comment above). The sensor re-verifies
+    for real before it ever touches the device."""
+    command_id = str(uuid.uuid4())
+    _CONTROL_COMMANDS[command_id] = {
+        "command_id": command_id, "sensor_id": payload["sensor_id"],
+        "device_identifier": payload["device_identifier"], "action": payload["action"],
+        "requested_at": datetime.utcnow().isoformat(), "status": "pending", "result": None,
+    }
+    return {"command_id": command_id, "status": "pending"}
+
+
+@api.get("/live/control/commands")
+def get_pending_commands(sensor_id: str, status: str = "pending"):
+    """Polled by the sensor itself (never the console) to fetch commands
+    queued for it specifically."""
+    return [
+        {"command_id": c["command_id"], "device_identifier": c["device_identifier"],
+         "action": c["action"], "requested_at": c["requested_at"]}
+        for c in _CONTROL_COMMANDS.values()
+        if c["sensor_id"] == sensor_id and c["status"] == status
+    ]
+
+
+@api.post("/live/control/commands/{command_id}/result")
+def post_command_result(command_id: str, payload: dict, _: None = Depends(require_auth)):
+    """The sensor reporting back what actually happened -- fulfilled, failed,
+    or denied by its own local authorization check."""
+    if command_id not in _CONTROL_COMMANDS:
+        raise HTTPException(status_code=404, detail="command not found")
+    _CONTROL_COMMANDS[command_id]["status"] = payload["status"]
+    _CONTROL_COMMANDS[command_id]["result"] = payload.get("result", {})
+    return {"ok": True}
+
+
+@api.get("/live/control/audit")
+def get_control_audit():
+    return _CONTROL_AUDIT[:200]
 
 
 app.include_router(api)

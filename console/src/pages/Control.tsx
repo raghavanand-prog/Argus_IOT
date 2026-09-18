@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../lib/api";
 import { useAdminToken } from "../lib/token";
-import { AlertOctagon, Database, KeyRound, Power } from "lucide-react";
+import { AlertOctagon, KeyRound, Power } from "lucide-react";
 import { ErrorCard } from "./Fleet";
 
 export function Control() {
@@ -12,15 +12,6 @@ export function Control() {
 
   const { data: status } = useQuery({ queryKey: ["control-status"], queryFn: api.controlStatus, refetchInterval: 4000 });
   const { data: actions, error: actionsError } = useQuery({ queryKey: ["actions"], queryFn: api.actions, refetchInterval: 8000 });
-
-  const seedMutation = useMutation({
-    mutationFn: () => api.seedDemo(token),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["devices"] });
-      qc.invalidateQueries({ queryKey: ["incidents"] });
-      qc.invalidateQueries({ queryKey: ["actions"] });
-    },
-  });
 
   const killSwitchMutation = useMutation({
     mutationFn: (engage: boolean) => api.toggleKillSwitch(engage, token),
@@ -102,36 +93,14 @@ export function Control() {
         </div>
       </section>
 
-      <section className="mb-6 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
-        <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold">
-          <Database className="h-4 w-4" aria-hidden="true" /> Demo data (synthetic testbed)
-        </h2>
-        <p className="mb-3 text-xs text-[var(--color-text-dim)]">
-          Runs the full simulated loop (enrollment → attack scenarios → detect → correlate → risk → evidence →
-          respond → verify) and persists it — this is what populates the Demo Fleet page and the synthetic-scenario
-          rows on Incidents. Synthetic devices only, unrelated to the CICIoT2023 evaluation — see IDS Evaluation for
-          the real dataset-derived results.
-        </p>
-        <button
-          onClick={() => seedMutation.mutate()}
-          disabled={!token || seedMutation.isPending}
-          className="rounded-md bg-[var(--color-accent)] px-4 py-2 text-sm font-semibold text-black disabled:opacity-40"
-        >
-          {seedMutation.isPending ? "Running pipeline…" : "Run demo pipeline"}
-        </button>
-        {seedMutation.data && (
-          <p className="mono mt-2 text-xs text-[var(--color-accent)]">
-            seeded {seedMutation.data.incidents} incidents, {seedMutation.data.bundles} evidence bundles,{" "}
-            {seedMutation.data.actions} actions.
-          </p>
-        )}
-      </section>
-
       <section className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
         <h2 className="mb-3 text-sm font-semibold">Active / recent actions</h2>
         {actionsError && <ErrorCard message={(actionsError as Error).message} />}
         {actions && actions.length === 0 && (
-          <p className="text-xs text-[var(--color-text-dim)]">No actions yet — run the demo pipeline above.</p>
+          <p className="text-xs text-[var(--color-text-dim)]">
+            No actions yet — actions appear here once a real incident (live network or benchmark evaluation)
+            triggers the response ladder.
+          </p>
         )}
         {actions && actions.length > 0 && (
           <div className="space-y-2">
