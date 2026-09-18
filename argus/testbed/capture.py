@@ -28,6 +28,16 @@ scapy_conf.verb = 0
 class CaptureSession:
     ifaces: list[str]
     pcap_path: str | None = None
+    # A real BPF filter string (e.g. "host 192.168.1.50"), applied by libpcap in
+    # the kernel before a packet ever reaches this process -- not a post-hoc
+    # Python filter. This is what lets sensor/agent.py's --target-host scope a
+    # capture to exactly one device: on a shared network the operator doesn't
+    # administer (e.g. a college LAN), capturing every packet on the interface
+    # means capturing other people's traffic shapes without their consent, which
+    # needs network-owner authorization the operator likely doesn't have. Scoping
+    # to a single host they do own/control sidesteps that entirely -- packets
+    # to/from anyone else are dropped by the kernel, never captured at all.
+    bpf_filter: str | None = None
     packets: list = field(default_factory=list)
     _sniffer: AsyncSniffer | None = field(default=None, repr=False)
     _lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
@@ -37,9 +47,14 @@ class CaptureSession:
             self.packets.append(pkt)
 
     def start(self) -> None:
-        self._sniffer = AsyncSniffer(iface=self.ifaces, prn=self._on_packet, store=False)
+        self._sniffer = AsyncSniffer(
+            iface=self.ifaces, prn=self._on_packet, store=False, filter=self.bpf_filter,
+        )
         self._sniffer.start()
-        logger.info("capture started on %d interfaces", len(self.ifaces))
+        logger.info(
+            "capture started on %d interfaces%s", len(self.ifaces),
+            f" (filter: {self.bpf_filter!r})" if self.bpf_filter else "",
+        )
 
     def stop(self) -> list:
         if self._sniffer is not None:

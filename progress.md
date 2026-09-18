@@ -495,3 +495,45 @@ in for. Two real, user-reported errors, both fixed:
    `--enable-capture` without scapy prints the clean install instruction and
    exits 1, no traceback. Re-ran `tests/sensor/` (21/21) and capture mode
    against a real local API afterward to confirm nothing regressed.
+
+## 2026-09-18 — real-world testing surfaced two more findings; added a scoped-capture option
+
+Discovery-only mode against the project owner's actual college WiFi reported
+2586+ devices, growing continuously (~5/poll). Real, not a bug: a college
+network is very often one large flat L2 segment with poor building/floor
+VLAN segmentation, so a real Mac's ARP cache genuinely accumulates thousands
+of entries there — confirmed by walking through the parsing logic (no
+double-counting in `_parse_arp_a_output`'s regex) and by the project owner
+confirming the network context. Discovery-only mode stayed correct and safe
+to run as-is (fully passive, reads only the OS's own already-resolved ARP
+cache).
+
+Raised separately, proactively, before the project owner tried
+`--enable-capture` there: promiscuous packet capture on a network the
+operator doesn't administer means capturing other students' traffic shapes
+without consent or campus-IT authorization, even though ARGUS only extracts
+metadata. `CaptureSession` (`argus/testbed/capture.py`) had no way to scope
+a capture at all — it always sniffed everything on the given interface(s).
+Added a `bpf_filter` field, wired to `scapy.AsyncSniffer`'s own `filter=`
+kwarg (compiled and enforced by the kernel via libpcap, before a packet ever
+reaches the Python process), and a new `sensor/agent.py --target-host <ip>`
+flag that builds a `host <ip>` filter from it. `agent.py` now prints an
+explicit warning at startup if `--enable-capture` is used without
+`--target-host`.
+
+Verified, not assumed: this sandbox itself lacked `libpcap` (the system
+library scapy needs to *compile* a BPF filter string — a different thing
+from the `scapy` Python package, which was already installed), so the first
+attempt to actually exercise the new filter failed with a real
+`OSError: Cannot find libpcap.so library` from inside scapy. Installed it
+(`apt-get install libpcap-dev libpcap0.8`) rather than leaving the feature
+unverified, then re-ran a real capture: generated real UDP traffic to two
+different destinations (`192.0.2.1`, the target host, and `8.8.8.8`, a
+non-target) simultaneously, captured with `CaptureSession(bpf_filter="host
+192.0.2.1")`, and confirmed the captured packet set contained only
+`192.0.2.1`/`192.0.2.2` (the target and this machine) — `8.8.8.8` never
+appeared, genuinely excluded at capture time, not filtered after the fact.
+Re-ran the full local suite (77/77) and `ruff` (clean) afterward, including
+`tests/test_live_testbed.py` (the real network-namespace testbed's own
+`CaptureSession` usage, to confirm the new optional field didn't disturb its
+existing unfiltered call site).
