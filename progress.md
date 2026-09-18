@@ -210,3 +210,58 @@ exactly that gap, not glossed over.
 
 Production URL: `https://argus-iot.vercel.app` (aliased at
 `https://argus-iot-wolfie4.vercel.app`).
+
+## 2026-09-18 — real end-to-end IDS validation (`docs/16-ids-validation.md`)
+
+Asked for a reproducible validation of the whole detection lifecycle
+(telemetry → detection → classification → incident → evidence → response →
+replay), with real results, no invented passes. Inspected the actual
+architecture first rather than assuming: telemetry generation and detection
+happen in the same process/call (`argus.pipeline.run_demo_pipeline()`), not
+over a separate ingestion hop; the production Vercel deployment serves a
+static snapshot and cannot run this live, by the same documented design as
+the third session's API split -- so the full lifecycle can only be executed
+locally, and the report says so plainly rather than implying a phone-only
+demo could do it all.
+
+Found one real gap before any test could run: no existing code path tested
+the detectors against pure benign traffic (`run_demo_pipeline` always mixes
+in all 7 attack scenarios). Added `argus.pipeline._enroll_and_train()` (the
+enroll+train logic factored out so both the real pipeline and the new
+validation path share one trained detector) and `run_benign_validation()`
+(read-only, no DB writes, the same four detectors + the same
+correlate/risk/tier_for_risk path used for reporting what a flagged window
+would have escalated to). Ran all 6 tests for real:
+
+- Test 1 (baseline, whole fleet) and Test 4 (benign stress test on
+  smart-speaker-00, the device whose real attack scenario is deliberately
+  shaped to look like its own normal beacon): **FAIL**. 75 of 198 held-out
+  benign windows flagged by the ML detector; 40 with a singleton conformal
+  set that would have reached an enforcement tier. Investigated the cause
+  directly (re-ran at both the detector's 120s training-window size and the
+  300s inference size -- false positives persisted at both, ruling out a
+  window-size bug in the validation itself) rather than assuming: a real
+  generalization gap from training on one ~4-hour, single-seed benign
+  corpus. Root cause and the identified fix (broaden the training corpus)
+  are both documented; the fix was deliberately *not* applied this session,
+  since doing so with knowledge of this exact test's held-out seed would be
+  tuning the model to pass the check built to catch this.
+- Test 2 (mqtt_abuse) and Test 3 (mirai, reaches `isolate`/tier 4): **PASS**,
+  via the real, unmodified `run_demo_pipeline`.
+- Test 5 (kill-switch response): **PASS** -- engaged the switch over real
+  authenticated HTTP, re-ran the pipeline, and confirmed actions genuinely
+  dropped from 19 to 0 on the new run (not just a UI toggle); the vetoed
+  incident's evidence bundle records `guard_verdict=veto`,
+  `gates_failed: ["kill_switch_disengaged"]`, confirmed visually in the
+  console.
+- Test 6 (replay): **PASS** -- real authenticated replay, `reproduced: true`,
+  original bundle's hash unchanged after replay.
+
+Result: 4/6 pass, 2/6 fail, reported exactly as measured in a test matrix,
+with the fails' root cause investigated and written up rather than hidden
+or tuned away. Locked the exact counts in as a new regression test
+(`tests/test_ids_validation.py`); full suite 46/46 green, `ruff` clean.
+Wrote `docs/16-ids-validation.md` with the full matrix, a local full-lifecycle
+demo procedure and a separate phone/production demo procedure (explicit
+about which steps each can and can't do), and a screenshot list for
+research-paper evidence.
