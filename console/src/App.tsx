@@ -3,6 +3,7 @@ import { Nav } from "./components/Nav";
 import { Fleet } from "./pages/Fleet";
 import { Incidents } from "./pages/Incidents";
 import { Control } from "./pages/Control";
+import { IdsEvaluation } from "./pages/IdsEvaluation";
 
 export default function App() {
   return (
@@ -11,6 +12,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Fleet />} />
         <Route path="/incidents" element={<Incidents />} />
+        <Route path="/ids-evaluation" element={<IdsEvaluation />} />
         <Route path="/control" element={<Control />} />
       </Routes>
     </div>

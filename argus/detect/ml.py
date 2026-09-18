@@ -28,8 +28,8 @@ FEATURE_KEYS = [
 ]
 
 
-def _vectorise(fv: FeatureVector) -> np.ndarray:
-    return np.array([fv.values.get(k, 0.0) for k in FEATURE_KEYS], dtype=float)
+def _vectorise(fv: FeatureVector, feature_keys: list[str] = FEATURE_KEYS) -> np.ndarray:
+    return np.array([fv.values.get(k, 0.0) for k in feature_keys], dtype=float)
 
 
 @dataclass
@@ -40,12 +40,24 @@ class CalibratedDetector:
     must be understood to be defended in an interview, and the dependency is not worth
     it" -- referring to the conformal wrapper specifically; we apply the same standard
     to the whole detector).
+
+    ``feature_keys`` defaults to the live network-flow track's ``FEATURE_KEYS`` (14
+    dims derived from ``FlowRecord`` via ``extract_device_window``). It is an
+    injectable field, not hardcoded, specifically so a *second instance* of this exact
+    class can be fit on a differently-shaped feature space -- e.g. a real benchmark
+    dataset release whose columns are its own pre-computed statistics, not raw flow
+    fields (see argus/data/cicioT2023.py). This is the one adjustment this class
+    needed to be scientifically reusable across feature spaces: reusing the *fitted*
+    14-feature detector on an 8-feature dataset would silently misalign features by
+    position; a same-class instance fit on the dataset's own 8 named columns is a
+    real, separately-trained model, not a repurposed one.
     """
 
     model: IsolationForest = field(default_factory=lambda: IsolationForest(random_state=42, contamination=0.1))
     calibrator: IsotonicRegression = field(default_factory=lambda: IsotonicRegression(out_of_bounds="clip"))
     _calib_nonconformity: np.ndarray = field(default_factory=lambda: np.array([]))
     alpha: float = 0.05
+    feature_keys: list[str] = field(default_factory=lambda: FEATURE_KEYS)
     fitted: bool = False
 
     def fit(self, train_vectors: list[FeatureVector], calib_vectors: list[FeatureVector], calib_labels: list[int]) -> None:
@@ -53,10 +65,10 @@ class CalibratedDetector:
         ``calib_vectors``/``calib_labels``: held-out, disjoint from training, used both
         to fit the isotonic calibrator and to compute conformal nonconformity scores --
         never touched during training (docs/02: "never on training or test data")."""
-        X_train = np.vstack([_vectorise(fv) for fv in train_vectors])
+        X_train = np.vstack([_vectorise(fv, self.feature_keys) for fv in train_vectors])
         self.model.fit(X_train)
 
-        X_calib = np.vstack([_vectorise(fv) for fv in calib_vectors])
+        X_calib = np.vstack([_vectorise(fv, self.feature_keys) for fv in calib_vectors])
         raw_scores = -self.model.score_samples(X_calib)  # higher = more anomalous
         y = np.array(calib_labels, dtype=float)
         self.calibrator.fit(raw_scores, y)
@@ -73,7 +85,7 @@ class CalibratedDetector:
         conformal_set in {"benign"}, {"attack"}, or {"benign","attack"} (uncertain)."""
         if not self.fitted:
             return 0.0, ["benign", "attack"]
-        x = _vectorise(fv).reshape(1, -1)
+        x = _vectorise(fv, self.feature_keys).reshape(1, -1)
         raw = -self.model.score_samples(x)[0]
         p_attack = float(self.calibrator.predict([raw])[0])
 
@@ -120,12 +132,13 @@ class ShapExplainer:
         default_factory=lambda: RandomForestClassifier(n_estimators=100, random_state=42, max_depth=6)
     )
     _explainer: object = field(default=None, repr=False)
+    feature_keys: list[str] = field(default_factory=lambda: FEATURE_KEYS)
     fitted: bool = False
 
     def fit(self, vectors: list[FeatureVector], labels: list[int]) -> None:
         if len(set(labels)) < 2 or len(vectors) < 4:
             return  # can't fit or explain a classifier without both classes
-        X = np.vstack([_vectorise(fv) for fv in vectors])
+        X = np.vstack([_vectorise(fv, self.feature_keys) for fv in vectors])
         y = np.array(labels)
         self.model.fit(X, y)
         self._explainer = shap.TreeExplainer(self.model)
@@ -134,12 +147,12 @@ class ShapExplainer:
     def explain(self, fv: FeatureVector, top_n: int = 5) -> list[dict]:
         if not self.fitted:
             return []
-        x = _vectorise(fv).reshape(1, -1)
+        x = _vectorise(fv, self.feature_keys).reshape(1, -1)
         raw = self._explainer.shap_values(x)
         # shap>=0.45 with a binary RandomForestClassifier returns (n_samples,
         # n_features, n_classes); take the positive ("attack") class, class index 1
         contributions = raw[0, :, 1] if raw.ndim == 3 else raw[1][0]
-        pairs = sorted(zip(FEATURE_KEYS, x[0], contributions), key=lambda t: -abs(t[2]))
+        pairs = sorted(zip(self.feature_keys, x[0], contributions), key=lambda t: -abs(t[2]))
         return [
             {"name": name, "value": round(float(val), 4), "contribution": round(float(contrib), 4)}
             for name, val, contrib in pairs[:top_n]

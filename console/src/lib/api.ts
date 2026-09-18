@@ -78,6 +78,66 @@ export interface ActionRow {
   ttl_seconds: number;
 }
 
+export interface CicioTManifest {
+  run_id: string;
+  dataset_filename: string;
+  dataset_sha256: string;
+  seed: number;
+  feature_keys: string[];
+  model_config: Record<string, unknown>;
+  detection_threshold: number;
+  generated_at: string;
+  n_train_benign: number;
+  n_calib_benign: number;
+  n_calib_attack: number;
+  n_test_benign: number;
+  n_test_attack: number;
+  n_total_rows_in_file: number;
+  dataset_name?: string;
+  dataset_source?: string;
+  label_map_assumption?: string;
+  limitations?: string[];
+}
+
+export interface CicioTConfusionMatrix {
+  tp: number;
+  tn: number;
+  fp: number;
+  fn: number;
+}
+
+export interface CicioTMetrics {
+  accuracy: number;
+  precision: number;
+  recall: number;
+  f1: number;
+  false_positive_rate: number;
+  false_negative_rate: number;
+}
+
+export interface CicioTEvalSummary {
+  run_id: string;
+  manifest: CicioTManifest;
+  confusion_matrix: CicioTConfusionMatrix;
+  metrics: CicioTMetrics;
+  n_incidents_generated: number;
+  n_records: number;
+  mode: "local-live" | "production-snapshot";
+}
+
+export interface CicioTRecord {
+  record_id: string;
+  row_index: number;
+  ground_truth: "benign" | "attack";
+  prediction: "benign" | "attack";
+  score: number;
+  conformal_set: string[];
+  flow_identifier: string;
+  features: Record<string, number>;
+  incident_id: string | null;
+  outcome: "TP" | "TN" | "FP" | "FN";
+}
+
 async function req<T>(path: string, opts: RequestInit = {}): Promise<T> {
   const res = await fetch(`${BASE}${path}`, opts);
   if (!res.ok) {
@@ -110,4 +170,12 @@ export const api = {
       headers: authHeaders(token),
     }),
   actions: () => req<ActionRow[]>("/actions"),
+  cicioTEvalSummary: () => req<CicioTEvalSummary>("/cicioT2023/eval"),
+  cicioTEvalRecords: () => req<CicioTRecord[]>("/cicioT2023/eval/records"),
+  cicioTEvalRecord: (recordId: string) => req<CicioTRecord>(`/cicioT2023/eval/records/${recordId}`),
+  runCicioTEval: (token: string) =>
+    req<{ run_id: string; manifest: CicioTManifest; confusion_matrix: CicioTConfusionMatrix; metrics: CicioTMetrics }>(
+      "/control/run-cicioT2023-eval",
+      { method: "POST", headers: authHeaders(token) },
+    ),
 };
