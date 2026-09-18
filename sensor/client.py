@@ -29,11 +29,39 @@ class ArgusApiClient:
         with urllib.request.urlopen(req, timeout=self.timeout_s) as resp:
             return json.loads(resp.read())
 
+    def _get(self, path: str) -> object:
+        url = self.base_url.rstrip("/") + path
+        req = urllib.request.Request(url, headers={"Authorization": f"Bearer {self.token}"})
+        with urllib.request.urlopen(req, timeout=self.timeout_s) as resp:
+            return json.loads(resp.read())
+
     def ingest(self, sensor_id: str, hostname: str, monitoring_active: bool,
                devices: list[dict], detections: list[dict]) -> dict:
         return self._post("/live/ingest", {
             "sensor_id": sensor_id, "hostname": hostname, "monitoring_active": monitoring_active,
             "devices": devices, "detections": detections,
+        })
+
+    def report_control_state(self, sensor_id: str, control_devices: list[dict],
+                              audit_entries: list[dict]) -> dict:
+        """Reports this sensor's own local authorization/capability state
+        (never decided by the cloud -- see sensor/control/registry.py) and any
+        new local audit-log entries, purely for console display."""
+        return self._post("/live/control/report", {
+            "sensor_id": sensor_id, "control_devices": control_devices, "audit_entries": audit_entries,
+        })
+
+    def poll_control_commands(self, sensor_id: str) -> list[dict]:
+        """Pending commands the console has queued for this sensor_id. The
+        sensor must independently re-verify authorization against its own
+        local store before executing any of these -- this list is an
+        *intent*, never a pre-authorized instruction (see
+        sensor/control/registry.py::execute_command)."""
+        return self._get(f"/live/control/commands?sensor_id={sensor_id}&status=pending")
+
+    def report_command_result(self, command_id: str, status: str, result: dict) -> dict:
+        return self._post(f"/live/control/commands/{command_id}/result", {
+            "status": status, "result": result,
         })
 
     def check_reachable(self) -> tuple[bool, str]:

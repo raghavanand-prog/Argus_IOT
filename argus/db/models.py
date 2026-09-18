@@ -136,12 +136,21 @@ class LiveDeviceRow(Base):
     mac: Mapped[str | None] = mapped_column(String, nullable=True)
     vendor: Mapped[str | None] = mapped_column(String, nullable=True)
     device_type: Mapped[str] = mapped_column(String, default="unknown")
+    hostname: Mapped[str | None] = mapped_column(String, nullable=True)
+    discovery_sources: Mapped[list] = mapped_column(JSON, default=list)
     interface: Mapped[str | None] = mapped_column(String, nullable=True)
     first_seen: Mapped[datetime] = mapped_column(DateTime)
     last_seen: Mapped[datetime] = mapped_column(DateTime)
     flow_count: Mapped[int] = mapped_column(Integer, default=0)
     monitored: Mapped[bool] = mapped_column(Boolean, default=False)  # has a baseline/detector been fit for it
     sensor_id: Mapped[str] = mapped_column(String, default="")
+    # Device Control fields below are a read-only MIRROR of state the sensor decides
+    # and enforces locally (see docs/19-device-control.md) -- authorization is never
+    # decided here, the cloud only displays what the sensor reports about its own
+    # local authorization file and capability probes.
+    control_protocol: Mapped[str | None] = mapped_column(String, nullable=True)
+    control_capabilities: Mapped[list] = mapped_column(JSON, default=list)
+    authorized: Mapped[bool] = mapped_column(Boolean, default=False)
 
 
 class SensorHeartbeatRow(Base):
@@ -155,6 +164,47 @@ class SensorHeartbeatRow(Base):
     monitoring_active: Mapped[bool] = mapped_column(Boolean, default=False)
     devices_discovered: Mapped[int] = mapped_column(Integer, default=0)
     last_seen: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class ControlCommandRow(Base):
+    """A device-control command queue entry (docs/19-device-control.md). The
+    cloud API is the authoritative *queue* (console click -> row here,
+    status="pending") but never the authority on whether the command is
+    *allowed* -- that decision is made twice, independently: once here as a
+    display-only capability/authorization check before queuing (so the
+    console doesn't even show a control the sensor hasn't reported as
+    authorized+supported), and again, for real, on the sensor itself against
+    its own local authorization file, before it ever touches a real device.
+    A row the sensor's local check rejects is recorded here as status="denied"
+    with why, not silently dropped."""
+
+    __tablename__ = "control_commands"
+    command_id: Mapped[str] = mapped_column(String, primary_key=True)
+    sensor_id: Mapped[str] = mapped_column(String)
+    device_identifier: Mapped[str] = mapped_column(String)
+    action: Mapped[str] = mapped_column(String)  # e.g. "power_on", "power_off", "get_status"
+    requested_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    status: Mapped[str] = mapped_column(String, default="pending")  # pending|fulfilled|failed|denied
+    result: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
+class ControlAuditRow(Base):
+    """Read-only mirror of the sensor's own local control-action audit log
+    (source of truth is the sensor's local file, per the project owner's
+    explicit choice to keep authorization+audit local -- see
+    docs/19-device-control.md), reported here purely for console display."""
+
+    __tablename__ = "control_audit"
+    seq: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    ts: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    sensor_id: Mapped[str] = mapped_column(String)
+    device_identifier: Mapped[str] = mapped_column(String)
+    device_ip: Mapped[str] = mapped_column(String)
+    action: Mapped[str] = mapped_column(String)
+    protocol: Mapped[str] = mapped_column(String)
+    result: Mapped[str] = mapped_column(String)  # SUCCESS|FAILURE|DENIED
+    authorization_state: Mapped[str] = mapped_column(String)
 
 
 class AuditLogRow(Base):

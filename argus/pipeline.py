@@ -840,11 +840,23 @@ def ingest_live_observation(
     """
     now = datetime.utcnow()
     for d in devices:
+        # Preserve control_protocol/control_capabilities/authorized across a plain
+        # discovery/detection ingest -- those fields are set by the separate
+        # /live/control/report path (argus.control.upsert_control_device_state) and
+        # must not be silently reset to their defaults every time this device is
+        # merely re-observed, which would otherwise wipe out real authorization
+        # state on this device's very next discovery poll (caught before shipping,
+        # not after -- see decisions.md).
+        existing = db.query(LiveDeviceRow).filter_by(identifier=d["identifier"]).first()
         db.merge(LiveDeviceRow(
             identifier=d["identifier"], ip=d["ip"], mac=d.get("mac"), vendor=d.get("vendor"),
-            device_type=d.get("device_type", "unknown"), interface=d.get("interface"),
+            device_type=d.get("device_type", "unknown"), hostname=d.get("hostname"),
+            discovery_sources=d.get("discovery_sources", ["arp"]), interface=d.get("interface"),
             first_seen=datetime.fromisoformat(d["first_seen"]), last_seen=datetime.fromisoformat(d["last_seen"]),
             flow_count=d.get("flow_count", 0), monitored=d.get("monitored", False), sensor_id=sensor_id,
+            control_protocol=existing.control_protocol if existing else None,
+            control_capabilities=existing.control_capabilities if existing else [],
+            authorized=existing.authorized if existing else False,
         ))
     db.merge(SensorHeartbeatRow(
         sensor_id=sensor_id, hostname=hostname, monitoring_active=monitoring_active,

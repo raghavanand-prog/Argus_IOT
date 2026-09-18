@@ -1,13 +1,16 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { Radar, ShieldAlert, FileSearch, SlidersHorizontal, FlaskConical, Radio } from "lucide-react";
+import { ShieldAlert, FileSearch, SlidersHorizontal, FlaskConical, Radio, Wifi, Power } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../lib/api";
 
 const secondaryLinks = [
   { to: "/incidents", label: "Incidents", icon: ShieldAlert },
-  { to: "/fleet", label: "Demo Fleet (Synthetic)", icon: Radar },
+  { to: "/device-control", label: "Device Control", icon: Power },
+  { to: "/sensor", label: "Sensor", icon: Wifi },
   { to: "/control", label: "Control", icon: SlidersHorizontal },
 ];
+
+const LIVE_MODE_PATHS = ["/fleet", "/live", "/sensor", "/device-control"];
 
 export function Nav() {
   const location = useLocation();
@@ -22,7 +25,7 @@ export function Nav() {
     refetchInterval: 10000,
   });
 
-  const inLiveMode = location.pathname === "/live";
+  const inLiveMode = LIVE_MODE_PATHS.includes(location.pathname);
 
   return (
     <header className="sticky top-0 z-20 border-b border-[var(--color-border)] bg-[var(--color-surface)]/95 backdrop-blur">
@@ -73,7 +76,7 @@ export function Nav() {
             Benchmark Evaluation
           </NavLink>
           <NavLink
-            to="/live"
+            to="/fleet"
             aria-label="Live Network mode: real devices and traffic from your connected local sensor"
             className={`flex items-center justify-center gap-2 rounded-lg border-2 px-3 py-2.5 text-sm font-bold uppercase tracking-wide transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--color-accent)] ${
               inLiveMode

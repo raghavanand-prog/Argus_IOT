@@ -1,17 +1,5 @@
 const BASE = "/api";
 
-export interface Device {
-  device_id: string;
-  device_type: string;
-  state: string;
-  criticality: number;
-  is_drifting: boolean;
-  last_seen: string | null;
-  /** Always ARGUS's own testbed (synthetic or live-network) -- never derived
-   * from an uploaded dataset. See docs/17-cicioT2023-validation.md. */
-  source?: string;
-}
-
 export interface Incident {
   incident_id: string;
   device_id: string;
@@ -147,12 +135,20 @@ export interface LiveDevice {
   mac: string | null;
   vendor: string | null;
   device_type: string;
+  hostname: string | null;
+  discovery_sources: string[];
   interface: string | null;
   first_seen: string;
   last_seen: string;
   flow_count: number;
   monitored: boolean;
   sensor_id: string;
+  /** Capability-based device control (docs/19-device-control.md) -- never
+   * assumed; only set once the sensor has actually probed the device and
+   * found a real, supported protocol. */
+  control_protocol: string | null;
+  control_capabilities: string[];
+  authorized: boolean;
 }
 
 export interface LiveSensor {
@@ -170,6 +166,22 @@ export interface LiveStatus {
   note?: string;
 }
 
+export interface ControlAuditEntry {
+  ts: string;
+  sensor_id: string;
+  device_identifier: string;
+  device_ip: string;
+  action: string;
+  protocol: string;
+  result: string;
+  authorization_state: string;
+}
+
+export interface QueuedCommand {
+  command_id: string;
+  status: string;
+}
+
 async function req<T>(path: string, opts: RequestInit = {}): Promise<T> {
   const res = await fetch(`${BASE}${path}`, opts);
   if (!res.ok) {
@@ -185,7 +197,6 @@ function authHeaders(token: string): HeadersInit {
 
 export const api = {
   health: () => req<{ status: string; enforce: string; kill_switch: boolean }>("/health"),
-  devices: () => req<Device[]>("/devices"),
   incidents: () => req<Incident[]>("/incidents"),
   evidence: (bundleId: string) => req<EvidenceBundle>(`/evidence/${bundleId}`),
   replay: (bundleId: string, token: string) =>
@@ -193,11 +204,6 @@ export const api = {
   controlStatus: () => req<ControlStatus>("/control/status"),
   toggleKillSwitch: (engage: boolean, token: string) =>
     req<{ kill_switch_engaged: boolean }>(`/control/kill-switch?engage=${engage}`, {
-      method: "POST",
-      headers: authHeaders(token),
-    }),
-  seedDemo: (token: string) =>
-    req<{ seeded: boolean; incidents: number; bundles: number; actions: number }>("/control/seed-demo", {
       method: "POST",
       headers: authHeaders(token),
     }),
@@ -212,4 +218,11 @@ export const api = {
     ),
   liveDevices: () => req<LiveDevice[]>("/live/devices"),
   liveStatus: () => req<LiveStatus>("/live/status"),
+  controlAudit: () => req<ControlAuditEntry[]>("/live/control/audit"),
+  queueControlCommand: (sensorId: string, deviceIdentifier: string, action: string, token: string) =>
+    req<QueuedCommand>("/live/control/commands", {
+      method: "POST",
+      headers: authHeaders(token),
+      body: JSON.stringify({ sensor_id: sensorId, device_identifier: deviceIdentifier, action }),
+    }),
 };

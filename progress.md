@@ -537,3 +537,123 @@ Re-ran the full local suite (77/77) and `ruff` (clean) afterward, including
 `tests/test_live_testbed.py` (the real network-namespace testbed's own
 `CaptureSession` usage, to confirm the new optional field didn't disturb its
 existing unfiltered call site).
+
+## 2026-09-18 — "make ARGUS as real as possible": Device Control + production honesty pass (docs/19-device-control.md)
+
+The project owner's explicit spec: remove every remaining synthetic-data
+exposure from the production console, harden real device discovery
+(hostname + mDNS), and build a genuinely real, capability-gated,
+explicitly-authorized device-control subsystem (a projector, over the real
+PJLink protocol) -- with the core rule stated verbatim: "if ARGUS did not
+actually observe it or receive it from a legitimate documented device
+interface, ARGUS must not present it as real."
+
+**Synthetic-data removal.** Audited the whole repo (`grep` for every
+hardcoded synthetic device ID, `/api/devices` usage, seed-demo triggers).
+Fleet is now the real live-sensor device inventory (was: the synthetic
+testbed's 11 hardcoded devices); the old synthetic Fleet page and its
+"Demo Fleet (Synthetic)" nav link are gone entirely. Removed the "Run demo
+pipeline" button from the production Control page -- clicking it could
+inject fresh synthetic incidents into the same live incident stream real
+CICIoT2023/live-network incidents appear in; that capability still exists
+for developers via `scripts/seed_demo.py` directly, just never as a
+one-click production UI action. `/api/devices` (backend) is kept, since
+it's already honestly labelled `"source": "synthetic-demo-testbed"` and
+tests/scripts may still use it -- just no longer linked from the console.
+
+**Enhanced discovery, still passive/opt-in by default.** Added reverse-DNS
+hostname resolution (`sensor/hostnames.py`, bounded to a few new lookups per
+poll -- unbounded would replay this session's earlier college-LAN 2600-device
+problem for DNS instead of ARP) and real mDNS/Bonjour discovery
+(`sensor/mdns.py`, via `zeroconf`, a long-lived background listener browsing
+curated well-known service types -- the same standard multicast-DNS
+mechanism any Chromecast/AirPlay/printer-finder app uses, not port
+scanning). Both opt-in (`--resolve-hostnames`, `--enable-mdns`), keeping
+plain ARP-only discovery the zero-extra-dependency, zero-extra-privilege
+default. Verified for real: reverse DNS resolved `8.8.8.8` to `dns.google`
+and correctly returned `None` for an IP with no PTR record; the per-poll
+attempt cap was verified to actually cap (2 attempted per poll, accumulating
+to cover 5 total IPs over 3 polls, not blocking on all 5 at once).
+
+**Real PJLink device control.** `sensor/control/pjlink.py` implements
+PJLink Class 1 (power/input/mute/status, MD5-challenge auth) against the
+real published wire protocol -- hand-rolled from the spec, not a stub.
+Tested against `tests/control/mock_pjlink_server.py`, a real TCP server
+speaking the real protocol (13 tests: real greeting parsing, real MD5
+challenge-response, real error-code mapping) -- honestly short of real
+projector hardware, which wasn't available this session (stated plainly in
+docs/19 rather than glossed over).
+
+**Local-first authorization, the project owner's explicit architecture
+choice.** `sensor/control/authorization.py` (atomic-write JSON,
+`~/.argus/authorized_devices.json`), `sensor/control/credentials.py` (OS
+keychain via `keyring` when available -- confirmed this sandbox has no
+real keyring backend, `keyring.get_keyring()` returns the `fail` backend,
+so the file fallback with `chmod 600` was the actually-exercised path here;
+a real Mac would use the real macOS Keychain), `sensor/control/audit.py`
+(append-only JSONL). `sensor/control/registry.py::execute_command()` is the
+single enforcement checkpoint every control action passes through --
+re-checks the LOCAL authorization store every time, regardless of caller.
+Directly tested the exact attack scenario this defends against
+(`test_execute_command_denied_even_when_cloud_claims_authorization`): a
+call claiming to come from the cloud console, for a device never locally
+authorized, is denied -- there is no code path that trusts a caller's claim.
+
+**A real, found-and-fixed bug, twice (same pattern, two call sites).**
+Both `argus.pipeline.ingest_live_observation`'s SQLAlchemy `db.merge()` and
+`api/index.py`'s in-memory `_LIVE_DEVICES[id] = {**d, ...}` unconditionally
+overwrite every field of a device row on each plain discovery re-ingest.
+Adding `control_protocol`/`control_capabilities`/`authorized` fields would
+have meant a device's real authorization state silently reverted to
+unauthorized on its very next ~30s discovery poll -- caught by reasoning
+through the merge semantics before it ever shipped, not after; fixed by
+explicitly preserving those fields from the existing row in both places,
+and pinned down with a real regression test
+(`test_upsert_control_device_state_preserved_across_rediscovery`) and a
+live end-to-end curl sequence (ingest → control-report → re-ingest →
+confirm control fields survived, `last_seen` genuinely advanced).
+
+**Cloud command-queue relay, verified fully end-to-end with real
+hardware-equivalent components.** Since Vercel cannot reach a LAN directly
+(docs/18), console clicks queue a command; the sensor's own poll loop
+(`--enable-control`) fetches pending commands, re-verifies locally, executes
+via real PJLink, reports back. Proved this is not just plumbing but a real,
+working chain: started a real mock PJLink "projector" on the actual
+standard port 4352, authorized it via the real CLI
+(`sensor.control_cli discover-capability` / `authorize`), queued a real
+`power_on` command through the real local dev API, ran the real sensor
+agent (`--enable-control --once`), and independently re-queried the mock
+projector directly afterward -- its power state had genuinely changed to
+`"on"`, confirmed by a call the fulfillment path itself didn't make.
+
+**Console.** New Device Control page (capability-gated device list,
+authorization status, confirmation dialog for disruptive actions, audit
+log) with an explicit, prominent explanation of why clicks queue rather
+than execute instantly. Fleet rebuilt as the real live-device table
+(hostname, discovery source, control/authorization status columns added).
+New dedicated Sensor page (connection status, moved out of the old
+combined Live Network page). Verified in a real headless browser, not just
+`tsc`/`vite build`: seeded real device + control + audit data into a fresh
+local API, screenshotted Fleet/Sensor/Device Control/Benchmark pages, then
+drove a real click-through (save admin token → Device Control → click
+"Power off" → confirmation dialog appears with the real device/IP → confirm
+→ "Queued power_off" state appears) and confirmed via direct `curl` that
+the command genuinely reached the backend's pending-command queue.
+
+**Kill switch scope, verified in code rather than merely asserted.**
+Grepped for every `kill_switch` reference: it appears only in
+`argus/respond/guard.py`/`ladder.py` (the autonomous incident-response
+gate); `sensor/control/registry.py` (the manual Device Control path) has
+zero references. These are two structurally separate systems with no
+shared code path, not just a documented intention -- Device Control was
+never "autonomous" to begin with, so there's nothing for the kill switch to
+gate there.
+
+New tests: `tests/control/` (69 tests across PJLink protocol, capability
+registry/enforcement, authorization store, audit log, credential storage,
+CLI), `tests/test_control_queue.py` (8, cloud queue + state-mirror logic
+against a real in-memory DB), `tests/test_honesty_boundaries.py` (6,
+pinning down the project owner's numbered honesty requirements: no-sensor
+means no fake devices, kill switch doesn't block detection, benchmark/
+synthetic/live data structurally can't cross into each other's tables).
+Full suite: 135/135 passing, `ruff` clean across every touched file.
