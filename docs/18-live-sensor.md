@@ -69,6 +69,18 @@ Inspected before writing anything, per the explicit process instruction.
   scanning, no OS fingerprinting.
 - **Real packet capture is a second, explicit opt-in**: `--enable-capture` plus
   `--interfaces`. This is the more invasive tier and never runs by itself.
+- **`--target-host <ip>` scopes capture to one device via a real BPF filter**,
+  enforced by the kernel before a packet ever reaches this process — not a
+  post-hoc Python filter. Without it, `--enable-capture` captures *all* traffic
+  on the given interface(s), which on a network the operator doesn't administer
+  (a shared/college/office LAN, for instance) means capturing other people's
+  traffic shapes without their consent — outside what passive discovery alone
+  is designed for, and the kind of thing that needs the network owner's
+  authorization first. `agent.py` prints an explicit warning at startup if
+  `--enable-capture` is used without `--target-host`. Verified end-to-end with
+  real generated traffic to two different destinations (one the target host,
+  one not): the filter genuinely excludes the non-target host's packets at
+  capture time, not just at display time (see progress.md's matching entry).
 - **No enforcement against real devices, ever.** `enforce_enabled=False` is
   hardcoded in both the local (`argus/pipeline.py::_process_live_detection`) and
   production (`api/index.py::_process_live_detection`) ingestion paths — not a
