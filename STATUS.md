@@ -1,6 +1,6 @@
 # STATUS.md
 
-Last updated: 2026-09-17 (third session — local polish, Vercel deployment, paper + guide).
+Last updated: 2026-09-18 (fourth session — Vercel production deployment confirmed live).
 
 ## This session's additions
 
@@ -10,14 +10,28 @@ Last updated: 2026-09-17 (third session — local polish, Vercel deployment, pap
 - Expanded `README.md` with full local + production setup instructions.
 - Two portfolio PDFs: an IEEE-style paper and a 23-section technical project guide
   (`docs/paper/`), both drawn from real, inspected project content.
-- **Vercel deployment status: unconfirmed**, not verified working. Every deploy
-  attempt via the connected Vercel MCP integration succeeded on the first call to
-  a new project, then returned 403/404 on every subsequent status/log/list call
-  against that same project — across three independently-named attempts. Reads as
-  an account/role permission gap on Vercel's side, not a code defect. See
-  `decisions.md`'s third-session entry and `progress.md` for the full account.
-  **Do not treat any `*.vercel.app` URL from this session as a confirmed-live
-  production URL** until checked directly in the Vercel dashboard.
+- **Vercel deployment status: CONFIRMED LIVE** (2026-09-18). The prior session's
+  account/role permission gap was resolved by the user reauthorizing the Vercel
+  MCP connector with full project access (`list_projects`/`get_project` went from
+  empty/404 to returning `argus-iot` correctly). A real bug was then found and
+  fixed: `api/index.py` crashed the entire API (`FUNCTION_INVOCATION_FAILED` on
+  every route) if `ARGUS_ADMIN_TOKEN` was unset, because the check ran at module
+  import time instead of inside `require_auth()`. Fixed, redeployed, and directly
+  verified against the live URL: `GET /api/health`, `/api/devices`, `/api/incidents`,
+  `/api/actions`, `/api/evidence/{id}`, `/api/control/status` all return real `200`
+  data. After the user set `ARGUS_ADMIN_TOKEN` as a Vercel project env var and a
+  fresh deploy picked it up, `/api/health` and `/api/control/status` both confirm
+  `admin_token_configured: true`. **One honest gap**: the three admin-only endpoints
+  (`kill-switch`, `seed-demo`, `evidence/*/replay`) need a `POST` with a custom
+  `Authorization` header, which no tool available in this session can send to a
+  live URL (this sandbox's egress proxy blocks direct requests to `*.vercel.app`,
+  and the Vercel MCP's own URL-fetch tool is GET-only). That exact auth logic
+  *was* verified — in an isolated local venv, byte-identical code, both the
+  missing-token 503 path and the correct-token 200/401 paths, including a real
+  evidence replay reproducing correctly — but the live production request was not
+  independently sent. Production URL: `https://argus-iot.vercel.app`. See
+  `decisions.md`'s 2026-09-18 entries for both fixes and `progress.md` for the
+  full account.
 
 ## What works right now (verified by running it, not just reading the code)
 
