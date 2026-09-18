@@ -10,7 +10,8 @@ projection or a hoped-for result.
 
 **ARGUS — Closed-Loop IoT Intrusion Detection and Autonomous Response**
 Independent engineering project · Python, FastAPI, SQLAlchemy, React/TypeScript,
-scikit-learn, SHAP, pyroute2, nftables · [repo link]
+scikit-learn, SHAP, pyroute2, nftables, Vercel · [repo link] · [live demo:
+https://argus-iot.vercel.app]
 
 ## Bullets, strongest first
 
@@ -53,6 +54,17 @@ scikit-learn, SHAP, pyroute2, nftables · [repo link]
   (keyboard-operable incident list, a real ARIA dialog with focus management and
   Escape-to-close, `aria-live` status regions) — verified with browser automation,
   not just code review.
+- Deployed the system as a public, universally-accessible web app (Vercel) by
+  splitting a deliberately lighter production API from the local/dev backend to
+  respect three real serverless constraints (no root/CAP_NET_ADMIN, no persistent
+  filesystem across invocations, a packaged-function size budget) while keeping
+  the evidence-replay and kill-switch code paths genuinely unmodified; found and
+  fixed a production-only bug (a missing optional env var crashing every route,
+  not just the admin-gated ones) by reading Vercel runtime logs directly, and
+  verified mobile responsiveness by screenshotting the actual production build at
+  three real phone viewport sizes rather than assuming desktop CSS would carry
+  over — caught and fixed two real horizontal-overflow bugs this way before they
+  reached a user.
 
 ## Skills this evidences
 
