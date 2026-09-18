@@ -1,0 +1,35 @@
+# Vercel only needs console/ (built per vercel.json's buildCommand) and api/
+# (the serverless function, with its own minimal api/requirements.txt -- see
+# api/index.py's module docstring). Everything else is the full local/dev
+# project: real ML dependencies (numpy/scikit-learn/shap/river -- river pulls
+# in llvmlite, which fails to build in Vercel's Python build sandbox), the
+# real network-namespace testbed, tests, docs, research writeups. None of it
+# belongs in the deployed function, and letting Vercel's framework
+# auto-detection see the root pyproject.toml makes it try to build the whole
+# thing as one FastAPI app instead of respecting vercel.json's own build/
+# rewrite config -- this is what actually broke the first git-linked deploy
+# (see decisions.md's dated entry).
+argus/
+compose/
+data/
+docs/
+eval/
+research/
+resume/
+results/
+scripts/
+tests/
+pyproject.toml
+uv.lock
+Makefile
+MASTER-PLAN.md
+BUILD-ORDER.md
+CLAUDE.md
+STATUS.md
+progress.md
+decisions.md
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
