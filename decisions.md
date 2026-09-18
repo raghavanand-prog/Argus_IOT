@@ -217,3 +217,40 @@ citation the paper and `docs/00` now rely on.
 carve out an exception for content inherited from an earlier session or already
 committed — a wrong number found during unrelated work still gets fixed at the
 source, not just avoided in the new document.
+
+## 2026-09-18 — scoped the missing-admin-token failure to only the endpoints that need it
+
+**What happened:** Once the Vercel account/team permission issue (see the prior
+entry) was resolved by the user re-authorizing the integration with full project
+access, `argus-iot` deployed successfully and the frontend served correctly --
+but every `/api/*` route returned `FUNCTION_INVOCATION_FAILED`. Root cause:
+`api/index.py` raised `RuntimeError` at *module import time* if
+`ARGUS_ADMIN_TOKEN` was unset, which crashes the entire ASGI app on cold start,
+not just the three admin-guarded endpoints (`/control/kill-switch`,
+`/control/seed-demo`, `/evidence/*/replay`) that actually need that credential.
+`/health`, `/devices`, `/incidents`, and `/actions` need no auth at all and were
+taken down by a missing *optional* variable regardless.
+
+**Fix:** Moved the check from module scope into `require_auth()`, the one place
+that's actually reached only by the three admin endpoints. Missing token now
+means those three return a clear `503` naming the fix, while every read-only
+endpoint works unconditionally. `admin_token_configured` was added to
+`/health` and `/control/status` so the state is visible in the response rather
+than inferred. Verified locally in the same isolated venv discipline as the
+original build: all read endpoints return `200` with the variable unset; with it
+set, unauthenticated/wrong-token requests to admin endpoints still correctly
+`401`, and a real evidence replay against the actual snapshot data reproduces
+correctly end to end.
+
+**Rejected alternative:** Generate a random admin token at cold start when none
+is configured. Rejected because serverless instances don't share memory, so a
+generated token would be unknown to the person trying to use the Control screen
+and would silently change on every cold start -- worse than an honest `503`.
+
+**Rejected alternative:** Switch production to `argus/api/main.py` (the local/
+dev API) since the user's bug report referenced it by name. Rejected because
+that module needs numpy/scikit-learn/shap (serverless function size budget),
+a persistent SQLite file (not guaranteed across invocations), and for some
+code paths root/CAP_NET_ADMIN (the live-testbed) -- all real platform blockers
+recorded in this file's 2026-09-17 entry and `docs/06-vercel-deployment.md`,
+not an oversight to fix by switching entrypoints.

@@ -94,8 +94,16 @@ additional `functions` configuration was needed.
 
 | Variable | Required | Purpose |
 |---|---|---|
-| `ARGUS_ADMIN_TOKEN` | Yes | Bearer token guarding `/control/*` and `/evidence/*/replay`. `api/index.py` fails to import (loudly, at startup) if this is unset — deliberately, so a missing token is a deploy-time failure, not a silent open admin endpoint. |
+| `ARGUS_ADMIN_TOKEN` | No, but admin actions are disabled without it | Bearer token guarding `/control/kill-switch`, `/control/seed-demo`, and `/evidence/*/replay`. If unset, those three endpoints return `503` with a message naming the missing variable — the read-only endpoints (`/health`, `/devices`, `/incidents`, `/actions`, `/evidence/{id}`) are unaffected. `/health` and `/control/status` both report `admin_token_configured` so this is visible without guessing. |
 | `ARGUS_ENFORCE` | No (defaults to `"false"`) | Surfaced read-only in `/health` and `/control/status`; production never calls a real enforcement adapter, so this only reflects the flag's value, it does not gate any live enforcement. |
+
+**Correction (2026-09-18):** an earlier version of `api/index.py` raised `RuntimeError`
+at *module import time* if `ARGUS_ADMIN_TOKEN` was unset, which crashed every route —
+including the four that need no auth at all — with `FUNCTION_INVOCATION_FAILED`. Caught
+after a real deploy exhibited exactly that failure on `/api/health`. Fixed by moving the
+check into `require_auth()` (which only the three admin-guarded endpoints depend on), so
+a missing *optional* admin credential can no longer take down the whole deployment. See
+`decisions.md`'s 2026-09-18 entry.
 
 No secret is committed to the repository. `.env.example` documents the same
 variables with placeholder values for local dev.
