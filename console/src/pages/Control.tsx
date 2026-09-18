@@ -104,11 +104,13 @@ export function Control() {
 
       <section className="mb-6 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
         <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold">
-          <Database className="h-4 w-4" aria-hidden="true" /> Demo data
+          <Database className="h-4 w-4" aria-hidden="true" /> Demo data (synthetic testbed)
         </h2>
         <p className="mb-3 text-xs text-[var(--color-text-dim)]">
           Runs the full simulated loop (enrollment → attack scenarios → detect → correlate → risk → evidence →
-          respond → verify) and persists it — this is what populates Fleet and Incidents.
+          respond → verify) and persists it — this is what populates the Demo Fleet page and the synthetic-scenario
+          rows on Incidents. Synthetic devices only, unrelated to the CICIoT2023 evaluation — see IDS Evaluation for
+          the real dataset-derived results.
         </p>
         <button
           onClick={() => seedMutation.mutate()}

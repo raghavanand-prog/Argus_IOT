@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
 import { api } from "../lib/api";
 import { StateBadge } from "../components/RiskBadge";
-import { Cpu, Wifi, WifiOff } from "lucide-react";
+import { Cpu, Wifi, WifiOff, AlertTriangle, FlaskConical } from "lucide-react";
 
 export function Fleet() {
   const { data: devices, isLoading, error } = useQuery({
@@ -14,7 +15,7 @@ export function Fleet() {
     <div className="mx-auto max-w-7xl px-4 py-6">
       <div className="mb-5 flex items-baseline justify-between">
         <div>
-          <h1 className="text-xl font-semibold">Fleet</h1>
+          <h1 className="text-xl font-semibold">Demo Fleet (Synthetic)</h1>
           <p className="text-sm text-[var(--color-text-dim)]">
             Every enrolled device, its state, and whether it's currently drifting.
           </p>
@@ -22,6 +23,23 @@ export function Fleet() {
         {devices && (
           <span className="mono text-sm text-[var(--color-text-dim)]">{devices.length} devices</span>
         )}
+      </div>
+
+      <div className="mb-5 flex items-start gap-2 rounded-xl border border-[var(--color-risk-med)]/40 bg-[var(--color-risk-med)]/10 p-4 text-sm text-[var(--color-risk-med)]">
+        <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0" aria-hidden="true" />
+        <div>
+          <p className="font-semibold">Synthetic demo devices — not from any dataset.</p>
+          <p className="mt-1 text-[var(--color-text-dim)]">
+            These come from ARGUS's own simulation testbed (<code className="mono">argus.sim.engine.default_fleet</code>),
+            built to exercise the full detect → respond → verify loop. They are not derived from the CICIoT2023
+            benchmark or any other uploaded dataset — <strong>device identity is not available in that benchmark
+            export</strong>. For real, dataset-derived detection results, see{" "}
+            <Link to="/ids-evaluation" className="inline-flex items-center gap-1 font-semibold text-[var(--color-accent)] underline">
+              <FlaskConical className="h-3.5 w-3.5" aria-hidden="true" /> IDS Evaluation
+            </Link>
+            .
+          </p>
+        </div>
       </div>
 
       {isLoading && <SkeletonGrid />}
