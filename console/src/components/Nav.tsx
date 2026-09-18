@@ -1,11 +1,12 @@
 import { NavLink } from "react-router-dom";
-import { Radar, ShieldAlert, FileSearch, SlidersHorizontal } from "lucide-react";
+import { Radar, ShieldAlert, FileSearch, SlidersHorizontal, FlaskConical } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../lib/api";
 
 const links = [
   { to: "/", label: "Fleet", icon: Radar },
   { to: "/incidents", label: "Incidents", icon: ShieldAlert },
+  { to: "/ids-evaluation", label: "IDS Evaluation", icon: FlaskConical },
   { to: "/control", label: "Control", icon: SlidersHorizontal },
 ];
 

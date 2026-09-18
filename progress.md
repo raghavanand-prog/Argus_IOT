@@ -265,3 +265,89 @@ Wrote `docs/16-ids-validation.md` with the full matrix, a local full-lifecycle
 demo procedure and a separate phone/production demo procedure (explicit
 about which steps each can and can't do), and a screenshot list for
 research-paper evidence.
+
+## 2026-09-18 — CICIoT2023 real-dataset IDS evaluation (docs/17)
+
+User rejected the earlier synthetic-simulation-based validation as insufficient
+and asked for the IDS to be tested against a real, published IoT cybersecurity
+benchmark dataset, with a strict "no fabrication" spec: never let ground truth
+influence the prediction, no hardcoded results, incidents only from the actual
+detector's own output, a proper held-out train/calib/test split, and full
+reproducibility metadata. Before implementing anything, inspected ARGUS's real
+detection pipeline (FlowRecord schema, FEATURE_KEYS, CalibratedDetector,
+correlate/risk/respond/evidence chain) and searched this environment's one
+reachable channel (public GitHub) for actual row data from the three named
+datasets (CICIoT2023/Edge-IIoTset/TON_IoT); found real, reachable, but
+schema-incompatible TON_IoT sensor data, and a real, compatible but differently-
+named sibling dataset, and reported both honestly rather than silently picking
+one (see decisions.md). User then uploaded a real CICIoT2023 export directly
+(`df_Binary_FL_CICIoT2023.rar`, 600,000 rows). Inspected its actual schema before
+writing any code, as instructed: 8 pre-computed statistical features + a binary
+`sub_label`, no raw IP/port/byte/DNS/JA4 fields at all -- a genuinely different
+feature space from ARGUS's flow-based `FEATURE_KEYS`, reported honestly rather
+than forced through unmodified.
+
+Built the evaluation track for real: `argus/data/cicioT2023.py` (loader with
+schema validation, label-mapping documented as an inference with the supporting
+per-label feature-mean evidence, seeded disjoint train/calib/test split -- no
+temporal split possible, no timestamp column in this export), `argus/data/
+metrics.py` (confusion matrix + accuracy/precision/recall/F1/FPR/FNR, plain
+arithmetic, hand-verifiable), and `argus.pipeline.run_cicioT2023_evaluation()` --
+the real load -> preprocess -> fit a dataset-specific `CalibratedDetector` ->
+`ml_detections()` (blind to `sub_label`, same 0.5 threshold as the rest of ARGUS)
+-> compare to ground truth -> correlate -> risk -> respond -> evidence chain,
+persisting real `IncidentRow`/`EvidenceBundleRow` rows only for predicted-positive
+records. One adaptation to existing code, not a fork: gave `CalibratedDetector`/
+`ShapExplainer` an injectable `feature_keys` field (default unchanged) so a
+separate instance could be fit on this dataset's 8 columns instead of the
+synthetic pipeline's 14. `verify()` (post-response environment-recovery check) is
+deliberately skipped for these detections and documented why -- a static dataset
+row has no environment to re-observe.
+
+Ran it for real against the full uploaded file (not a toy example): 5,000 benign
+training rows, 1,000 balanced calibration rows, 2,000 balanced held-out test rows,
+seed 42. Verified directly, not assumed, that there was no leakage: train/calib/
+test row-index sets pairwise-disjoint, `sub_label` never present in the feature
+dict passed to the detector, deterministic under a fixed seed and sensitive to a
+different one. Real result: confusion matrix TP=1000 TN=980 FP=20 FN=0 ->
+accuracy 99.0%, precision 98.04%, recall 100%, F1 99.01%, FPR 2.0%, FNR 0.0%,
+1,020 real incidents generated (every predicted-positive row, TP+FP -- zero
+incidents for the 980 correctly-quiet or 0 missed rows). Confirmed evidence
+replay reproduces identically for a real CICIoT2023-sourced bundle, same as the
+synthetic pipeline's.
+
+Shipped the full stack, not just a script: new DB table
+(`CicioTEvaluationRunRow`), local dev API endpoints (run live, list/read
+evaluation history), a precomputed production snapshot
+(`api/cicioT2023_eval_snapshot.json`, from one real local run, since Vercel's
+function has no scikit-learn) with its real incidents/evidence merged into the
+same state `/api/incidents` reads, and a new "IDS Evaluation" console page --
+dataset/reproducibility manifest, confusion matrix, metrics, a paginated
+per-record table with TP/TN/FP/FN filters, and a per-record detail drawer
+(features -> preprocessing -> prediction -> ground truth -> classification ->
+incident) doubling as the requested "Live Evaluation/Replay" mode. Verified all
+of it live: direct HTTP calls against the real local API (run, read, replay) and
+headless-browser screenshots of the actual rendered page and two record drawers
+(a true-negative and a false-positive), not just component code review.
+
+Also committed a real, small (2,000-row) slice of the actual dataset
+(`argus/data/fixtures/cicioT2023_eval_subset.csv`) as a test fixture and wrote
+`tests/test_cicioT2023_eval.py` against it -- unit tests for the loader/split/
+metrics plus a real integration test that runs the actual production code path
+(`run_cicioT2023_evaluation`) end-to-end against real committed data and asserts
+the exact measured confusion matrix at seed=42 (same "assert the exact number,
+not a range" discipline as `tests/test_ids_validation.py`), including a real
+evidence-replay check. Full suite: 56/56 passing, `ruff` clean.
+
+Along the way, found and fixed a real pre-existing bug unrelated to this
+feature: `.gitignore`'s bare `data/` rule was silently excluding `argus/data/`
+(the prior session's dataset-track scaffolding) from every commit since it was
+written -- a fresh clone would have been missing those files entirely. Fixed by
+anchoring the gitignore rule to the repo root; see decisions.md.
+
+Wrote `docs/17-cicioT2023-validation.md`, the full 20-section validation report
+(dataset, source, samples, classes, features, preprocessing, model, threshold,
+confusion matrix, all six metrics, incident count, real example TP/FP records,
+an honest "zero FN occurred" note rather than a fabricated example, and eight
+stated limitations including the binary-only ground truth and the unusually
+clean class separation in this specific export).

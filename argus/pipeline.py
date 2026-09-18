@@ -6,7 +6,9 @@ from and what `scripts/seed_demo.py` calls to populate a demo database.
 from __future__ import annotations
 
 import os
+import uuid
 from datetime import datetime, timedelta
+from pathlib import Path
 
 from sqlalchemy.orm import Session
 
@@ -14,9 +16,24 @@ from argus.behavior.deviation import deviation_score
 from argus.behavior.drift import DeviceDriftMonitor
 from argus.collector.windows import window_flows
 from argus.correlate.correlator import correlate
+from argus.data.cicioT2023 import (
+    CICIOT_FEATURE_KEYS,
+    DATASET_FLOW_DEVICE_TYPE,
+    DATASET_NAME,
+    DATASET_SOURCE,
+    DETECTION_THRESHOLD,
+    LABEL_COLUMN,
+    LABEL_MAP,
+    load_rows,
+    sha256_of_file,
+    split_dataset,
+    to_feature_vector,
+)
+from argus.data.metrics import binary_metrics, classify_outcome, confusion_matrix
 from argus.db.models import (
     ActionRow,
     AuditLogRow,
+    CicioTEvaluationRunRow,
     DeviceRow,
     EvidenceBundleRow,
     IncidentRow,
@@ -453,3 +470,246 @@ def run_live_demo_pipeline(db: Session, seed: int = 42) -> dict:
 
     db.commit()
     return summary
+
+
+def _process_cicioT2023_detection(
+    db: Session, *, ledger: EvidenceLedger, kill_switch: KillSwitch, rate_limiter: ActionRateLimiter,
+    dev_id: str, detections: list, adapter, summary: dict,
+) -> str | None:
+    """CICIoT2023 counterpart to ``_process_scenario``'s correlate -> risk -> decide
+    -> evidence -> persist tail, deliberately *without* the ``verify()`` step.
+
+    ``verify()`` (argus/verify/verification.py) checks whether a live/simulated
+    environment recovered after an enforcement action, by looking up a ground-truth
+    ledger of attack phases with a start time, end time, and source device. A single
+    CICIoT2023 row is a static, already-captured record: there is no environment left
+    to re-observe after "acting" on it, and no attack-phase ground truth with a
+    start/end time to check against -- verification's premise doesn't hold here. Per
+    CLAUDE.md rule 4 (no fabricated results) and the project owner's explicit
+    instruction not to invent values, this is skipped outright and documented here,
+    rather than faked with an empty ground-truth list that would silently produce a
+    plausible-looking "inconclusive" outcome for every single detection.
+
+    Returns the incident_id if a real incident was created (i.e. the detector itself
+    predicted "attack" for this row), else None.
+    """
+    if not detections:
+        return None
+    incidents = correlate(detections)
+    det_map = {d.detection_id: d for d in detections}
+    incident_id: str | None = None
+
+    for incident in incidents:
+        risk = assess_risk(incident, detections, DATASET_FLOW_DEVICE_TYPE, 0.0, 0.0)
+        incident_dets = [det_map[i] for i in incident.detection_ids if i in det_map]
+        best_conformal = next((d.conformal_set for d in incident_dets if d.conformal_set), None)
+
+        outcome = decide_and_respond(
+            device_id=dev_id, device_type=DATASET_FLOW_DEVICE_TYPE, risk_score=risk.score,
+            conformal_set=best_conformal, is_drifting=False,
+            kill_switch=kill_switch, rate_limiter=rate_limiter,
+            enforce_enabled=ENFORCE, adapter=adapter, now=incident.last_seen.timestamp(),
+        )
+
+        bundle = ledger.append(
+            incident_id=incident.incident_id,
+            device={
+                "device_id": dev_id, "device_type": DATASET_FLOW_DEVICE_TYPE,
+                "source": "cicioT2023_eval",
+                "note": "Dataset Flow, not a physical device -- this CICIoT2023 export "
+                        "has no device or IP identity to attribute a real device to.",
+            },
+            feature_vector={"window": incident.chain_position},
+            detection={
+                "sources": list({d.source for d in incident_dets}),
+                "conformal_set": best_conformal,
+                "signals": [d.signal_name for d in incident_dets],
+                "explanations": [d.explanation for d in incident_dets],
+                "attribution": next((d.attribution for d in incident_dets if d.attribution), None),
+            },
+            baseline={"note": "no per-device baseline: each dataset row is an independent record, not a fleet device"},
+            risk={"score": risk.score, "terms": risk.terms},
+            decision={
+                "action": outcome.action, "tier": outcome.tier, "dry_run": outcome.dry_run,
+                "gates_passed": outcome.guard.gates_passed, "gates_failed": outcome.guard.gates_failed,
+            },
+            trace=[f"detected via {d.source}:{d.signal_name}" for d in incident_dets] + [
+                f"correlated into incident {incident.incident_id}",
+                f"risk={risk.score:.2f}", f"guard_verdict={'allow' if outcome.guard.allow else 'veto'}",
+                f"action={outcome.action}",
+                "post-response verification skipped: no live/simulated environment exists "
+                "for a static dataset row (see _process_cicioT2023_detection docstring)",
+            ],
+        )
+        summary["bundles"] += 1
+
+        db.add(IncidentRow(
+            incident_id=incident.incident_id, device_id=dev_id,
+            first_seen=incident.first_seen, last_seen=incident.last_seen,
+            chain_position=incident.chain_position, agreement_score=incident.agreement_score,
+            detection_sources=",".join({d.source for d in incident_dets}), scenario="cicioT2023_eval",
+        ))
+        db.add(RiskAssessmentRow(incident_id=incident.incident_id, score=risk.score, terms=risk.terms))
+        db.add(EvidenceBundleRow(
+            bundle_id=bundle.bundle_id, incident_id=incident.incident_id,
+            created_at=bundle.created_at, device=bundle.device, feature_vector=bundle.feature_vector,
+            detection=bundle.detection, baseline=bundle.baseline, risk=bundle.risk,
+            decision=bundle.decision, trace=bundle.trace, prev_bundle_hash=bundle.prev_bundle_hash,
+            merkle_root=bundle.merkle_root,
+        ))
+        summary["incidents"] += 1
+        incident_id = incident.incident_id
+
+        if outcome.action_id:
+            db.add(ActionRow(
+                action_id=outcome.action_id, bundle_id=bundle.bundle_id, device_id=dev_id,
+                tier=outcome.tier, action=outcome.action, dry_run=outcome.dry_run,
+                applied_at=incident.last_seen,
+            ))
+            summary["actions"] += 1
+
+        db.add(AuditLogRow(actor="argus-pipeline", event_type="decision", payload={
+            "incident_id": incident.incident_id, "action": outcome.action, "dry_run": outcome.dry_run,
+            "source": "cicioT2023_eval",
+        }))
+
+    return incident_id
+
+
+def run_cicioT2023_evaluation(
+    db: Session, csv_path: str, seed: int = 42,
+    n_train_benign: int = 5000, n_calib_per_class: int = 500, n_test_per_class: int = 1000,
+) -> dict:
+    """Runs the real, uploaded CICIoT2023 binary-eval export through ARGUS's actual
+    detection pipeline. See docs/17-cicioT2023-validation.md for the full
+    compatibility writeup and argus/data/cicioT2023.py for dataset-specific details
+    (label-mapping assumption, feature list, split protocol).
+
+    Pipeline, never bypassed:
+    CICIoT2023 row -> preprocessing (``to_feature_vector``: column rename + type
+    coercion, since this export ships pre-computed features) -> the real
+    ``CalibratedDetector`` (a *separate instance* fit on this dataset's own 8
+    features -- see argus/detect/ml.py's ``feature_keys`` parameter -- never the
+    synthetic pipeline's 14-feature detector) -> ``ml_detections()`` (the exact same
+    >=0.5 calibrated-probability gate the rest of ARGUS uses, blind to ``sub_label``)
+    -> the resulting Detection is compared against ``sub_label`` only *after* the
+    prediction exists, to classify TP/TN/FP/FN -> for every row the detector itself
+    predicts "attack" (never because ``sub_label`` says attack), the real
+    correlate -> risk -> respond -> evidence chain runs and a real Incident/Evidence
+    row is persisted to the same tables the synthetic pipeline uses (tagged
+    ``scenario="cicioT2023_eval"``).
+
+    Train/calibration/test are disjoint by construction (``split_dataset``); metrics
+    are computed only over the held-out test split, which the detector never saw
+    during training or calibration.
+    """
+    t0 = datetime(2026, 1, 1, 0, 0)
+    rows = load_rows(csv_path)
+    split = split_dataset(
+        rows, seed=seed, n_train_benign=n_train_benign,
+        n_calib_per_class=n_calib_per_class, n_test_per_class=n_test_per_class,
+    )
+
+    train_fvs = [to_feature_vector(r, t0) for r in split.train]
+    calib_fvs = [to_feature_vector(r, t0 + timedelta(hours=1)) for r in split.calib]
+
+    detector = CalibratedDetector(alpha=CONFORMAL_ALPHA, feature_keys=CICIOT_FEATURE_KEYS)
+    detector.fit(train_fvs, calib_fvs, split.calib_labels)
+    explainer = ShapExplainer(feature_keys=CICIOT_FEATURE_KEYS)
+    explainer.fit(calib_fvs, split.calib_labels)
+
+    ledger = EvidenceLedger()
+    kill_switch = KillSwitch()
+    rate_limiter = ActionRateLimiter()
+    adapter = DryRunAdapter()
+    summary = {"incidents": 0, "bundles": 0, "actions": 0}
+
+    y_true: list[int] = []
+    y_pred: list[int] = []
+    records: list[dict] = []
+    test_base_ts = t0 + timedelta(hours=2)
+
+    for row in split.test:
+        fv = to_feature_vector(row, test_base_ts)
+        p_attack, conformal_set = detector.score(fv)
+        detections = ml_detections(fv.device_id, fv, detector, fv.window_start, explainer=explainer)
+        predicted = 1 if detections else 0  # same threshold ml_detections() itself applies -- sub_label never consulted
+
+        incident_id = _process_cicioT2023_detection(
+            db, ledger=ledger, kill_switch=kill_switch, rate_limiter=rate_limiter,
+            dev_id=fv.device_id, detections=detections, adapter=adapter, summary=summary,
+        )
+
+        y_true.append(row.label)
+        y_pred.append(predicted)
+        records.append({
+            "record_id": f"CICIoT2023-row-{row.row_index}",
+            "row_index": row.row_index,
+            "ground_truth": LABEL_MAP[row.label],
+            "prediction": LABEL_MAP[predicted],
+            "score": round(p_attack, 4),
+            "conformal_set": conformal_set,
+            "flow_identifier": f"Dataset Flow #{row.row_index}",
+            "features": dict(row.features),
+            "incident_id": incident_id,
+            "outcome": classify_outcome(row.label, predicted),
+        })
+
+    db.commit()
+
+    cm = confusion_matrix(y_true, y_pred)
+    metrics = binary_metrics(cm)
+    run_id = str(uuid.uuid4())
+    generated_at = datetime.utcnow().isoformat()
+
+    model_config = {
+        "detector": "IsolationForest(random_state=42, contamination=0.1) trained on this dataset's 8 features, "
+                    "+ IsotonicRegression calibration + inductive conformal prediction (same CalibratedDetector "
+                    "class as the synthetic pipeline, a separate fitted instance -- see argus/detect/ml.py)",
+        "conformal_alpha": CONFORMAL_ALPHA,
+    }
+    manifest = {
+        "run_id": run_id, "dataset_name": DATASET_NAME, "dataset_source": DATASET_SOURCE,
+        "dataset_filename": Path(csv_path).name, "dataset_sha256": sha256_of_file(csv_path),
+        "seed": seed, "feature_keys": CICIOT_FEATURE_KEYS, "label_column": LABEL_COLUMN,
+        "label_map_assumption": (
+            "sub_label=1 -> attack, sub_label=0 -> benign (inferred from per-label feature means; "
+            "no README shipped with this export -- see argus/data/cicioT2023.py module docstring)"
+        ),
+        "n_total_rows_in_file": split.n_total_rows,
+        "n_train_benign": split.n_train_benign,
+        "n_calib_benign": split.n_calib_benign, "n_calib_attack": split.n_calib_attack,
+        "n_test_benign": split.n_test_benign, "n_test_attack": split.n_test_attack,
+        "model_config": model_config, "detection_threshold": DETECTION_THRESHOLD,
+        "generated_at": generated_at,
+        "limitations": [
+            "Binary ground truth only -- this export collapses CICIoT2023's original attack-category "
+            "taxonomy to one label; per-attack-category metrics are not computable from this file.",
+            "Only the ML detection track runs on this dataset -- policy_detections/signature_detections/"
+            "identity_detections require dst_ip/dst_port/proto/dns_qname/tls_ja4 fields this export never had.",
+            "sub_label's attack/benign direction is an inferred convention, not a documented one.",
+            "Post-response verification is skipped for every detection here (see "
+            "_process_cicioT2023_detection docstring) -- a static dataset row has no environment to "
+            "re-observe after an action, unlike the synthetic/live pipelines.",
+            "No temporal split was possible -- this export has no timestamp column, so train/calib/test "
+            "are a seeded random stratified partition instead of a time-ordered one.",
+        ],
+    }
+
+    db.add(CicioTEvaluationRunRow(
+        run_id=run_id, created_at=datetime.utcnow(),
+        dataset_filename=manifest["dataset_filename"], dataset_sha256=manifest["dataset_sha256"],
+        seed=seed, feature_keys=CICIOT_FEATURE_KEYS, model_config_json=model_config,
+        threshold=DETECTION_THRESHOLD, n_total_rows=split.n_total_rows,
+        n_train_benign=split.n_train_benign, n_calib_benign=split.n_calib_benign,
+        n_calib_attack=split.n_calib_attack, n_test_benign=split.n_test_benign, n_test_attack=split.n_test_attack,
+        confusion_matrix=cm.to_dict(), metrics=metrics, n_incidents_generated=summary["incidents"],
+        records=records,
+    ))
+    db.commit()
+
+    return {
+        "run_id": run_id, "manifest": manifest, "confusion_matrix": cm.to_dict(), "metrics": metrics,
+        "n_incidents_generated": summary["incidents"], "n_evidence_bundles": summary["bundles"],
+        "records": records,
+    }

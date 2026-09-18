@@ -401,3 +401,74 @@ already surface `admin_token_configured` and the in-memory nature of this
 state is documented in `docs/06-vercel-deployment.md`, so this isn't a hidden
 limitation -- it's a deliberate scope line, the same kind CLAUDE.md's scope
 section already draws elsewhere in this project.
+
+## 2026-09-18 — CICIoT2023 real-dataset evaluation: dataset substitution presented as a trade-off, then resolved by direct upload
+
+Continuing the CLAUDE.md instruction to present real trade-offs rather than
+silently choosing: the user's request specifically named CICIoT2023, Edge-IIoTset,
+or TON_IoT. Before writing any evaluation code, searched this environment's one
+reachable channel (anonymous public GitHub repo cloning -- direct requests to
+Kaggle/UNSW/UNB/UQ/IEEE Dataport all independently re-confirmed blocked, not
+assumed from memory) for actual row-level data from any of those three. Found:
+the official TON_IoT "IoT Telemetry" files (real, reachable, but sensor-schema --
+incompatible with ARGUS's flow-based pipeline without a second input mode);
+NF-ToN-IoT-v2 (the correct network-flow-schema reissue of TON_IoT) referenced by
+many research repos but its actual row data not committed anywhere reachable at a
+usable size; and a real, reachable, schema-compatible sibling dataset
+(NF-CSE-CIC-IDS2018-v2, 80k rows) that was *not* one of the three named datasets.
+Presented this honestly as four options (use the sibling dataset now; the user
+downloads and uploads a real subset themselves; adapt ARGUS for TON_IoT's sensor
+schema; keep searching) rather than silently picking one. User chose to provide a
+real CICIoT2023 export directly (`df_Binary_FL_CICIoT2023.rar`) -- resolved
+without needing any of the four fallbacks.
+
+## 2026-09-18 — CalibratedDetector/ShapExplainer: feature_keys made injectable
+
+The uploaded CICIoT2023 export ships 8 pre-computed statistical features
+(`rst_count, ICMP, Min, AVG, IAT, Number, Variance, Weight`), a completely
+different feature space from the synthetic pipeline's 14-key `FEATURE_KEYS`
+(derived from `FlowRecord` via `extract_device_window`). Reusing the
+flow-trained detector unchanged would silently misalign feature values by
+position; reusing its *class* while forking a parallel copy for the new feature
+space would duplicate ~100 lines of calibration/conformal logic CLAUDE.md's own
+style guidance says to keep short and singular. Chose instead to add one
+injectable `feature_keys: list[str]` field to `CalibratedDetector` and
+`ShapExplainer` (default: unchanged, so the synthetic pipeline's behaviour and
+every existing test are untouched), so a same-class, separately-fitted instance
+can be trained on the dataset's own 8 named columns. This is the "minimum
+scientifically valid adaptation" the user explicitly authorized if the existing
+model proved incompatible -- documented in the class docstring and in
+`docs/17-cicioT2023-validation.md` section 7, not silently done.
+
+## 2026-09-18 — Post-response verification skipped (not faked) for CICIoT2023 detections
+
+`argus.verify.verification.verify()` checks whether a live/simulated environment
+recovered after an enforcement action, by matching against a ground-truth ledger
+of attack phases with start/end times and a source device. A single CICIoT2023
+row is a static, already-captured record: there is no environment left to
+re-observe after "acting" on it, and no attack-phase ground truth with a
+start/end time to check against. Two options considered: call `verify()` with an
+empty ground-truth list (produces a plausible-looking "inconclusive" outcome for
+every single detection, silently implying a check happened) or skip it outright
+and say why. Per CLAUDE.md rule 4 (no fabricated results) and the user's explicit
+"do not invent values" instruction, chose to skip it -- `verification_outcome` is
+`None` for every CICIoT2023-derived incident, and the reason is written directly
+into that incident's evidence-bundle trace, not just this file.
+
+## 2026-09-18 — `.gitignore`'s bare `data/` rule fixed to `/data/` (root-anchored)
+
+Discovered while adding `argus/data/cicioT2023.py` and `argus/data/metrics.py`:
+`git ls-files argus/data/` returned nothing. The prior session's dataset-track
+scaffolding (`argus/data/subsample.py`, `argus/data/parity.py`, their
+`__init__.py`) existed on disk and were imported successfully by
+`tests/test_subsampling.py` in this working directory, but had never actually
+been committed -- `.gitignore`'s `data/` line (intended for the top-level
+`data/`/`results/` output directories) matches a directory named `data`
+*anywhere* in the tree, not just at the repo root, because it has no leading
+`/`. A fresh clone of this repo, at any point before today, would have been
+missing `argus/data/` entirely and failed that test file's imports at collection
+time -- a real, previously-undetected bug, not a hypothetical one. Fixed by
+anchoring both `data/` and `results/` to `/data/`/`/results/`; confirmed via
+`git check-ignore -v` that `argus/data/*` is no longer matched while the
+top-level `data/cicioT2023/` (where the real, un-committed 40MB original
+CICIoT2023 CSV lives locally) still is.
