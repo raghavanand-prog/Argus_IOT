@@ -13,6 +13,14 @@ from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
+from argus.control import (
+    append_control_audit,
+    list_control_audit,
+    list_pending_commands,
+    queue_control_command,
+    report_command_result,
+    upsert_control_device_state,
+)
 from argus.db.models import (
     ActionRow,
     CicioTEvaluationRunRow,
@@ -318,9 +326,12 @@ def list_live_devices(db: Session = Depends(get_db)):
     return [
         {
             "identifier": r.identifier, "ip": r.ip, "mac": r.mac, "vendor": r.vendor,
-            "device_type": r.device_type, "interface": r.interface,
+            "device_type": r.device_type, "hostname": r.hostname,
+            "discovery_sources": r.discovery_sources, "interface": r.interface,
             "first_seen": r.first_seen.isoformat(), "last_seen": r.last_seen.isoformat(),
             "flow_count": r.flow_count, "monitored": r.monitored, "sensor_id": r.sensor_id,
+            "control_protocol": r.control_protocol, "control_capabilities": r.control_capabilities,
+            "authorized": r.authorized,
         }
         for r in rows
     ]
@@ -345,6 +356,54 @@ def live_status(db: Session = Depends(get_db)):
         "sensors": out,
         "any_connected": any(s["connected"] for s in out),
     }
+
+
+@app.post("/live/control/report")
+def live_control_report(payload: dict, db: Session = Depends(get_db), _: None = Depends(require_auth)):
+    """The sensor reporting its OWN local authorization/capability state and
+    new local audit-log entries -- a read-only mirror for console display.
+    The cloud never decides authorization; it only displays what the sensor,
+    the only party with actual LAN access, says about itself."""
+    sensor_id = payload["sensor_id"]
+    upsert_control_device_state(db, sensor_id, payload.get("control_devices", []))
+    append_control_audit(db, sensor_id, payload.get("audit_entries", []))
+    return {"ok": True}
+
+
+@app.post("/live/control/commands")
+def queue_command(payload: dict, db: Session = Depends(get_db), _: None = Depends(require_auth)):
+    """Queues a control intent from the console. This is a REQUEST, not a
+    grant -- see argus/control.py's module docstring. The device must already
+    be reported by the sensor as authorized+supporting the requested action
+    for the console to have shown the button in the first place, but the
+    sensor re-verifies for real before it ever touches the device."""
+    return queue_control_command(
+        db, sensor_id=payload["sensor_id"], device_identifier=payload["device_identifier"],
+        action=payload["action"],
+    )
+
+
+@app.get("/live/control/commands")
+def get_pending_commands(sensor_id: str, db: Session = Depends(get_db), _: None = Depends(require_auth)):
+    """Polled by the sensor itself (never the console) to fetch commands
+    queued for it specifically."""
+    return list_pending_commands(db, sensor_id)
+
+
+@app.post("/live/control/commands/{command_id}/result")
+def post_command_result(command_id: str, payload: dict, db: Session = Depends(get_db),
+                         _: None = Depends(require_auth)):
+    """The sensor reporting back what actually happened -- fulfilled, failed,
+    or denied by its own local authorization check."""
+    found = report_command_result(db, command_id, payload["status"], payload.get("result", {}))
+    if not found:
+        raise HTTPException(status_code=404, detail="command not found")
+    return {"ok": True}
+
+
+@app.get("/live/control/audit")
+def get_control_audit(db: Session = Depends(get_db)):
+    return list_control_audit(db)
 
 
 @app.get("/actions")

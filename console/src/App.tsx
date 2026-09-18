@@ -4,7 +4,8 @@ import { Fleet } from "./pages/Fleet";
 import { Incidents } from "./pages/Incidents";
 import { Control } from "./pages/Control";
 import { IdsEvaluation } from "./pages/IdsEvaluation";
-import { LiveNetwork } from "./pages/LiveNetwork";
+import { Sensor } from "./pages/Sensor";
+import { DeviceControl } from "./pages/DeviceControl";
 
 export default function App() {
   return (
@@ -12,9 +13,11 @@ export default function App() {
       <Nav />
       <Routes>
         <Route path="/" element={<IdsEvaluation />} />
-        <Route path="/live" element={<LiveNetwork />} />
-        <Route path="/incidents" element={<Incidents />} />
         <Route path="/fleet" element={<Fleet />} />
+        <Route path="/live" element={<Fleet />} />
+        <Route path="/incidents" element={<Incidents />} />
+        <Route path="/device-control" element={<DeviceControl />} />
+        <Route path="/sensor" element={<Sensor />} />
         <Route path="/control" element={<Control />} />
       </Routes>
     </div>

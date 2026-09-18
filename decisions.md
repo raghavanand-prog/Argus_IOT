@@ -672,3 +672,75 @@ local ever applies `.vercelignore`). Any future edit to `api/index.py`'s import
 list needs the same "simulate the exclusion list locally, then verify live"
 check before being called done -- "the tests passed" does not cover this
 runtime's actual constraint.
+
+## 2026-09-18 — Device Control: cloud queues, sensor executes and enforces (never the reverse)
+
+The project owner's spec described clickable console buttons
+(`[Power On]`/`[Power Off]`) as if the cloud could dispatch them directly.
+Vercel cannot reach a private LAN at all (docs/18 decision, unchanged) --
+building buttons that looked functional but silently did nothing (or
+errored) would itself have been exactly the kind of fabrication the spec's
+own core rule forbids ("if ARGUS did not actually observe it or receive it
+... ARGUS must not present it as real").
+
+Resolved with a command-queue relay, not a discovery-adjacent hack: a click
+queues a request row in the cloud (`argus.control`, status="pending"); the
+sensor's own poll loop (`--enable-control`) fetches pending commands
+targeted at it, and only then acts. This is the same pattern real
+cloud-to-home-hub systems use for an equivalent problem (a hub behind NAT
+polling its cloud service). Chosen over the alternative of not building
+real buttons at all (a read-only "here's the CLI command to run" page)
+because the queue pattern is genuinely buildable safely in one session and
+delivers the actual professional-console experience the spec asked for,
+without needing to fabricate anything to get there.
+
+## 2026-09-18 — Authorization enforced locally, not by the queue, even for cloud-originated commands
+
+Direct consequence of the project owner's explicit choice (this session) to
+keep authorization state local to the sensor rather than cloud-DB-backed:
+`sensor/control/registry.py::execute_command()` re-checks the LOCAL
+`AuthorizationStore` for every command, regardless of whether it came from
+the local CLI or was fetched from the cloud queue. The queue is a request,
+never a grant -- a command a cloud caller says is fine still gets refused if
+this specific machine's own local file has never authorized that device.
+
+This was a deliberate choice over the simpler alternative (trust the cloud's
+`authorized: true` on a queued command). The cost is one extra local lookup
+per command; the benefit is a real, structural security property, not a
+policy statement: even a compromised `ARGUS_ADMIN_TOKEN` can only ever queue
+requests, never make a physical device do anything, because the physical
+action still requires this specific machine to have locally authorized that
+specific device. Verified directly, not just asserted, with a test that
+simulates the exact attack this defends against
+(`tests/control/test_registry.py::
+test_execute_command_denied_even_when_cloud_claims_authorization`).
+
+## 2026-09-18 — Only PJLink implemented; other protocols in the spec are documented, not built
+
+The project owner's spec named several example protocols (PJLink,
+vendor-specific display APIs, UPnP/SSDP). Built PJLink fully, against its
+real published spec, rather than partially implementing several -- CLAUDE.md's
+"no half-finished implementations" rule applied directly: a control layer
+that claims support for a protocol it only partially speaks is worse than
+one that's honest about supporting exactly one, completely. The
+capability-probing framework (`probe_capability`/`execute_command`) is
+shaped to add another protocol later without restructuring, but nothing
+beyond PJLink exists today -- stated plainly in docs/19, not implied by
+omission.
+
+## 2026-09-18 — same merge-overwrite bug pattern found in two places, fixed in both, before either shipped
+
+Adding `control_protocol`/`control_capabilities`/`authorized` fields to the
+live-device record surfaced the same bug twice: `argus.pipeline.
+ingest_live_observation`'s `db.merge(LiveDeviceRow(...))` and
+`api/index.py`'s `_LIVE_DEVICES[id] = {**d, ...}` both unconditionally
+overwrite every field on a plain re-discovery ingest, which -- once control
+fields existed at all -- would have silently reset a device's real
+authorization state to unauthorized on its very next ~30s poll. Caught by
+reasoning through what "merge a fresh object with only the discovery
+fields set" actually does to fields that object doesn't mention, before
+ever running it against real data, not discovered afterward via a bug
+report. Fixed identically in both places (preserve existing control_* values
+from the current row) and pinned down with both a unit test and a live
+end-to-end curl sequence proving the fix, not just the fact that a fix was
+applied.

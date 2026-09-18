@@ -58,12 +58,22 @@ identical downstream pipeline:
   result. See `docs/17-cicioT2023-validation.md` for the full 20-section report and
   the "Benchmark Evaluation" page in the console.
 - A **local network sensor** (`sensor/agent.py`, `python -m sensor.agent`) — real
-  passive device discovery (ARP/neighbour-table reads, no active scanning) and
-  optional real packet capture on the user's own LAN, feeding a structurally
-  separate unsupervised anomaly detector (no labelled ground truth exists for
-  live traffic to calibrate a conformal gate against). Reports to a deployed
-  ARGUS API since Vercel has no route to a private LAN. Never enforces against a
-  real device. See `docs/18-live-sensor.md` and the console's "Live Network" mode.
+  passive device discovery (ARP/neighbour-table reads, no active scanning),
+  optional reverse-DNS/mDNS discovery, and optional real packet capture on the
+  user's own LAN, feeding a structurally separate unsupervised anomaly detector
+  (no labelled ground truth exists for live traffic to calibrate a conformal
+  gate against). Reports to a deployed ARGUS API since Vercel has no route to a
+  private LAN. Never enforces against a real device. See `docs/18-live-sensor.md`
+  and the console's "Live Network" mode.
+- **Real, explicitly-authorized device control** (`sensor/control/`,
+  `python -m sensor.control_cli`) — a hand-rolled PJLink client against the real
+  published protocol spec, capability-gated (a device must have a real, detected,
+  supported protocol before any control appears), authorized locally on the
+  machine running the sensor (never by the cloud), with a full audit trail.
+  Console clicks queue a command; the sensor's own poll loop fetches and fulfils
+  it, re-verifying local authorization every time regardless of who queued it —
+  a stolen admin token alone can never make a real device do anything. See
+  `docs/19-device-control.md` and the console's "Device Control" page.
 
 See `STATUS.md` for exactly what's stubbed or not yet built — it's a longer, more
 honest list than most READMEs carry, on purpose.

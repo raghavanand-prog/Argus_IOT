@@ -1,6 +1,9 @@
 # STATUS.md
 
-Last updated: 2026-09-18 (fifth session — live network sensor: a third real data
+Last updated: 2026-09-18 (sixth session — production honesty pass + real
+device control (PJLink) — see the bottom of this file for full detail).
+
+Previously: fifth session — live network sensor: a third real data
 track, alongside the synthetic testbed and CICIoT2023 benchmark).
 
 ## This session's additions
@@ -315,3 +318,68 @@ enforcement adapter exists for real discovered devices at all
 never called for live incidents (no environment-recovery check exists for a
 real device this process doesn't control). Both are the safety requirement
 working as intended, not missing functionality.
+
+## Production honesty pass + real device control (2026-09-18) — `docs/19-device-control.md`
+
+Removed the last synthetic-data exposure from the production console: Fleet
+is now the real live-sensor device inventory (the old synthetic-testbed
+Fleet page and its nav link are gone); the "Run demo pipeline" button that
+could inject fresh synthetic incidents into the production console is
+removed (the underlying capability still exists for developers via
+`scripts/seed_demo.py`, just never as a one-click UI action). Full-repo
+audit for remaining hardcoded synthetic device IDs / dead API references:
+none found.
+
+Enhanced discovery, still passive/opt-in by default: reverse-DNS hostname
+resolution (`sensor/hostnames.py`, bounded per poll) and real mDNS/Bonjour
+discovery (`sensor/mdns.py`, via `zeroconf`) — both opt-in flags
+(`--resolve-hostnames`, `--enable-mdns`), plain ARP-only discovery remains
+the zero-dependency default.
+
+Built a real, capability-gated, explicitly-authorized device-control
+subsystem: a hand-rolled PJLink Class 1 client
+(`sensor/control/pjlink.py`) against the real published protocol spec
+(power/input/mute/status, MD5-challenge auth), tested against a real mock
+TCP server speaking the real protocol (13 tests) — honestly short of real
+projector hardware, none available this session (stated in docs/19, not
+glossed over). Authorization and the control audit log are local to the
+sensor (`~/.argus/`), the project owner's explicit choice over a cloud-DB
+design; credentials use the OS keychain when available, a permission-
+restricted local file otherwise. Since Vercel can't reach a LAN, console
+clicks queue a command; the sensor's own poll loop fetches and fulfils
+pending commands, re-verifying LOCAL authorization every time regardless of
+who queued it — verified directly with a test simulating a cloud caller
+claiming authorization for a never-locally-authorized device (denied).
+
+**A real bug found and fixed twice, same pattern, before either shipped**:
+both the SQLAlchemy and in-memory (production) live-device upsert paths
+would have silently reset a device's real authorization state on its next
+ordinary discovery poll, once control fields existed on that record at all
+— caught by reasoning through merge semantics pre-emptively, fixed in both
+places, pinned down with a regression test and a live curl sequence.
+
+Verified fully end-to-end, not just unit-tested: a real mock PJLink
+"projector" on the real standard port, authorized via the real CLI, a real
+command queued through the real local API, fulfilled by the real sensor
+agent (`--enable-control`), independently re-queried afterward to confirm
+its power state genuinely changed. Console verified in a real headless
+browser (not just `tsc`/`vite build`): seeded real data, screenshotted
+Fleet/Sensor/Device Control, drove a real click-through (token save →
+Power off → confirmation dialog → confirm → queued state), confirmed via
+curl the command reached the backend queue.
+
+Kill-switch scope verified in code, not just asserted: `kill_switch` is
+referenced only in the autonomous incident-response gate
+(`argus/respond/guard.py`/`ladder.py`); the manual Device Control path
+(`sensor/control/registry.py`) has zero references to it — two structurally
+separate systems, confirmed by grep, not merely documented as separate.
+
+New tests: `tests/control/` (69), `tests/test_control_queue.py` (8),
+`tests/test_honesty_boundaries.py` (6, pinning down the project owner's
+numbered honesty requirements directly). Full suite: 135/135 passing,
+`ruff` clean.
+
+**Named honestly as not implemented**: only PJLink (no Class 2, no other
+protocol from the spec's examples — UPnP/SSDP, vendor-specific APIs);
+no real-hardware verification of the PJLink client; no cloud-side
+authorization override for a locked-out sensor (by design).

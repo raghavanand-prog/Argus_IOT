@@ -18,10 +18,15 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0", "ruff>=0.4", "mypy>=1.9"]
-# Only needed for the real network-namespace testbed (argus/testbed/) -- requires
-# Linux + root/CAP_NET_ADMIN. The synthetic sim engine and the rest of the system
-# work without these. See docs/04b-live-testbed.md.
-live-testbed = ["pyroute2>=0.7", "scapy>=2.5", "dpkt>=1.9"]
+# pyroute2/dpkt: only needed for the real network-namespace testbed (argus/testbed/)
+# -- requires Linux + root/CAP_NET_ADMIN. scapy: also used by the live sensor's real
+# packet capture (sensor/agent.py --enable-capture), cross-platform. zeroconf: the
+# live sensor's opt-in mDNS discovery (sensor/mdns.py --enable-mdns), cross-platform.
+# keyring: device-control credential storage (sensor/control/credentials.py) --
+# uses the real OS keychain (macOS Keychain, etc.) when available, cross-platform.
+# The synthetic sim engine and the rest of the system work without any of these.
+# See docs/04b-live-testbed.md, docs/18-live-sensor.md, and docs/19-device-control.md.
+live-testbed = ["pyroute2>=0.7", "scapy>=2.5", "dpkt>=1.9", "zeroconf>=0.130", "keyring>=25.0"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
