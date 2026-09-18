@@ -628,3 +628,47 @@ does, hardcoded rather than left as a flag:
 Both are documented in the functions' own docstrings and in docs/18 section 2,
 not just here -- the goal is that reading the code alone tells the same story as
 this decision log.
+
+## 2026-09-18 — `.vercelignore` broke the production deploy again, same root cause as before, caught by re-checking after push
+
+Adding the live-sensor endpoints to `api/index.py` meant importing
+`argus.correlate.correlator`, `argus.risk.engine`, `argus.sim.devices` (via the
+risk engine's `FLEET` lookup), and `argus.schemas` for the first time from that
+file. All four were still listed in `.vercelignore`'s exclusion set (`argus/
+correlate/`, `argus/risk/`, `argus/sim/`, `argus/schemas.py`) from before this
+feature existed, when nothing in `api/index.py` needed them. This is the exact
+same failure mode `.vercelignore`'s own comment already warned about
+(excluding a module the entrypoint actually imports crashes every route with
+`FUNCTION_INVOCATION_FAILED`), and it happened again because the new imports
+were added without re-checking them against that file.
+
+Pushed, then verified live rather than assumed: `web_fetch_vercel_url` against
+`/api/live/status`, `/api/live/devices`, and `/api/health` all returned
+`FUNCTION_INVOCATION_FAILED`. `get_runtime_errors`/`get_runtime_logs` returned
+nothing useful (Python cold-start import crashes on this runtime don't always
+produce a structured log line) — root-caused by re-reading `.vercelignore`
+directly instead, which named the four newly-excluded-but-now-needed modules
+immediately.
+
+Fixed by removing `argus/correlate/`, `argus/risk/`, `argus/sim/`, and
+`argus/schemas.py` from the exclusion list, keeping only `argus/sim/engine.py`
+and `argus/sim/attacks.py` excluded specifically (the synthetic-scenario
+generator, genuinely never imported by `api/index.py` -- `argus/sim/__init__.py`
+is empty, so importing `argus.sim.devices` alone doesn't pull them in).
+Verified the fix *before* pushing again, not after: copied the full repo to a
+scratch directory, applied `.vercelignore`'s exclusion list literally (the same
+list Vercel's own upload step reads), installed only `api/requirements.txt`'s
+`fastapi>=0.110` into a fresh venv (no numpy/scikit-learn, matching the real
+constraint), and imported `api/index.py` from that reduced tree — confirmed
+`IMPORT OK` and real `/live/status`, `/live/devices`, `/health` responses before
+trusting the next push. Redeployed and re-verified live afterward (see
+progress.md's matching entry for the actual live response).
+
+The pattern worth naming plainly: `.vercelignore` is effectively a second,
+easy-to-forget dependency manifest for a file that already has one
+(`api/requirements.txt`), and it doesn't get exercised by local test runs at
+all (this session's full local test suite passed throughout, since nothing
+local ever applies `.vercelignore`). Any future edit to `api/index.py`'s import
+list needs the same "simulate the exclusion list locally, then verify live"
+check before being called done -- "the tests passed" does not cover this
+runtime's actual constraint.

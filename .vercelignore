@@ -10,27 +10,35 @@
 # rewrite config -- this is what actually broke the first git-linked deploy
 # (see decisions.md's dated entry).
 # NOT argus/ wholesale: api/index.py genuinely imports argus.evidence.bundle,
-# argus.evidence.replay, and argus.respond.{guard,ladder} at runtime -- pure
+# argus.evidence.replay, argus.respond.{guard,ladder}, argus.correlate.correlator,
+# argus.risk.engine, argus.sim.devices, and argus.schemas at runtime -- all pure
 # standard-library code with no ML dependency (see api/index.py's own module
-# docstring). Excluding those broke the first fixed deploy
-# (ModuleNotFoundError: No module named 'argus'). Exclude only the
-# subpackages/files api/index.py's import graph never reaches.
+# docstring, and docs/18-live-sensor.md section 5 for why the live-sensor
+# ingest path specifically needs correlate/risk/respond/evidence). Excluding any
+# of those broke a deploy before (first: ModuleNotFoundError: No module named
+# 'argus'; again when argus/correlate, argus/risk, argus/sim, and
+# argus/schemas.py were added to this file's exclusion list while the live-
+# sensor endpoints were being built, without checking their new import graph
+# against it -- FUNCTION_INVOCATION_FAILED on every route, caught before being
+# reported as done, not after; see decisions.md). Exclude only the
+# subpackages/files api/index.py's import graph never actually reaches.
 argus/api/
 argus/behavior/
 argus/collector/
-argus/correlate/
 argus/data/
 argus/db/
 argus/detect/
 argus/features/
 argus/registry/
 argus/respond/adapters/
-argus/risk/
-argus/sim/
+# argus/sim/devices.py is needed (argus.risk.engine's FLEET criticality lookup);
+# engine.py/attacks.py are the synthetic-scenario generator, never imported by
+# api/index.py's own code.
+argus/sim/engine.py
+argus/sim/attacks.py
 argus/testbed/
 argus/verify/
 argus/pipeline.py
-argus/schemas.py
 compose/
 data/
 docs/
