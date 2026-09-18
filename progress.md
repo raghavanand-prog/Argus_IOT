@@ -439,3 +439,28 @@ scores above `ANOMALY_PERCENTILE` once enough varied baseline exists) and
 SQLite DB -- discovery-only never forces an incident, a real detection produces
 a real `IncidentRow`+`EvidenceBundleRow` with `dry_run=True`). Full suite:
 77/77 passing, `ruff` clean on every touched file.
+
+Deployed to the existing `argus-iot-live` project (git-linked, auto-deploys on
+push to this branch -- confirmed via `get_project`, not assumed) and verified
+live, not just claimed. First push actually broke every route
+(`FUNCTION_INVOCATION_FAILED` on `/api/health` too, not just the new `/live/*`
+endpoints) -- root-caused by re-reading `.vercelignore` directly:
+`argus/correlate/`, `argus/risk/`, `argus/sim/`, and `argus/schemas.py` were
+still excluded from before this feature existed, and the new endpoints import
+all four for the first time. Fixed, then verified the fix *before* pushing
+again by simulating Vercel's own exclusion list against a scratch copy of the
+repo with only `api/requirements.txt`'s `fastapi` installed (no numpy/
+scikit-learn) -- confirmed `IMPORT OK` and real responses locally first.
+Redeployed and re-verified against the real live URL:
+`GET https://argus-iot-live.vercel.app/api/health` (200, real payload),
+`/api/live/status` (200, `{"sensors":[],"any_connected":false,...}` -- honest
+empty state), `/api/live/devices` (200, `[]`), `/api/incidents` (200, real
+1020+ incidents, confirming the correlate/risk imports genuinely load).
+
+Also found (while spot-checking the console itself post-deploy) and fixed a
+second, pre-existing production bug, unrelated to this feature's own code:
+`vercel.json` had no SPA-fallback rewrite, so direct navigation to any
+client-side route other than `/` 404'd -- confirmed pre-existing by checking
+`/incidents` (also 404) before fixing, not just the new `/live` route. Added a
+catch-all `/(.*) -> /index.html` rewrite after the existing `/api/(.*)` one
+(order matters; API routes unaffected). Both fixes recorded in decisions.md.
