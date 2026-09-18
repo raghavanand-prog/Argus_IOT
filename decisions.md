@@ -300,3 +300,48 @@ local venv result alone. Rejected because the whole point of live verification
 is catching platform-specific surprises the local run can't see (as happened
 twice already this session, with connector scope and the import-time crash) --
 claiming a live test that wasn't actually sent would defeat that purpose.
+
+## 2026-09-18 — full "any device, any network" architecture audit; two real mobile layout bugs found and fixed
+
+**What happened:** Asked directly to confirm ARGUS is a universally-accessible
+web app with no dependency on localhost, the developer's machine, or any local
+server. Rather than assume the existing architecture already satisfied this
+(it mostly did), audited it directly:
+
+- Grepped `console/src` and the *built production bundle* for `localhost`,
+  `127.0.0.1`, and hardcoded ports. Found zero real references -- the one
+  `localhost` string in the built JS is `react-router`'s internal dummy
+  `new URL('http://localhost')` base for its URL-parsing API, never an actual
+  network call. `console/src/lib/api.ts` already calls only a relative `/api`
+  path, which resolves against whatever origin serves the page -- already
+  correct for any device on any network, no code change needed.
+- Grepped the built bundle for `ARGUS_ADMIN_TOKEN` to confirm it never appears
+  as a real secret value, only as UI label/placeholder text -- confirmed.
+- Re-verified CORS (`allow_origins=["*"]` already set), the Vercel rewrite,
+  and every API route live against the real production URL.
+- Took real headless-Chromium screenshots of the *actual production build*
+  (not dev mode) at three phone viewports (iPhone SE 320px, iPhone 14 390px,
+  Pixel 7 412px) across all three pages. Found genuine horizontal-scroll bugs
+  on every page at every size -- not a hypothetical, a measured
+  `scrollWidth > clientWidth` on real rendered DOM. Root-caused to three
+  separate CSS mistakes (`Nav.tsx`'s header not wrapping, `Incidents.tsx`'s
+  table wrapper using `overflow-hidden` instead of `overflow-x-auto`,
+  `Control.tsx`'s token input missing `min-w-0` and the actions-row list
+  missing `flex-wrap`) and fixed each, re-screenshotting after every change
+  until all 9 (3 devices x 3 pages) came back clean. Desktop re-screenshotted
+  at 1440px afterward and confirmed pixel-identical to before -- no regression.
+
+**What was deliberately not done:** Replacing the in-memory mutable state
+(kill switch, in-memory `_STATE` reset by `/control/seed-demo`) with a real
+persistent database (Vercel KV/Postgres/Blob). No tool available in this
+session can provision Vercel storage, and doing so is a real infrastructure
+and cost decision, not a bug fix -- raised to the user explicitly rather than
+silently added or silently skipped. See the trade-off recorded in
+`STATUS.md`'s 2026-09-18 update: the read data (devices/incidents/evidence)
+is already "persistent" in the sense that matters here -- it ships inside the
+deployed function bundle, not read from any local file -- and only the
+kill-switch toggle state is genuinely ephemeral per function instance.
+
+**Why this matters enough to record:** the instruction was specifically to
+verify rather than assume, and two of three findings (the mobile scroll bugs)
+were real defects an assumption-based answer would have missed entirely.
