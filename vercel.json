@@ -1,4 +1,5 @@
 {
+  "framework": null,
   "buildCommand": "cd console && npm install && npm run build",
   "outputDirectory": "console/dist",
   "rewrites": [
