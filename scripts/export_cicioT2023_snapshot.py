@@ -78,7 +78,11 @@ def main() -> None:
         "n_evidence_bundles": result["n_evidence_bundles"],
         "records": result["records"], "incidents": incidents, "evidence": evidence,
     }
-    SNAPSHOT_OUT.write_text(json.dumps(snapshot, indent=2, default=str))
+    # Compact, not indented: this file is deployed inline to Vercel (no git
+    # integration on this project -- see decisions.md's 2026-09-18 entry), which
+    # caps total inline deploy size well under what a pretty-printed ~1,020-bundle
+    # evidence ledger costs in whitespace alone. Same real data either way.
+    SNAPSHOT_OUT.write_text(json.dumps(snapshot, default=str, separators=(",", ":")))
     print(f"wrote {SNAPSHOT_OUT} ({SNAPSHOT_OUT.stat().st_size / 1024:.0f} KB)")
 
     SUBSET_OUT.parent.mkdir(parents=True, exist_ok=True)
