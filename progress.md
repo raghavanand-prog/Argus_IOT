@@ -163,3 +163,50 @@ Not done, honestly: Vercel deployment status is unconfirmed (see above — a
 dashboard-permission issue, not a code issue); everything else from the prior
 sessions' gap lists (dataset track, 5 scenarios on the live-testbed/ablation paths,
 ≥100-bundle replay sample, human evaluation of explanations) is unchanged.
+
+## 2026-09-18 — fourth session: Vercel deployment resolved, confirmed live, real bug found and fixed
+
+Picked up directly where the third session left off: the Vercel MCP connector's
+project-level access was empty/404 even though team access resolved correctly.
+The user reauthorized the connector with full ("all current and future
+projects") access; `list_projects`/`get_project` immediately started returning
+`argus-iot` correctly. Root-caused as an integration/connection project-scope
+setting, not a team-role permission (the user is the `wolfie4` team's owner) —
+recorded in `decisions.md`.
+
+With `argus-iot` finally visible, redeployed the complete, correct file payload
+(the one already verified in the third session) and the frontend came up
+correctly, but every `/api/*` route 500'd with `FUNCTION_INVOCATION_FAILED`.
+Diagnosed directly: `api/index.py` raised `RuntimeError` at module import if
+`ARGUS_ADMIN_TOKEN` was unset, which crashes the whole ASGI app on Vercel, not
+just the endpoints that need that credential. This is a real bug independent of
+the deployment blocker -- fixed by moving the check into `require_auth()`, so
+only the three admin-guarded endpoints depend on it. Verified locally first (an
+isolated venv, byte-identical code): all read endpoints return `200` with the
+token unset; with it set, wrong/missing auth still `401`s and a real evidence
+replay reproduces correctly. Redeployed; confirmed live: `/api/health`,
+`/api/devices`, `/api/incidents`, `/api/actions`, `/api/evidence/{id}`, and
+`/api/control/status` all return real `200` data directly fetched from
+`https://argus-iot.vercel.app`, and `get_runtime_errors` shows nothing in the
+window since the fix.
+
+The user then set `ARGUS_ADMIN_TOKEN` as a real Vercel project environment
+variable (a random token this session generated for them, since no available
+Vercel tool can set project env vars) and asked for a redeploy. Redeployed;
+`/api/health` and `/api/control/status` now both report
+`admin_token_configured: true`, confirming the deployed function reads the real
+secret.
+
+**Honestly not verified:** the three admin-only endpoints
+(`/control/kill-switch`, `/control/seed-demo`, `/evidence/*/replay`) need a
+`POST` with a custom `Authorization: Bearer <token>` header. No tool in this
+session can send that to a live URL -- this sandbox's egress proxy rejects
+direct requests to `*.vercel.app` (confirmed again this session via a direct
+`curl` attempt, `403` at the proxy), and the Vercel MCP's `web_fetch_vercel_url`
+tool is GET-only with no custom headers. The underlying logic was verified
+correct in the isolated-venv test above, using the identical code now deployed,
+but the live authenticated request itself was not sent. Reported to the user as
+exactly that gap, not glossed over.
+
+Production URL: `https://argus-iot.vercel.app` (aliased at
+`https://argus-iot-wolfie4.vercel.app`).

@@ -254,3 +254,49 @@ a persistent SQLite file (not guaranteed across invocations), and for some
 code paths root/CAP_NET_ADMIN (the live-testbed) -- all real platform blockers
 recorded in this file's 2026-09-17 entry and `docs/06-vercel-deployment.md`,
 not an oversight to fix by switching entrypoints.
+
+## 2026-09-18 — the Vercel blocker was connector project-scope, not team role
+
+**What happened:** The third session's Vercel deploys all failed with
+`list_projects` returning empty and `get_project` 404ing for `argus-iot`, even
+though `list_teams` correctly resolved the `wolfie4` team. The user confirmed
+via the dashboard that their account is the team's *Owner* -- ruling out a
+team-role explanation. The actual cause: the Vercel MCP connector/integration
+itself had a project-access scope (separate from both team role and this
+session's own per-tool-call approval setting) that didn't include `argus-iot`.
+Reauthorizing the connector with "all current and future projects" access
+fixed it immediately -- `list_projects` and `get_project` started returning
+real data on the next call, no code or project changes needed.
+
+**Why this matters enough to record:** three different permission layers
+looked similar from the outside (team role, session tool-approval, connector
+project-scope) but only fixing the right one mattered. Verified each layer
+directly rather than guessing, per CLAUDE.md's evidence standard.
+
+## 2026-09-18 — could not independently verify the admin-authenticated endpoints against the live URL
+
+**What happened:** After the user set `ARGUS_ADMIN_TOKEN` as a real Vercel
+project environment variable and asked for a redeploy, `/api/health` and
+`/api/control/status` confirmed the deployed function reads it
+(`admin_token_configured: true`). But testing the three admin endpoints
+themselves requires a `POST` with a custom `Authorization: Bearer <token>`
+header, and no tool available in this session can do that against a live URL:
+this sandbox's egress proxy rejects direct requests to `*.vercel.app`
+(re-confirmed via a direct `curl` attempt -- `403` at the proxy), and the
+Vercel MCP's `web_fetch_vercel_url` tool only supports unauthenticated `GET`.
+
+**What was and wasn't verified:** The exact `require_auth()` logic now running
+in production was verified correct in an isolated local venv against
+byte-identical code -- missing-token returns `503`, wrong/missing token
+returns `401`, correct token returns `200`, and a real evidence replay
+reproduces correctly. What was *not* independently confirmed is that this
+specific live deployment, reached over the real network, behaves identically
+-- reasonable to expect given the code is unchanged and the read endpoints all
+verified correctly, but reported as inferred, not directly observed, per
+CLAUDE.md rule 1.
+
+**Rejected alternative:** Report the admin endpoints as "tested" based on the
+local venv result alone. Rejected because the whole point of live verification
+is catching platform-specific surprises the local run can't see (as happened
+twice already this session, with connector scope and the import-time crash) --
+claiming a live test that wasn't actually sent would defeat that purpose.
