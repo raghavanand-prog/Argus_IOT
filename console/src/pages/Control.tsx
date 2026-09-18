@@ -50,7 +50,7 @@ export function Control() {
             value={tokenInput}
             onChange={(e) => setTokenInput(e.target.value)}
             placeholder="paste ARGUS_ADMIN_TOKEN"
-            className="mono flex-1 rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2 text-sm outline-none focus:border-[var(--color-accent-dim)]"
+            className="mono min-w-0 flex-1 rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2 text-sm outline-none focus:border-[var(--color-accent-dim)]"
           />
           <button
             onClick={() => setToken(tokenInput)}
@@ -134,14 +134,14 @@ export function Control() {
         {actions && actions.length > 0 && (
           <div className="space-y-2">
             {actions.map((a) => (
-              <div key={a.action_id} className="mono flex items-center justify-between rounded-md bg-[var(--color-surface-2)] px-3 py-2 text-xs">
+              <div key={a.action_id} className="mono flex flex-wrap items-center gap-x-3 gap-y-1 rounded-md bg-[var(--color-surface-2)] px-3 py-2 text-xs">
                 <span>{a.device_id}</span>
                 <span className="text-[var(--color-text-dim)]">tier {a.tier}</span>
                 <span>{a.action}</span>
                 <span className={a.dry_run ? "text-[var(--color-accent)]" : "text-[var(--color-risk-high)]"}>
                   {a.dry_run ? "dry-run" : "LIVE"}
                 </span>
-                <span className="text-[var(--color-text-dim)]">TTL {a.ttl_seconds}s</span>
+                <span className="ml-auto text-[var(--color-text-dim)]">TTL {a.ttl_seconds}s</span>
               </div>
             ))}
           </div>

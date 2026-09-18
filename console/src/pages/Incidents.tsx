@@ -27,8 +27,8 @@ export function Incidents() {
       {error && <ErrorCard message={(error as Error).message} />}
 
       {incidents && (
-        <div className="overflow-hidden rounded-xl border border-[var(--color-border)]">
-          <table className="w-full text-sm">
+        <div className="overflow-x-auto rounded-xl border border-[var(--color-border)]">
+          <table className="w-full min-w-[720px] text-sm">
             <thead className="bg-[var(--color-surface-2)] text-left text-xs uppercase tracking-wide text-[var(--color-text-dim)]">
               <tr>
                 <th className="px-4 py-2.5 font-medium">Device</th>
