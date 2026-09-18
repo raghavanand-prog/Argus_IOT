@@ -464,3 +464,34 @@ client-side route other than `/` 404'd -- confirmed pre-existing by checking
 `/incidents` (also 404) before fixing, not just the new `/live` route. Added a
 catch-all `/(.*) -> /index.html` rewrite after the existing `/api/(.*)` one
 (order matters; API routes unaffected). Both fixes recorded in decisions.md.
+
+## 2026-09-18 — real bug found running the sensor against the project owner's actual Mac
+
+The project owner ran `python -m sensor.agent` against their own real LAN for
+the first time -- exactly the end-to-end check this session's own testing
+(against a sandbox container's synthetic ARP entry) could never fully stand
+in for. Two real, user-reported errors, both fixed:
+
+1. `.venv` was created with macOS's bundled Python 3.9 (Xcode Command Line
+   Tools), not the `>=3.11` `pyproject.toml` already declares -- `datetime.UTC`
+   (3.11+) failed to import. Not a code bug; pointed the user at recreating
+   the venv with a real 3.11+ interpreter.
+2. `ModuleNotFoundError: No module named 'scapy'` on a plain `pip install -e .`
+   -- this **was** a real code bug, not just a missing extra. `sensor/agent.py`
+   imported `argus.testbed.capture` (which needs scapy) unconditionally at
+   module level, so even pure discovery-only mode -- documented as the safe,
+   zero-elevated-privilege default -- silently required scapy just to start.
+   Fixed by moving every capture-mode-only import (`CaptureSession`,
+   `packets_to_live_flows`, `window_flows`, `extract_device_window`,
+   `build_live_baseline`, `signature_detections`, `LiveAnomalyDetector`,
+   `live_anomaly_detections`, `MIN_BASELINE_WINDOWS`) into a lazy
+   `_import_capture_stack()`, called only when `--enable-capture` is actually
+   passed, with a clean actionable error
+   (`pip install -e '.[live-testbed]'`) instead of a raw traceback if scapy is
+   missing at that point. Verified, not assumed: built a fresh venv with the
+   project installed via plain `pip install -e .` (no scapy present, matching
+   the user's exact situation) and confirmed `python -m sensor.agent --once`
+   (discovery-only) now runs successfully; separately confirmed
+   `--enable-capture` without scapy prints the clean install instruction and
+   exits 1, no traceback. Re-ran `tests/sensor/` (21/21) and capture mode
+   against a real local API afterward to confirm nothing regressed.
