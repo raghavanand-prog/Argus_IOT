@@ -32,6 +32,21 @@ Last updated: 2026-09-18 (fourth session — Vercel production deployment confir
   independently sent. Production URL: `https://argus-iot.vercel.app`. See
   `decisions.md`'s 2026-09-18 entries for both fixes and `progress.md` for the
   full account.
+- **Universal-access audit (2026-09-18).** Confirmed directly, not assumed:
+  the frontend has zero real dependency on `localhost`/`127.0.0.1` in the
+  built production bundle (grepped the actual shipped JS); `ARGUS_ADMIN_TOKEN`
+  never appears as a real value in frontend code, only as UI label text; CORS
+  is already open (`allow_origins=["*"]`); every API route was re-verified
+  live from outside. Found and fixed two real mobile-layout bugs (horizontal
+  scroll on every page at phone widths, in `Nav.tsx`, `Incidents.tsx`, and
+  `Control.tsx`) via real headless-Chromium screenshots of the production
+  build at iPhone SE/14 and Pixel 7 sizes -- not hypothetical, measured. One
+  open trade-off, not silently resolved: the kill-switch/in-memory `_STATE`
+  is per-serverless-instance and not backed by a real database (Vercel
+  KV/Postgres); the read data (devices/incidents/evidence) doesn't have this
+  problem since it ships inside the deployed bundle itself. No tool available
+  in this session can provision Vercel storage, and doing so is a real
+  infrastructure/cost decision for the user, not a bug fix.
 
 ## What works right now (verified by running it, not just reading the code)
 
