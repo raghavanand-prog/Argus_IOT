@@ -29,19 +29,17 @@ import time
 from dataclasses import asdict
 from datetime import UTC, datetime
 
-from argus.collector.windows import window_flows
-from argus.detect.rules import signature_detections
-from argus.features.extract import extract_device_window
-from argus.testbed.capture import CaptureSession
-from sensor.baseline import build_live_baseline
 from sensor.client import ArgusApiClient
 from sensor.discovery import DiscoveryState
-from sensor.flows import packets_to_live_flows
-from sensor.live_detect import (
-    MIN_BASELINE_WINDOWS,
-    LiveAnomalyDetector,
-    live_anomaly_detections,
-)
+
+# Everything below is capture-mode-only (needs scapy, an optional dependency --
+# see pyproject.toml's `live-testbed` extra) and is imported lazily, inside
+# run(), only when --enable-capture is actually passed. Discovery-only mode is
+# documented as the safe, no-elevated-privilege default; importing scapy just
+# to start the process in that mode would silently break that promise for
+# anyone who installed the base package (`pip install -e .`) without the
+# capture extra, which is exactly what happened on first real-world use (a
+# real bug, not hypothetical -- see progress.md).
 
 
 def _device_to_payload(d) -> dict:
@@ -59,9 +57,46 @@ def _detection_to_payload(det) -> dict:
     return payload
 
 
+def _import_capture_stack():
+    """Imports everything capture mode needs, and only capture mode -- see the
+    module-level comment above for why this must not happen at import time."""
+    try:
+        from argus.collector.windows import window_flows
+        from argus.detect.rules import signature_detections
+        from argus.features.extract import extract_device_window
+        from argus.testbed.capture import CaptureSession
+        from sensor.baseline import build_live_baseline
+        from sensor.flows import packets_to_live_flows
+        from sensor.live_detect import (
+            MIN_BASELINE_WINDOWS,
+            LiveAnomalyDetector,
+            live_anomaly_detections,
+        )
+    except ImportError as e:
+        raise ImportError(
+            "--enable-capture needs the optional 'live-testbed' extra (scapy, for real "
+            "packet capture) -- install it with: pip install -e '.[live-testbed]'"
+        ) from e
+    return {
+        "window_flows": window_flows, "signature_detections": signature_detections,
+        "extract_device_window": extract_device_window, "CaptureSession": CaptureSession,
+        "build_live_baseline": build_live_baseline, "packets_to_live_flows": packets_to_live_flows,
+        "MIN_BASELINE_WINDOWS": MIN_BASELINE_WINDOWS, "LiveAnomalyDetector": LiveAnomalyDetector,
+        "live_anomaly_detections": live_anomaly_detections,
+    }
+
+
 def run(args: argparse.Namespace) -> int:
     sensor_id = args.sensor_id or f"sensor-{socket.gethostname()}"
     client = ArgusApiClient(base_url=args.api_url, token=args.token)
+
+    cap_stack = None
+    if args.enable_capture:
+        try:
+            cap_stack = _import_capture_stack()
+        except ImportError as e:
+            print(f"ERROR: {e}", file=sys.stderr)
+            return 1
 
     print(f"ARGUS local sensor starting -- sensor_id={sensor_id}")
     print(f"  target API: {args.api_url}")
@@ -81,7 +116,7 @@ def run(args: argparse.Namespace) -> int:
 
     discovery = DiscoveryState()
     baselines: dict[str, object] = {}
-    detectors: dict[str, LiveAnomalyDetector] = {}
+    detectors: dict[str, object] = {}
     feature_history: dict[str, list] = {}
     flow_counts: dict[str, int] = {}
 
@@ -93,16 +128,16 @@ def run(args: argparse.Namespace) -> int:
         detections_payload: list[dict] = []
 
         if args.enable_capture:
-            cap = CaptureSession(ifaces=args.interfaces)
+            cap = cap_stack["CaptureSession"](ifaces=args.interfaces)
             cap.start()
             time.sleep(args.window_seconds)
             packets = cap.stop()
-            flows = packets_to_live_flows(packets, known_identifiers)
-            windows = window_flows(flows, window_seconds=args.window_seconds)
+            flows = cap_stack["packets_to_live_flows"](packets, known_identifiers)
+            windows = cap_stack["window_flows"](flows, window_seconds=args.window_seconds)
 
             for w_start, w_end, w_flows in windows:
                 dev_id = w_flows[0].device_id
-                fv = extract_device_window(dev_id, w_flows, w_start, w_end)
+                fv = cap_stack["extract_device_window"](dev_id, w_flows, w_start, w_end)
                 if not fv.values:
                     continue
                 flow_counts[dev_id] = flow_counts.get(dev_id, 0) + len(w_flows)
@@ -112,7 +147,7 @@ def run(args: argparse.Namespace) -> int:
                 if dev_id not in baselines:
                     # median/MAD identity baseline only needs one window -- build it as soon as
                     # a device has any observed traffic
-                    baseline = build_live_baseline(dev_id, w_flows, [fv])
+                    baseline = cap_stack["build_live_baseline"](dev_id, w_flows, [fv])
                     if baseline:
                         baselines[dev_id] = baseline
 
@@ -123,15 +158,15 @@ def run(args: argparse.Namespace) -> int:
                     # there's enough to fit a meaningful model, then fit once. Never score against
                     # an unfitted detector: live_anomaly_detections() already refuses to, but there's
                     # no point running signature_detections on a device we haven't finished baselining.
-                    if len(history) >= MIN_BASELINE_WINDOWS:
-                        detector = LiveAnomalyDetector(device_id=dev_id)
+                    if len(history) >= cap_stack["MIN_BASELINE_WINDOWS"]:
+                        detector = cap_stack["LiveAnomalyDetector"](device_id=dev_id)
                         detector.fit(history)
                         detectors[dev_id] = detector
                     continue
 
                 ts = datetime.now(UTC)
-                dets = list(signature_detections(dev_id, fv, ts))
-                dets += live_anomaly_detections(dev_id, fv, detector, ts)
+                dets = list(cap_stack["signature_detections"](dev_id, fv, ts))
+                dets += cap_stack["live_anomaly_detections"](dev_id, fv, detector, ts)
                 detections_payload.extend(_detection_to_payload(d) for d in dets)
 
             for d in devices:
