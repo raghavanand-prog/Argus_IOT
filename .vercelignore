@@ -9,7 +9,28 @@
 # thing as one FastAPI app instead of respecting vercel.json's own build/
 # rewrite config -- this is what actually broke the first git-linked deploy
 # (see decisions.md's dated entry).
-argus/
+# NOT argus/ wholesale: api/index.py genuinely imports argus.evidence.bundle,
+# argus.evidence.replay, and argus.respond.{guard,ladder} at runtime -- pure
+# standard-library code with no ML dependency (see api/index.py's own module
+# docstring). Excluding those broke the first fixed deploy
+# (ModuleNotFoundError: No module named 'argus'). Exclude only the
+# subpackages/files api/index.py's import graph never reaches.
+argus/api/
+argus/behavior/
+argus/collector/
+argus/correlate/
+argus/data/
+argus/db/
+argus/detect/
+argus/features/
+argus/registry/
+argus/respond/adapters/
+argus/risk/
+argus/sim/
+argus/testbed/
+argus/verify/
+argus/pipeline.py
+argus/schemas.py
 compose/
 data/
 docs/
