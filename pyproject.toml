@@ -17,7 +17,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0", "ruff>=0.4", "mypy>=1.9"]
+dev = ["pytest>=8.0", "ruff>=0.4", "mypy>=2.4.0"]
 # pyroute2/dpkt: only needed for the real network-namespace testbed (argus/testbed/)
 # -- requires Linux + root/CAP_NET_ADMIN. scapy: also used by the live sensor's real
 # packet capture (sensor/agent.py --enable-capture), cross-platform. zeroconf: the
