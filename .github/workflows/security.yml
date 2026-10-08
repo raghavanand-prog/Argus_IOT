@@ -1,0 +1,73 @@
+name: Security scan
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  schedule:
+    - cron: "0 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  secrets:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Scan full git history for leaked secrets
+        run: docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:v8.18.4 detect --source /repo --redact -v
+
+  codeql:
+    name: Code scan (CodeQL)
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [javascript-typescript, python]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: none
+      - uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
+
+  dependencies:
+    name: Dependency audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: npm audit (console)
+        working-directory: console
+        continue-on-error: true
+        run: |
+          if [ -f package-lock.json ]; then npm audit --audit-level=high --omit=dev; else echo 'no package-lock.json, skipping'; fi
+      - name: pip-audit (.)
+        working-directory: .
+        continue-on-error: true
+        run: |
+          pip install --quiet pip-audit
+          if [ -f requirements.txt ]; then pip-audit -r requirements.txt; else pip-audit .; fi
+      - name: pip-audit (api)
+        working-directory: api
+        continue-on-error: true
+        run: |
+          pip install --quiet pip-audit
+          if [ -f requirements.txt ]; then pip-audit -r requirements.txt; else pip-audit .; fi
