@@ -213,7 +213,7 @@ repository. The one citation that *was* verified accurate (Sallam, El Barachi & 
 scalability-testing claims all confirmed) is the sole third-party gap-analysis
 citation the paper and `docs/00` now rely on.
 
-**Why this matters enough to record:** CLAUDE.md's no-fabrication rule doesn't
+**Why this matters enough to record:** ENGINEERING_RULES.md's no-fabrication rule doesn't
 carve out an exception for content inherited from an earlier session or already
 committed — a wrong number found during unrelated work still gets fixed at the
 source, not just avoided in the new document.
@@ -271,7 +271,7 @@ real data on the next call, no code or project changes needed.
 **Why this matters enough to record:** three different permission layers
 looked similar from the outside (team role, session tool-approval, connector
 project-scope) but only fixing the right one mattered. Verified each layer
-directly rather than guessing, per CLAUDE.md's evidence standard.
+directly rather than guessing, per ENGINEERING_RULES.md's evidence standard.
 
 ## 2026-09-18 — could not independently verify the admin-authenticated endpoints against the live URL
 
@@ -293,7 +293,7 @@ reproduces correctly. What was *not* independently confirmed is that this
 specific live deployment, reached over the real network, behaves identically
 -- reasonable to expect given the code is unchanged and the read endpoints all
 verified correctly, but reported as inferred, not directly observed, per
-CLAUDE.md rule 1.
+ENGINEERING_RULES.md rule 1.
 
 **Rejected alternative:** Report the admin endpoints as "tested" based on the
 local venv result alone. Rejected because the whole point of live verification
@@ -399,12 +399,12 @@ no attached storage add-on; kill-switch state remains per-serverless-instance
 in-memory, exactly as documented above. `/health` and `/control/status`
 already surface `admin_token_configured` and the in-memory nature of this
 state is documented in `docs/06-vercel-deployment.md`, so this isn't a hidden
-limitation -- it's a deliberate scope line, the same kind CLAUDE.md's scope
+limitation -- it's a deliberate scope line, the same kind ENGINEERING_RULES.md's scope
 section already draws elsewhere in this project.
 
 ## 2026-09-18 — CICIoT2023 real-dataset evaluation: dataset substitution presented as a trade-off, then resolved by direct upload
 
-Continuing the CLAUDE.md instruction to present real trade-offs rather than
+Continuing the ENGINEERING_RULES.md instruction to present real trade-offs rather than
 silently choosing: the user's request specifically named CICIoT2023, Edge-IIoTset,
 or TON_IoT. Before writing any evaluation code, searched this environment's one
 reachable channel (anonymous public GitHub repo cloning -- direct requests to
@@ -430,7 +430,7 @@ different feature space from the synthetic pipeline's 14-key `FEATURE_KEYS`
 (derived from `FlowRecord` via `extract_device_window`). Reusing the
 flow-trained detector unchanged would silently misalign feature values by
 position; reusing its *class* while forking a parallel copy for the new feature
-space would duplicate ~100 lines of calibration/conformal logic CLAUDE.md's own
+space would duplicate ~100 lines of calibration/conformal logic ENGINEERING_RULES.md's own
 style guidance says to keep short and singular. Chose instead to add one
 injectable `feature_keys: list[str]` field to `CalibratedDetector` and
 `ShapExplainer` (default: unchanged, so the synthetic pipeline's behaviour and
@@ -450,7 +450,7 @@ re-observe after "acting" on it, and no attack-phase ground truth with a
 start/end time to check against. Two options considered: call `verify()` with an
 empty ground-truth list (produces a plausible-looking "inconclusive" outcome for
 every single detection, silently implying a check happened) or skip it outright
-and say why. Per CLAUDE.md rule 4 (no fabricated results) and the user's explicit
+and say why. Per ENGINEERING_RULES.md rule 4 (no fabricated results) and the user's explicit
 "do not invent values" instruction, chose to skip it -- `verification_outcome` is
 `None` for every CICIoT2023-derived incident, and the reason is written directly
 into that incident's evidence-bundle trace, not just this file.
@@ -485,7 +485,7 @@ App on the user's account first, a one-time action only they could take
 (done, confirmed by the user). Rather than attempt a risky, hard-to-reverse
 domain move without asking, created a new project (`argus-iot-live`, prj_
 Z2qwga7RAqza8h8yWH1BHudwDz4C) git-linked to `raghavanand-prog/Argus_IOT`,
-production branch `claude/nifty-ramanujan-ruaew2` -- auto-deploys on every
+production branch `main` -- auto-deploys on every
 push now, unlike the original project. Live at
 `https://argus-iot-live.vercel.app`, verified via real HTTP calls (health,
 `/api/cicioT2023/eval` returning the exact same real numbers as the local
@@ -567,7 +567,7 @@ windows known-benign, some known-attack -- to fit. No such labels exist for real
 LAN traffic: nothing tells a passive sensor which of a user's own real devices,
 if any, were ever compromised, and no ground-truth ledger exists to check
 against. Fabricating labels to force-fit that class would be exactly the kind of
-invented ground truth CLAUDE.md's no-fabrication rule (`no fabricated results`,
+invented ground truth ENGINEERING_RULES.md's no-fabrication rule (`no fabricated results`,
 `metadata-only features`) forbids.
 
 Decision: built a genuinely separate `sensor.live_detect.LiveAnomalyDetector` --
@@ -600,7 +600,7 @@ reliably non-degenerate in testing, not tuned to any specific attack shape (no
 labelled live-attack data exists to tune against, consistent with the decision
 above). Recorded explicitly in `live_detect.py` as measured-not-guessed and
 "subject to revision once real longitudinal deployment data exists," per
-CLAUDE.md's rule that a number must come from a recorded run or be `TBD`.
+ENGINEERING_RULES.md's rule that a number must come from a recorded run or be `TBD`.
 
 Practical cost, stated plainly: with the default `--window-seconds 60`, a
 device needs ~20 minutes of continuous observation before its first anomaly
@@ -622,7 +622,7 @@ does, hardcoded rather than left as a flag:
   testbed environment's actual recovered state against a ground-truth ledger of
   attack phases. A real device discovered by passive ARP observation has no such
   ledger and no environment this process controls to check. Calling `verify()`
-  anyway and reporting *some* outcome would be fabricating a result CLAUDE.md's
+  anyway and reporting *some* outcome would be fabricating a result ENGINEERING_RULES.md's
   "no fabricated results" rule forbids just as much as a fake number would.
 
 Both are documented in the functions' own docstrings and in docs/18 section 2,
@@ -719,7 +719,7 @@ test_execute_command_denied_even_when_cloud_claims_authorization`).
 
 The project owner's spec named several example protocols (PJLink,
 vendor-specific display APIs, UPnP/SSDP). Built PJLink fully, against its
-real published spec, rather than partially implementing several -- CLAUDE.md's
+real published spec, rather than partially implementing several -- ENGINEERING_RULES.md's
 "no half-finished implementations" rule applied directly: a control layer
 that claims support for a protocol it only partially speaks is worse than
 one that's honest about supporting exactly one, completely. The

@@ -4,7 +4,7 @@ Dated, append-only session log.
 
 ## 2026-09-11 — initial build session
 
-Given the full ARGUS planning bundle (master plan, CLAUDE.md, 12-week/6-phase
+Given the full ARGUS planning bundle (master plan, ENGINEERING_RULES.md, 12-week/6-phase
 BUILD-ORDER.md, docs/00-15, research/, resume/) and asked to execute it in fewer,
 larger phases with a strong UI, rather than plan further.
 

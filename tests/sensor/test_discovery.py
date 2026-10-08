@@ -1,4 +1,4 @@
-"""Real assertions on sensor.discovery's parsing/state logic (CLAUDE.md's testing
+"""Real assertions on sensor.discovery's parsing/state logic (ENGINEERING_RULES.md's testing
 expectations) -- fixture text shaped exactly like real /proc/net/arp and `arp -a`
 output, not fabricated network fields presented as live data."""
 

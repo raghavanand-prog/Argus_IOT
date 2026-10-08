@@ -21,7 +21,7 @@ capability was "often absent" — detection without action.
 cross-dataset" figure attributed to "Varol & Karakaya, Sensors 26(18):5744." That citation
 was wrong on inspection — the actual authors of Sensors 26(18):5744 are Ogunseyi,
 Thiyagarajan, He, Bist, and Du, and the specific figure could not be verified as belonging
-to that paper. Removed rather than left uncorrected, per CLAUDE.md rule 4: no fabricated
+to that paper. Removed rather than left uncorrected, per ENGINEERING_RULES.md rule 4: no fabricated
 numbers, no matter how minor.)*
 
 ## The falsifiable question

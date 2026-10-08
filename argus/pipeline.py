@@ -487,7 +487,7 @@ def _process_cicioT2023_detection(
     CICIoT2023 row is a static, already-captured record: there is no environment left
     to re-observe after "acting" on it, and no attack-phase ground truth with a
     start/end time to check against -- verification's premise doesn't hold here. Per
-    CLAUDE.md rule 4 (no fabricated results) and the project owner's explicit
+    ENGINEERING_RULES.md rule 4 (no fabricated results) and the project owner's explicit
     instruction not to invent values, this is skipped outright and documented here,
     rather than faked with an empty ground-truth list that would silently produce a
     plausible-looking "inconclusive" outcome for every single detection.

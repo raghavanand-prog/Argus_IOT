@@ -101,7 +101,7 @@ track, alongside the synthetic testbed and CICIoT2023 benchmark).
   and un-blocks real socket connections; a `LiveNftablesAdapter` is a drop-in
   replacement for `DryRunAdapter` matching the exact 3-argument shape
   `decide_and_respond()` already calls, so the response ladder needed zero changes
-  to drive it. Never wired in as a default anywhere — still opt-in, per CLAUDE.md
+  to drive it. Never wired in as a default anywhere — still opt-in, per ENGINEERING_RULES.md
   rule 2.
 - **SHAP (TreeSHAP) attribution** — a `RandomForestClassifier` trained on the same
   labelled calibration split the conformal detector uses; real per-feature

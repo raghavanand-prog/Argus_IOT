@@ -1,5 +1,5 @@
 """IDS validation Test 1 / Test 4 (docs/16-ids-validation.md), locked in as a
-regression test. Per CLAUDE.md rule 6 (seeds fixed and recorded), this asserts the
+regression test. Per ENGINEERING_RULES.md rule 6 (seeds fixed and recorded), this asserts the
 *exact* measured counts at seed=42, not a looser "should be low" check -- if a future
 change to the sim engine, feature extraction, or detector genuinely changes this
 number, that's a real behavioural change this test is supposed to catch, and the

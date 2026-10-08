@@ -19,14 +19,14 @@ parquet set, ~100GB total project budget).
 
 **Verified, not assumed**: this session's outbound network goes through a proxy
 with an explicit allowlist (`pypi.org`, `files.pythonhosted.org`, `registry.npmjs.org`,
-a handful of other package registries, and Anthropic's own API hosts — see the
+a handful of other package registries, and a few vendor API hosts — see the
 proxy status dump in `decisions.md`). A direct request to
 `https://www.unb.ca/cic/datasets/iotdataset-2023.html` (CICIoT2023's host) returns
 **403 Forbidden** at the proxy, the same failure mode as every other general
 website tried in this session (Docker Hub's CDN, for instance — see `docs/04b`).
 There is no code path in this environment that can download the actual dataset;
 this isn't a time-budget cut, it's a hard environmental constraint, and it's worth
-being explicit about the difference (CLAUDE.md rule 4: no fabricated results — the
+being explicit about the difference (ENGINEERING_RULES.md rule 4: no fabricated results — the
 honest version of "we didn't do X" matters as much for infrastructure claims as for
 measurement claims).
 

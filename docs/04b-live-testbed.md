@@ -29,7 +29,7 @@ testbed would have been: these are genuine, separate kernel network stacks passi
 genuine Ethernet frames, not container network namespaces Docker itself would have
 set up the same way under the hood anyway.
 
-**Containment**, per CLAUDE.md rule 3, is structural, not just a runtime check: a
+**Containment**, per ENGINEERING_RULES.md rule 3, is structural, not just a runtime check: a
 device namespace has exactly one interface and no default route, so nothing outside
 `10.10.0.0/24` is reachable *at all* — there's no IP forwarding toward the host's
 real interface anywhere in this design. `argus/testbed/live_attacks.py` additionally
@@ -98,7 +98,7 @@ difference from the original design, not hidden.
   `run_demo_pipeline` (synthetic) and `run_live_demo_pipeline` (real) as peers.
 - Enforcement via `NftablesAdapter`/`LiveNftablesAdapter` is real and tested, but is
   never wired in as the default adapter anywhere — `run_live_demo_pipeline` still
-  uses `DryRunAdapter` by default, per CLAUDE.md rule 2. Driving real enforcement
+  uses `DryRunAdapter` by default, per ENGINEERING_RULES.md rule 2. Driving real enforcement
   requires deliberately constructing `LiveNftablesAdapter` yourself, exactly as
   deliberate as flipping `ARGUS_ENFORCE=true`.
 

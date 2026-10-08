@@ -6,4 +6,4 @@ condensed in `docs/04-evaluation-protocol.md`). These are downstream of the eval
 harness (`eval/harness.py`) having enough real, multi-seed results to write about
 honestly — see `STATUS.md`'s "immediate next steps". Writing the paper outline before
 there's anything to report would invite exactly the fabricated-numbers failure mode
-`CLAUDE.md` rule 4 forbids.
+`ENGINEERING_RULES.md` rule 4 forbids.

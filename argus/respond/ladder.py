@@ -82,7 +82,7 @@ def decide_and_respond(
     is_drifting: bool, kill_switch: KillSwitch, rate_limiter: ActionRateLimiter,
     enforce_enabled: bool, adapter: EnforcementAdapter, now: float | None = None,
 ) -> ResponseOutcome:
-    """``now``: simulated-clock seconds, not wall-clock (CLAUDE.md's determinism rule).
+    """``now``: simulated-clock seconds, not wall-clock (ENGINEERING_RULES.md's determinism rule).
     Rate-limiting against ``time.time()`` would make a fast pipeline run over
     simulated hours look like a real-time burst and corrupt evidence replay -- this
     was caught by exactly the replay check docs/09 says should catch it."""

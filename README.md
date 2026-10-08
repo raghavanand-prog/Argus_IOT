@@ -121,7 +121,7 @@ cp .env.example .env  # then edit .env and set a real ARGUS_ADMIN_TOKEN (see bel
 
 | Variable | Required | Default | Meaning |
 |---|---|---|---|
-| `ARGUS_ADMIN_TOKEN` | **Yes** | none — startup fails if unset | Bearer token required for any state-changing API call (`/control/*`, `/evidence/*/replay`). Deliberately has no default: CLAUDE.md/docs/14's rule is "a default credential in a security tool is an irony worth avoiding." Pick any string for local dev. |
+| `ARGUS_ADMIN_TOKEN` | **Yes** | none — startup fails if unset | Bearer token required for any state-changing API call (`/control/*`, `/evidence/*/replay`). Deliberately has no default: ENGINEERING_RULES.md/docs/14's rule is "a default credential in a security tool is an irony worth avoiding." Pick any string for local dev. |
 | `ARGUS_ENFORCE` | No | `false` | `true` would let the response ladder call a real enforcement adapter instead of the dry-run default. Never flip this casually — see `docs/03-response-and-safety.md`. |
 | `ARGUS_DATABASE_URL` | No | `sqlite:///./argus.db` | Any SQLAlchemy-supported DSN. SQLite needs no setup; point this at Postgres if you want it. |
 | `ARGUS_CONFORMAL_ALPHA` | No | `0.05` | Significance level for the conformal prediction gate used in detection. |
@@ -293,5 +293,5 @@ tests/          pytest suite
 eval/           evaluation harness (A0-A8 ablation)
 ```
 
-See `CLAUDE.md` for the full non-negotiable rules (dry-run by default,
+See `ENGINEERING_RULES.md` for the full non-negotiable rules (dry-run by default,
 metadata-only features, no fabricated results, determinism).

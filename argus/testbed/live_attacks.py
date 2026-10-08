@@ -1,5 +1,5 @@
 """Real attack scripts: actual TCP/UDP socket operations against actual testbed
-namespaces, containment-checked in code (CLAUDE.md rule 3, docs/04's "containment is
+namespaces, containment-checked in code (ENGINEERING_RULES.md rule 3, docs/04's "containment is
 enforced in code, not assumed"). Every target IP is validated against the testbed
 subnet before a single packet is sent; the check is unconditional, not configurable,
 and there is no code path in this module that accepts a caller-supplied bypass.
@@ -34,7 +34,7 @@ def assert_in_testbed(ip: str) -> None:
     if ipaddress.ip_address(ip) not in SUBNET:
         raise ContainmentViolation(
             f"refusing to target {ip}: outside the testbed subnet {SUBNET}. "
-            "This check is unconditional -- see docs/04b and CLAUDE.md rule 3."
+            "This check is unconditional -- see docs/04b and ENGINEERING_RULES.md rule 3."
         )
 
 

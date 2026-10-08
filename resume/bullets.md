@@ -1,6 +1,6 @@
 # Resume material
 
-Rule (unchanged from the original plan, and from CLAUDE.md rule 4): no bullet goes
+Rule (unchanged from the original plan, and from ENGINEERING_RULES.md rule 4): no bullet goes
 on an actual resume until the number in it exists in a `results/` file from a run
 you can reproduce. Every number below traces to a run described in
 `research/experiment-plan.md`, commit `39ddb4a1` or later. Nothing here is a

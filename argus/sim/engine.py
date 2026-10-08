@@ -1,7 +1,7 @@
 """Simulated testbed engine.
 
 This replaces the original plan's 12-container Docker network for local development and
-demo purposes (see the scope decision recorded in CLAUDE.md and decisions.md): it
+demo purposes (see the scope decision recorded in ENGINEERING_RULES.md and decisions.md): it
 generates the same *shaped* data -- FlowRecords with realistic per-device-type
 statistics, diurnal patterns, and labelled attack windows -- deterministically and in
 seconds instead of hours. A `compose/` profile for a real-Docker testbed is a documented

@@ -16,7 +16,7 @@ discarding IP/port/protocol/byte-count/DNS/JA4 identity fields entirely, and
 collapsing the original ~34-class attack taxonomy to one binary label. That is why
 this module exists instead of feeding the file through ``argus/features/extract.py``:
 the raw fields that function needs were never in this export to begin with, and there
-is no way to reconstruct them without inventing values -- which CLAUDE.md rule 4
+is no way to reconstruct them without inventing values -- which ENGINEERING_RULES.md rule 4
 ("no fabricated results") and the project owner's own instructions both forbid.
 
 ASSUMPTION: ``sub_label=1`` means Attack and ``sub_label=0`` means Benign. No README
@@ -163,7 +163,7 @@ def split_dataset(
     are each shuffled independently (same seed for benign, seed+1 for attack, so the
     two shuffles are not accidentally correlated), then sliced into disjoint
     train/calib/test ranges. Re-running with the same seed reproduces the exact same
-    three sets, byte for byte (CLAUDE.md rule 6).
+    three sets, byte for byte (ENGINEERING_RULES.md rule 6).
     """
     benign = [r for r in rows if r.label == 0]
     attack = [r for r in rows if r.label == 1]

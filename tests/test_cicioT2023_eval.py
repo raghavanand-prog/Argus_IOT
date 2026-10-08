@@ -119,7 +119,7 @@ def test_to_feature_vector_never_touches_the_label():
 # ---- integration: the real production code path, against real committed data -------
 
 def test_run_cicioT2023_evaluation_end_to_end_against_real_data():
-    """CLAUDE.md's integration-test requirement, for this track: runs the full real
+    """ENGINEERING_RULES.md's integration-test requirement, for this track: runs the full real
     loop (load -> split -> fit -> predict -> compare -> correlate -> risk -> respond
     -> evidence -> persist) against real committed CICIoT2023 rows, and asserts the
     exact measured counts at seed=42 -- a real regression lock, not a loose

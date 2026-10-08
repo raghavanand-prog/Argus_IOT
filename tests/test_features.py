@@ -1,6 +1,6 @@
 """Unit tests for feature extraction against known, hand-reasoned fixtures.
 
-Per CLAUDE.md's testing expectations: real assertions on real behaviour, not
+Per ENGINEERING_RULES.md's testing expectations: real assertions on real behaviour, not
 assert True. These check that features actually separate benign device-type
 behaviour from the two implemented attack scenarios (docs/00 gate for week 2:
 "a human looking at per-device flow statistics can tell the device types apart").
@@ -54,7 +54,7 @@ def test_feature_vector_is_deterministic_for_fixed_seed():
     f1 = run_benign_window(devices, datetime(2026, 1, 1), 30, seed=99)
     f2 = run_benign_window(devices, datetime(2026, 1, 1), 30, seed=99)
     assert [f.bytes_out for f in f1] == [f.bytes_out for f in f2], (
-        "determinism is a non-negotiable rule (CLAUDE.md) -- same seed must reproduce "
+        "determinism is a non-negotiable rule (ENGINEERING_RULES.md) -- same seed must reproduce "
         "the same run exactly"
     )
 

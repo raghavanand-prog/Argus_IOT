@@ -1,5 +1,5 @@
 """Integration test for Phase 2: enrollment -> baseline -> detection -> correlation ->
-risk, run against a scripted attack. Per CLAUDE.md's testing expectations, this asserts
+risk, run against a scripted attack. Per ENGINEERING_RULES.md's testing expectations, this asserts
 real behaviour (an alert was raised, an incident was formed with a real risk score),
 not just that functions were called.
 """

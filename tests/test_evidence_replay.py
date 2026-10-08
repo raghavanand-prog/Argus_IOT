@@ -1,4 +1,4 @@
-"""Evidence replay test -- this IS contribution C2 and is not optional (CLAUDE.md,
+"""Evidence replay test -- this IS contribution C2 and is not optional (ENGINEERING_RULES.md,
 docs/02). Builds bundles across the demo pipeline's actual decisions and asserts a
 measured, high reproducibility rate, plus that hash-chain tampering is detectable.
 """

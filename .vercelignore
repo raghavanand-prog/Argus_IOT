@@ -57,7 +57,7 @@ uv.lock
 Makefile
 MASTER-PLAN.md
 BUILD-ORDER.md
-CLAUDE.md
+ENGINEERING_RULES.md
 STATUS.md
 progress.md
 decisions.md

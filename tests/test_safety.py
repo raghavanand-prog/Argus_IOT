@@ -1,5 +1,5 @@
 """Safety-mechanism tests (docs/03: "a safety mechanism that has never been exercised
-is decoration"). Each of these is required, not optional, per CLAUDE.md.
+is decoration"). Each of these is required, not optional, per ENGINEERING_RULES.md.
 """
 
 from argus.respond.guard import ActionRateLimiter, KillSwitch, evaluate

@@ -41,7 +41,7 @@ def stratified_subsample(rows: list[dict], label_key: str, cap: int, seed: int) 
     """Caps any class at ``cap`` rows, keeping every class with fewer in full
     (docs/05: "Rationale: the raw class distribution is dominated by DDoS
     variants; without capping, a classifier scores well by learning one class").
-    Deterministic for a fixed seed -- required per CLAUDE.md rule 6."""
+    Deterministic for a fixed seed -- required per ENGINEERING_RULES.md rule 6."""
     rng = random.Random(seed)
     by_class: dict[str, list[dict]] = {}
     for r in rows:

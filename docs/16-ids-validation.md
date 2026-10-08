@@ -3,7 +3,7 @@
 This document is the record of an actual validation run, executed once, locally, on
 2026-09-18, at a fixed seed (42) so anyone can reproduce it exactly. Every number in
 the test matrix below comes from that run — see `eval/ids_validation_1_4.json` and
-this document's own "how to reproduce" section. Per CLAUDE.md rule 1/4, nothing here
+this document's own "how to reproduce" section. Per ENGINEERING_RULES.md rule 1/4, nothing here
 is asserted without having been run, and nothing was tuned after the fact to make a
 result look better.
 
@@ -66,7 +66,7 @@ Added, reusing the exact same detector/training code (not a parallel implementat
   `/control/seed-demo`'s pattern, for anyone who wants to trigger this from the Control
   screen / curl rather than the script.
 - `tests/test_ids_validation.py` — locks in the exact counts below as a regression
-  test, per CLAUDE.md's determinism rule.
+  test, per ENGINEERING_RULES.md's determinism rule.
 
 No change was made to `run_demo_pipeline`'s own behavior, the detectors, the risk
 engine, or the response ladder — confirmed by the full existing test suite (46/46,
