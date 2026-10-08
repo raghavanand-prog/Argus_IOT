@@ -4,20 +4,20 @@ version = "0.1.0"
 description = "Closed-loop, evidence-bound IoT intrusion detection and autonomous response"
 requires-python = ">=3.11"
 dependencies = [
-    "fastapi>=0.110",
-    "uvicorn[standard]>=0.29",
-    "sqlalchemy>=2.0",
-    "pydantic>=2.6",
-    "numpy>=1.26",
-    "scikit-learn>=1.4",
-    "river>=0.21",
-    "python-multipart>=0.0.9",
-    "scipy>=1.11",  # eval/stats.py's Mann-Whitney U
-    "shap>=0.44",  # argus/detect/ml.py's ShapExplainer (docs/09 Layer 2)
+    "fastapi>=0.142.2",
+    "uvicorn[standard]>=0.54.0",
+    "sqlalchemy>=2.1.3",
+    "pydantic>=2.13.5",
+    "numpy>=2.4.6",
+    "scikit-learn>=1.9.1",
+    "river>=0.26.1",
+    "python-multipart>=0.0.32",
+    "scipy>=1.17.1",  # eval/stats.py's Mann-Whitney U
+    "shap>=0.51.0",  # argus/detect/ml.py's ShapExplainer (docs/09 Layer 2)
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0", "ruff>=0.4", "mypy>=1.9"]
+dev = ["pytest>=9.1.1", "ruff>=0.16.10", "mypy>=2.4.0"]
 # pyroute2/dpkt: only needed for the real network-namespace testbed (argus/testbed/)
 # -- requires Linux + root/CAP_NET_ADMIN. scapy: also used by the live sensor's real
 # packet capture (sensor/agent.py --enable-capture), cross-platform. zeroconf: the
@@ -26,7 +26,7 @@ dev = ["pytest>=8.0", "ruff>=0.4", "mypy>=1.9"]
 # uses the real OS keychain (macOS Keychain, etc.) when available, cross-platform.
 # The synthetic sim engine and the rest of the system work without any of these.
 # See docs/04b-live-testbed.md, docs/18-live-sensor.md, and docs/19-device-control.md.
-live-testbed = ["pyroute2>=0.7", "scapy>=2.5", "dpkt>=1.9", "zeroconf>=0.130", "keyring>=25.0"]
+live-testbed = ["pyroute2>=0.9.6", "scapy>=2.8.0", "dpkt>=1.9.8", "zeroconf>=0.151.5", "keyring>=25.7.0"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -39,7 +39,7 @@ testpaths = ["tests"]
 select = ["E4", "E7", "E9", "F", "I"]
 
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=84.0.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
