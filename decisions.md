@@ -197,7 +197,7 @@ sequence.
 
 ## 2026-09-17 (third session) — corrected a misattributed citation rather than reuse it
 
-**What happened:** While sourcing references for the IEEE paper deliverable, every
+**What happened:** During an audit of the project's references, every
 candidate citation was checked against a live web search before use — including
 one already committed to `docs/00-problem-and-threat-model.md` by an earlier
 session ("Varol & Karakaya, Sensors 26(18):5744"). That citation turned out to be

@@ -12,8 +12,6 @@ track, alongside the synthetic testbed and CICIoT2023 benchmark).
   in an isolated venv before deployment — real evidence replay and kill switch,
   serving a real (non-fabricated) exported snapshot. See `docs/06-vercel-deployment.md`.
 - Expanded `README.md` with full local + production setup instructions.
-- Two portfolio PDFs: an IEEE-style paper and a 23-section technical project guide
-  (`docs/paper/`), both drawn from real, inspected project content.
 - **Vercel deployment status: CONFIRMED LIVE** (2026-09-18). The prior session's
   account/role permission gap was resolved by the user reauthorizing the Vercel
   MCP connector with full project access (`list_projects`/`get_project` went from

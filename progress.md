@@ -104,10 +104,10 @@ bundles) is smaller than the original plan's own 100-bundle gate; the human
 evaluation of explanations was not run (cannot be, by an autonomous session) and is
 named as such. All in `STATUS.md`'s next-steps list, in priority order.
 
-## 2026-09-17 — third session: local polish, Vercel deployment, IEEE paper + project guide
+## 2026-09-17 — third session: local polish, Vercel deployment
 
-Asked to turn the project into a clean local package, a Vercel-deployed production
-site, and two portfolio PDFs (an IEEE-style paper and a 23-section technical guide).
+Asked to turn the project into a clean local package and a Vercel-deployed production
+site.
 
 - **Production API for Vercel** (`api/index.py`): a deliberately lighter FastAPI
   entrypoint than the local `argus/api/main.py` — reuses `argus.evidence.replay`
@@ -137,7 +137,7 @@ site, and two portfolio PDFs (an IEEE-style paper and a 23-section technical gui
   live, per the project's own no-fabrication rule extended to deployment claims.
   Asked the user to check the Vercel dashboard directly; continued with the
   independent remaining work while that's pending.
-- **Citation audit and fix.** While sourcing references for the IEEE paper, verified
+- **Citation audit and fix.** While auditing the project's references, verified
   every citation via web search before use. One citation already committed to
   `docs/00-problem-and-threat-model.md` from an earlier session turned out to be
   wrong: "Varol & Karakaya, Sensors 26(18):5744" — the real authors of that paper
@@ -149,12 +149,6 @@ site, and two portfolio PDFs (an IEEE-style paper and a 23-section technical gui
   documentation, a build/test walkthrough, a common-errors table, and a Vercel
   production deployment section — all using the project's actual commands, not
   generic placeholders.
-- **Two portfolio PDFs**, both generated from HTML/CSS rendered via Playwright +
-  Chromium: `docs/paper/ARGUS-IEEE-Paper.pdf` (IEEE two-column style, 7 pages, 6
-  individually-verified references, the real measured ablation/replay numbers, an
-  explicit limitations section) and `docs/paper/ARGUS-Project-Guide.pdf` (23
-  sections, 29 pages, covering architecture through viva Q&A, implemented-vs-
-  proposed features and security measures kept explicitly separate throughout).
 
 Verified again before finishing: `pytest` 45/45, `ruff check` clean, console
 production build clean (`tsc -b && vite build`).
