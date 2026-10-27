@@ -1,5 +1,23 @@
 # ARGUS
 
+**Watches the network traffic of smart (IoT) devices, spots attacks, responds on its own, and keeps a tamper-evident record of why it acted.**
+
+Why it exists: most research on IoT intrusion detection stops at raising an alert. ARGUS goes on to decide and act, and records the evidence for every action so it can be checked and replayed later.
+
+**Live console: [argus-iot-live.vercel.app](https://argus-iot-live.vercel.app)** (shows a saved snapshot of a real pipeline run)
+
+## Try it
+
+1. Open the live console.
+2. Look through **Fleet** (the devices), **Incidents** (what was detected, with the evidence) and **Control** (kill switch and enforcement mode).
+3. To run it yourself, follow [Local setup](#local-setup) below. Automatic blocking is off by default: it only logs what it would do.
+
+---
+
+## Technical details
+
+Everything below is the full write-up for engineers and reviewers.
+
 Closed-loop, evidence-bound IoT intrusion detection and autonomous response.
 
 Most IoT intrusion detection research stops at the alert and is evaluated offline.
